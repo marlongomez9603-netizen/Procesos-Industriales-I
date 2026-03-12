@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Gestión de Campo Petrolero — Procesos Industriales I</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --bg: #060612;
+            --card: #0e0e24;
+            --card2: #12123a;
+            --border: rgba(255, 255, 255, .08);
+            --text: #e8e8f0;
+            --muted: #7a7a9e;
+            --accent: #f39c12;
+            --accent2: #e67e22;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --purple: #9b59b6;
+            --radius: 16px;
+            --gap: 20px;
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh
+        }
+
+        /* LAYOUT */
+        .app {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 20px 60px
+        }
+
+        .header {
+            text-align: center;
+            padding: 48px 0 36px;
+            position: relative
+        }
+
+        .header h1 {
+            font-size: clamp(1.6rem, 4vw, 2.6rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #f39c12, #e74c3c 50%, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px
+        }
+
+        .header p {
+            color: var(--muted);
+            font-size: .95rem;
+            max-width: 600px;
+            margin: 0 auto
+        }
+
+        .glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: .08;
+            pointer-events: none
+        }
+
+        .glow.g1 {
+            background: #f39c12;
+            top: -200px;
+            left: -100px
+        }
+
+        .glow.g2 {
+            background: #9b59b6;
+            bottom: -200px;
+            right: -100px
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 32px
+        }
+
+        .stat-pill {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 10px 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .85rem
+        }
+
+        .stat-pill .icon {
+            font-size: 1.1rem
+        }
+
+        .stat-pill .val {
+            font-weight: 800;
+            font-size: 1rem
+        }
+
+        .stat-pill.budget .val {
+            color: var(--success)
+        }
+
+        .stat-pill.phase .val {
+            color: var(--accent)
+        }
+
+        .stat-pill.risk .val {
+            color: var(--danger)
+        }
+
+        .stat-pill.prod .val {
+            color: var(--info)
+        }
+
+        /* PHASES */
+        .phase-container {
+            display: none;
+            animation: fadeUp .5s ease
+        }
+
+        .phase-container.active {
+            display: block
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .phase-header {
+            text-align: center;
+            margin-bottom: 28px
+        }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 5px 18px;
+            border-radius: 50px;
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px
+        }
+
+        .phase-badge.b-exp {
+            background: rgba(243, 156, 18, .12);
+            border: 1px solid rgba(243, 156, 18, .3);
+            color: #f39c12
+        }
+
+        .phase-badge.b-drill {
+            background: rgba(52, 152, 219, .12);
+            border: 1px solid rgba(52, 152, 219, .3);
+            color: #3498db
+        }
+
+        .phase-badge.b-ext {
+            background: rgba(46, 204, 113, .12);
+            border: 1px solid rgba(46, 204, 113, .3);
+            color: #2ecc71
+        }
+
+        .phase-badge.b-res {
+            background: rgba(155, 89, 182, .12);
+            border: 1px solid rgba(155, 89, 182, .3);
+            color: #9b59b6
+        }
+
+        .phase-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800
+        }
+
+        .phase-header p {
+            color: var(--muted);
+            font-size: .88rem;
+            max-width: 550px;
+            margin: 8px auto 0
+        }
+
+        /* CARDS */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--gap)
+        }
+
+        .opt-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            cursor: pointer;
+            transition: transform .3s, border-color .3s, box-shadow .3s;
+            position: relative;
+            overflow: hidden
+        }
+
+        .opt-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, .15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .4)
+        }
+
+        .opt-card.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(243, 156, 18, .15)
+        }
+
+        .opt-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: var(--accent);
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+            font-weight: 900
+        }
+
+        .opt-card .card-icon {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+            display: block
+        }
+
+        .opt-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 6px
+        }
+
+        .opt-card p {
+            font-size: .82rem;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 14px
+        }
+
+        .opt-card .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px
+        }
+
+        .tag {
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: .68rem;
+            font-weight: 700
+        }
+
+        .tag-cost {
+            background: rgba(231, 76, 60, .1);
+            border: 1px solid rgba(231, 76, 60, .25);
+            color: #e74c3c
+        }
+
+        .tag-risk {
+            background: rgba(243, 156, 18, .1);
+            border: 1px solid rgba(243, 156, 18, .25);
+            color: #f39c12
+        }
+
+        .tag-reward {
+            background: rgba(46, 204, 113, .1);
+            border: 1px solid rgba(46, 204, 113, .25);
+            color: #2ecc71
+        }
+
+        .tag-time {
+            background: rgba(52, 152, 219, .1);
+            border: 1px solid rgba(52, 152, 219, .25);
+            color: #3498db
+        }
+
+        /* BUTTONS */
+        .btn-row {
+            text-align: center;
+            margin-top: 28px
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: .92rem;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            transition: transform .3s, box-shadow .3s
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .4)
+        }
+
+        .btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f39c12, #e67e22)
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60)
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db, #2980b9)
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b)
+        }
+
+        .btn-reset {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 10px 20px;
+            font-size: .82rem;
+            margin-top: 12px
+        }
+
+        /* RESULT / EVENT */
+        .result-box {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-top: 24px;
+            text-align: center;
+            animation: fadeUp .4s ease
+        }
+
+        .result-box h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 8px
+        }
+
+        .result-box p {
+            color: var(--muted);
+            font-size: .88rem;
+            line-height: 1.7
+        }
+
+        .result-box .big-num {
+            font-size: 2.4rem;
+            font-weight: 900;
+            margin: 12px 0
+        }
+
+        .result-box .big-num.positive {
+            color: var(--success)
+        }
+
+        .result-box .big-num.negative {
+            color: var(--danger)
+        }
+
+        .result-box .big-num.neutral {
+            color: var(--info)
+        }
+
+        /* EVENT MODAL */
+        .event-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .3s, visibility .3s
+        }
+
+        .event-overlay.open {
+            opacity: 1;
+            visibility: visible
+        }
+
+        .event-body {
+            background: #13132e;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 20px;
+            padding: 36px;
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            transform: scale(.9);
+            transition: transform .3s
+        }
+
+        .event-overlay.open .event-body {
+            transform: scale(1)
+        }
+
+        .event-icon {
+            font-size: 3rem;
+            margin-bottom: 14px;
+            display: block
+        }
+
+        .event-body h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 10px
+        }
+
+        .event-body p {
+            color: var(--muted);
+            font-size: .9rem;
+            line-height: 1.7;
+            margin-bottom: 20px
+        }
+
+        /* PROGRESS BAR */
+        .progress-wrap {
+            margin-bottom: 30px
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            position: relative
+        }
+
+        .p-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            max-width: 160px;
+            position: relative;
+            z-index: 2
+        }
+
+        .p-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+            font-weight: 800;
+            transition: .3s;
+            margin-bottom: 6px
+        }
+
+        .p-step.done .p-dot {
+            background: var(--success);
+            border-color: var(--success);
+            color: #000
+        }
+
+        .p-step.current .p-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+            box-shadow: 0 0 16px rgba(243, 156, 18, .3)
+        }
+
+        .p-label {
+            font-size: .68rem;
+            color: var(--muted);
+            text-align: center;
+            font-weight: 600
+        }
+
+        .p-step.done .p-label,
+        .p-step.current .p-label {
+            color: var(--text)
+        }
+
+        .p-line {
+            position: absolute;
+            top: 18px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 1
+        }
+
+        /* SUMMARY TABLE */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: .85rem
+        }
+
+        .summary-table th {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .summary-table td {
+            color: var(--text)
+        }
+
+        /* INTRO */
+        .intro-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 30px
+        }
+
+        .intro-card h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 10px
+        }
+
+        .intro-card p {
+            color: var(--muted);
+            font-size: .9rem;
+            line-height: 1.7;
+            margin-bottom: 6px
+        }
+
+        .budget-display {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--success);
+            margin: 18px 0
+        }
+
+        .intro-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-top: 20px;
+            text-align: left
+        }
+
+        .intro-feat {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: .82rem;
+            color: var(--muted)
+        }
+
+        .intro-feat strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 2px
+        }
+
+        @media(max-width:600px) {
+            .options-grid {
+                grid-template-columns: 1fr
+            }
+
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch
+            }
+
+            .progress-steps {
+                flex-wrap: wrap;
+                gap: 8px
+            }
+
+            .p-line {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="header">
+            <div class="glow g1"></div>
+            <div class="glow g2"></div>
+            <h1>⛽ Simulador de Gestión de Campo Petrolero</h1>
+            <p>Toma decisiones estratégicas de exploración, perforación y extracción con un presupuesto limitado</p>
+        </div>
+
+        <!-- TOP BAR -->
+        <div class="top-bar" id="topBar" style="display:none">
+            <div class="stat-pill budget"><span class="icon">💰</span><span>Presupuesto:</span><span class="val"
+                    id="budgetVal">$50.0M</span></div>
+            <div class="stat-pill phase"><span class="icon">📍</span><span>Fase:</span><span class="val"
+                    id="phaseVal">Exploración</span></div>
+            <div class="stat-pill risk"><span class="icon">⚠️</span><span>Riesgo:</span><span class="val"
+                    id="riskVal">Medio</span></div>
+            <div class="stat-pill prod"><span class="icon">🛢️</span><span>Producción:</span><span class="val"
+                    id="prodVal">0 BPD</span></div>
+        </div>
+
+        <!-- PROGRESS -->
+        <div class="progress-wrap" id="progressWrap" style="display:none">
+            <div class="progress-steps">
+                <div class="p-line"></div>
+                <div class="p-step current" id="ps1">
+                    <div class="p-dot">1</div>
+                    <div class="p-label">Exploración</div>
+                </div>
+                <div class="p-step" id="ps2">
+                    <div class="p-dot">2</div>
+                    <div class="p-label">Perforación</div>
+                </div>
+                <div class="p-step" id="ps3">
+                    <div class="p-dot">3</div>
+                    <div class="p-label">Extracción</div>
+                </div>
+                <div class="p-step" id="ps4">
+                    <div class="p-dot">4</div>
+                    <div class="p-label">Resultados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 0: INTRO -->
+        <div class="phase-container active" id="phaseIntro">
+            <div class="intro-card">
+                <h2>🏗️ Bienvenido, Gerente de Campo</h2>
+                <p>Has sido nombrado gerente de un nuevo proyecto de exploración y producción de petróleo. Tu empresa te
+                    ha asignado un presupuesto de:</p>
+                <div class="budget-display">$50,000,000 USD</div>
+                <p>Debes tomar decisiones estratégicas en cada etapa: <strong>exploración, perforación y
+                        extracción</strong>. Cada decisión tiene costos, riesgos y consecuencias reales.</p>
+                <div class="intro-features">
+                    <div class="intro-feat"><strong>🔍 Fase 1: Exploración</strong>Elige el método geológico y geofísico
+                        para localizar el yacimiento.</div>
+                    <div class="intro-feat"><strong>🔩 Fase 2: Perforación</strong>Selecciona el tipo de pozo y la
+                        tecnología de perforación.</div>
+                    <div class="intro-feat"><strong>⛽ Fase 3: Extracción</strong>Define el método de recuperación y las
+                        facilidades de superficie.</div>
+                    <div class="intro-feat"><strong>📊 Resultados</strong>Evalúa la rentabilidad de tu campo y compara
+                        con tus compañeros.</div>
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="startGame()">🚀 Iniciar Simulación</button>
+            </div>
+        </div>
+
+        <!-- PHASE 1: EXPLORACIÓN -->
+        <div class="phase-container" id="phase1">
+            <div class="phase-header">
+                <span class="phase-badge b-exp">Fase 1 de 3</span>
+                <h2>🔍 Exploración Geológica y Geofísica</h2>
+                <p>Antes de perforar, debes invertir en estudios para localizar el yacimiento. A mayor inversión, menor
+                    riesgo de pozo seco.</p>
+            </div>
+            <div class="options-grid" id="expOptions"></div>
+            <div id="expEvent"></div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="btnExp" disabled onclick="confirmPhase(1)">Confirmar Decisión
+                    →</button>
+            </div>
+        </div>
+
+        <!-- PHASE 2: PERFORACIÓN -->
+        <div class="phase-container" id="phase2">
+            <div class="phase-header">
+                <span class="phase-badge b-drill">Fase 2 de 3</span>
+                <h2>🔩 Perforación del Pozo</h2>
+                <p>Selecciona el tipo de pozo y la tecnología. Tu elección afecta el costo, la profundidad alcanzable y
+                    la productividad.</p>
+            </div>
+            <div class="options-grid" id="drillOptions"></div>
+            <div id="drillEvent"></div>
+            <div class="btn-row">
+                <button class="btn btn-info" id="btnDrill" disabled onclick="confirmPhase(2)">Confirmar Decisión
+                    →</button>
+            </div>
+        </div>
+
+        <!-- PHASE 3: EXTRACCIÓN -->
+        <div class="phase-container" id="phase3">
+            <div class="phase-header">
+                <span class="phase-badge b-ext">Fase 3 de 3</span>
+                <h2>⛽ Sistema de Extracción y Facilidades</h2>
+                <p>Define cómo producirás el petróleo. El método de recuperación y las facilidades de superficie
+                    determinan tu producción diaria.</p>
+            </div>
+            <div class="options-grid" id="extOptions"></div>
+            <div id="extEvent"></div>
+            <div class="btn-row">
+                <button class="btn btn-success" id="btnExt" disabled onclick="confirmPhase(3)">Ver Resultados Finales
+                    →</button>
+            </div>
+        </div>
+
+        <!-- PHASE 4: RESULTS -->
+        <div class="phase-container" id="phase4">
+            <div class="phase-header">
+                <span class="phase-badge b-res">Resultados Finales</span>
+                <h2>📊 Evaluación del Proyecto</h2>
+            </div>
+            <div id="resultsContent"></div>
+            <div class="btn-row">
+                <button class="btn btn-reset" onclick="resetGame()">🔄 Reiniciar Simulación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RANDOM EVENT MODAL -->
+    <div class="event-overlay" id="eventOverlay">
+        <div class="event-body">
+            <span class="event-icon" id="evIcon"></span>
+            <h3 id="evTitle"></h3>
+            <p id="evText"></p>
+            <button class="btn btn-primary" onclick="closeEvent()">Entendido</button>
+        </div>
+    </div>
+
+    <script>
+        /* ============ GAME STATE ============ */
+        var state = { budget: 50, spent: 0, phase: 0, risk: 50, production: 0, choices: [], oilPrice: 65, reservesFound: 0, wellSuccess: false };
+
+        /* ============ OPTIONS DATA ============ */
+        var phases = {
+            1: [
+                { id: 'basic', icon: '🗺️', title: 'Estudio Geológico Básico', desc: 'Análisis de mapas geológicos existentes, muestreo geoquímico superficial e interpretación de datos históricos. Método económico pero con alta incertidumbre.', cost: 3, risk: 75, reward: 20, time: '2 meses', detail: 'Probabilidad de éxito: ~25%. Identifica zonas amplias de interés sin precisión en la ubicación del reservorio.' },
+                { id: 'seismic2d', icon: '📡', title: 'Sísmica 2D + Gravimetría', desc: 'Líneas sísmicas 2D combinadas con estudios gravimétricos y magnetométricos. Balance entre costo e información. Identifica estructuras principales.', cost: 8, risk: 55, reward: 50, time: '4 meses', detail: 'Probabilidad de éxito: ~45%. Genera perfiles transversales del subsuelo para mapear trampas estructurales.' },
+                { id: 'seismic3d', icon: '🛰️', title: 'Sísmica 3D Completa', desc: 'Adquisición sísmica 3D de alta resolución con procesamiento avanzado. Modelo volumétrico detallado del subsuelo con mapeo preciso de fallas y reservorios.', cost: 15, risk: 25, reward: 85, time: '8 meses', detail: 'Probabilidad de éxito: ~75%. Estándar de la industria para proyectos de alto valor. Reduce drásticamente el riesgo exploratorio.' }
+            ],
+            2: [
+                { id: 'vertical', icon: '🔧', title: 'Pozo Vertical Convencional', desc: 'Perforación vertical estándar con broca tricónica. Alcanza 2,000–3,500m de profundidad. Tecnología probada y confiable para yacimientos someros.', cost: 5, risk: 30, reward: 40, time: '45 días', detail: 'Producción esperada: 200–800 BPD. Costo operativo bajo. Limitado a un solo punto de drenaje en el reservorio.' },
+                { id: 'directional', icon: '🔩', title: 'Pozo Direccional', desc: 'Perforación con motor de fondo y MWD/LWD para alcanzar objetivos desviados. Accede a zonas bajo obstáculos superficiales o múltiples capas productivas.', cost: 12, risk: 40, reward: 65, time: '60 días', detail: 'Producción esperada: 500–1,500 BPD. Mayor área de drenaje. Requiere control preciso de trayectoria.' },
+                { id: 'horizontal', icon: '🚀', title: 'Pozo Horizontal con Fracturamiento', desc: 'Perforación horizontal con sección lateral de 1,000–2,000m y fracturamiento hidráulico multietapa. Máxima exposición al reservorio.', cost: 22, risk: 50, reward: 95, time: '90 días', detail: 'Producción esperada: 1,500–4,000 BPD. Costoso pero altamente productivo. Requiere equipo especializado de última generación.' }
+            ],
+            3: [
+                { id: 'natural', icon: '💨', title: 'Flujo Natural + Facilidades Básicas', desc: 'Aprovecha la presión natural del yacimiento. Separador bifásico, tanques de almacenamiento y línea de flujo al punto de venta.', cost: 3, risk: 15, reward: 35, time: '30 días', detail: 'Sin costo energético de levantamiento. La producción declina naturalmente con el tiempo. Facilidades para máx. 1,000 BPD.' },
+                { id: 'artificial', icon: '⚙️', title: 'Bombeo Mecánico + Planta de Tratamiento', desc: 'Sistema de bombeo con unidad de balancín (caballito), separador trifásico, deshidratador y tea de venteo. Instalación robusta de campo.', cost: 10, risk: 25, reward: 65, time: '45 días', detail: 'Mantiene producción estable 3–5 años. Facilidades para 500–2,500 BPD. Incluye sistema SCADA básico.' },
+                { id: 'enhanced', icon: '🏭', title: 'Recuperación Mejorada (EOR) + Facilidades Completas', desc: 'Inyección de agua/gas, bombeo electrosumergible (BES), planta completa de tratamiento con control automatizado y compresión de gas.', cost: 20, risk: 35, reward: 95, time: '90 días', detail: 'Maximiza el factor de recobro (hasta 45%). Facilidades para 5,000+ BPD. Inversión alta con retorno a largo plazo.' }
+            ]
+        };
+
+        var randomEvents = [
+            { icon: '🌧️', title: 'Temporada de Lluvias', text: 'Las fuertes lluvias han dañado los accesos al campo. Los costos de logística aumentan en <strong>$2M USD</strong>.', effect: function () { state.budget -= 2 } },
+            { icon: '📈', title: 'Precio del Petróleo Sube', text: 'Tensiones geopolíticas elevan el precio del crudo Brent a <strong>$85/barril</strong>. ¡Tu proyecto se vuelve más rentable!', effect: function () { state.oilPrice = 85 } },
+            { icon: '📉', title: 'Caída del Precio del Crudo', text: 'Sobreoferta global reduce el precio a <strong>$48/barril</strong>. La rentabilidad del proyecto se ve afectada.', effect: function () { state.oilPrice = 48 } },
+            { icon: '🔧', title: 'Falla en Equipos', text: 'Un compresor principal falló. Reparaciones cuestan <strong>$1.5M USD</strong> y retrasan la operación.', effect: function () { state.budget -= 1.5 } },
+            { icon: '🎉', title: 'Incentivo Tributario', text: 'El gobierno otorga un beneficio fiscal para proyectos de exploración. Recibes <strong>$3M USD</strong> adicionales.', effect: function () { state.budget += 3 } },
+            { icon: '🌍', title: 'Auditoría Ambiental', text: 'La autoridad ambiental exige estudios adicionales que cuestan <strong>$1M USD</strong>, pero aprueban la licencia rápidamente.', effect: function () { state.budget -= 1 } },
+            { icon: '🤝', title: 'Alianza Estratégica', text: 'Una empresa socia aporta <strong>$4M USD</strong> a cambio del 15% de participación en la producción.', effect: function () { state.budget += 4; state.reward = (state.reward || 1) * 0.85 } },
+            { icon: '💎', title: 'Hallazgo Inesperado', text: 'Los estudios revelan una <strong>capa productora adicional</strong> no prevista. El potencial del yacimiento aumenta un 30%.', effect: function () { state.production = Math.round(state.production * 1.3) } }
+        ];
+
+        /* ============ RENDER FUNCTIONS ============ */
+        function renderOptions(phase) {
+            var container = document.getElementById(phase === 1 ? 'expOptions' : phase === 2 ? 'drillOptions' : 'extOptions');
+            var opts = phases[phase];
+            var html = '';
+            for (var i = 0; i < opts.length; i++) {
+                var o = opts[i];
+                html += '<div class="opt-card" data-id="' + o.id + '" onclick="selectOption(' + phase + ',\'' + o.id + '\')">';
+                html += '<span class="card-icon">' + o.icon + '</span>';
+                html += '<h3>' + o.title + '</h3>';
+                html += '<p>' + o.desc + '</p>';
+                html += '<div class="tag-row">';
+                html += '<span class="tag tag-cost">💲 $' + o.cost + 'M</span>';
+                html += '<span class="tag tag-risk">⚠️ Riesgo: ' + o.risk + '%</span>';
+                html += '<span class="tag tag-reward">📈 Potencial: ' + o.reward + '%</span>';
+                html += '<span class="tag tag-time">⏱️ ' + o.time + '</span>';
+                html += '</div></div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function selectOption(phase, id) {
+            var container = document.getElementById(phase === 1 ? 'expOptions' : phase === 2 ? 'drillOptions' : 'extOptions');
+            var cards = container.querySelectorAll('.opt-card');
+            for (var i = 0; i < cards.length; i++) {
+                cards[i].classList.toggle('selected', cards[i].getAttribute('data-id') === id);
+            }
+            state.choices[phase] = id;
+            var btn = document.getElementById(phase === 1 ? 'btnExp' : phase === 2 ? 'btnDrill' : 'btnExt');
+            btn.disabled = false;
+            // Check budget
+            var opt = getOption(phase, id);
+            if (opt.cost > state.budget) {
+                btn.disabled = true;
+                btn.textContent = '❌ Presupuesto insuficiente';
+            }
+        }
+
+        function getOption(phase, id) {
+            var opts = phases[phase];
+            for (var i = 0; i < opts.length; i++) { if (opts[i].id === id) return opts[i]; }
+            return null;
+        }
+
+        function updateTopBar() {
+            document.getElementById('budgetVal').textContent = '$' + state.budget.toFixed(1) + 'M';
+            document.getElementById('phaseVal').textContent = state.phase === 1 ? 'Exploración' : state.phase === 2 ? 'Perforación' : state.phase === 3 ? 'Extracción' : 'Resultados';
+            document.getElementById('riskVal').textContent = state.risk + '%';
+            document.getElementById('prodVal').textContent = state.production.toLocaleString() + ' BPD';
+        }
+
+        function updateProgress() {
+            var ids = ['ps1', 'ps2', 'ps3', 'ps4'];
+            for (var i = 0; i < ids.length; i++) {
+                var el = document.getElementById(ids[i]);
+                el.className = 'p-step';
+                if (i + 1 < state.phase) el.classList.add('done');
+                else if (i + 1 === state.phase) el.classList.add('current');
+            }
+        }
+
+        /* ============ GAME LOGIC ============ */
+        function startGame() {
+            state = { budget: 50, spent: 0, phase: 1, risk: 50, production: 0, choices: [null], oilPrice: 65, reservesFound: 0, wellSuccess: true };
+            document.getElementById('topBar').style.display = 'flex';
+            document.getElementById('progressWrap').style.display = 'block';
+            showPhase(1);
+            renderOptions(1);
+            updateTopBar();
+            updateProgress();
+        }
+
+        function showPhase(n) {
+            var all = document.querySelectorAll('.phase-container');
+            for (var i = 0; i < all.length; i++) { all[i].classList.remove('active'); }
+            var id = n === 0 ? 'phaseIntro' : n === 4 ? 'phase4' : 'phase' + n;
+            document.getElementById(id).classList.add('active');
+            state.phase = n;
+            updateTopBar();
+            updateProgress();
+        }
+
+        function confirmPhase(phase) {
+            var choice = state.choices[phase];
+            var opt = getOption(phase, choice);
+            state.budget -= opt.cost;
+            state.spent += opt.cost;
+            state.risk = Math.max(5, Math.round(state.risk * (opt.risk / 100)));
+
+            // Calculate production based on choices
+            if (phase === 1) {
+                state.reservesFound = opt.reward;
+                // Simulate exploration success
+                var roll = Math.random() * 100;
+                if (roll > opt.risk) {
+                    showEventResult(phase, '✅ ¡Exploración exitosa!', 'Los estudios de <strong>' + opt.title + '</strong> identificaron una estructura prometedora con reservas estimadas de <strong>' + Math.round(opt.reward * 2 + 20) + ' millones de barriles</strong>. Probabilidad de éxito del pozo: <strong>' + (100 - Math.round(opt.risk * 0.6)) + '%</strong>.', true);
+                } else {
+                    state.reservesFound = Math.round(opt.reward * 0.4);
+                    showEventResult(phase, '⚠️ Resultados parciales', 'Los estudios dieron resultados ambiguos. Se detectó una anomalía pero con <strong>baja certeza</strong>. Las reservas estimadas son menores: <strong>' + Math.round(opt.reward * 0.8 + 5) + ' millones de barriles</strong>.', false);
+                }
+            }
+            else if (phase === 2) {
+                var successChance = state.reservesFound + opt.reward * 0.3;
+                var roll2 = Math.random() * 100;
+                if (roll2 < successChance) {
+                    state.wellSuccess = true;
+                    var baseProd = opt.id === 'vertical' ? 500 : opt.id === 'directional' ? 1200 : 3000;
+                    state.production = Math.round(baseProd * (0.7 + Math.random() * 0.6));
+                    showEventResult(phase, '🛢️ ¡Pozo productivo!', 'La perforación con <strong>' + opt.title + '</strong> alcanzó el reservorio exitosamente. Producción inicial de prueba: <strong>' + state.production.toLocaleString() + ' BPD</strong> de crudo de <strong>' + Math.round(28 + Math.random() * 12) + '° API</strong>.', true);
+                } else {
+                    state.wellSuccess = false;
+                    state.production = Math.round((opt.id === 'vertical' ? 100 : opt.id === 'directional' ? 200 : 400) * Math.random());
+                    showEventResult(phase, '😟 Pozo sub-comercial', 'El pozo encontró la formación con <strong>baja permeabilidad</strong>. Producción insuficiente: <strong>' + state.production + ' BPD</strong>. Se recomienda evaluar estimulación o reperforación.', false);
+                }
+            }
+            else if (phase === 3) {
+                var mult = opt.id === 'natural' ? 0.8 : opt.id === 'artificial' ? 1.2 : 1.6;
+                state.production = Math.round(state.production * mult);
+                // Trigger random event
+                triggerRandomEvent();
+                showPhase(4);
+                renderResults();
+                return;
+            }
+
+            // Maybe trigger random event between phases
+            if (Math.random() > 0.5) setTimeout(function () { triggerRandomEvent() }, 1500);
+
+            updateTopBar();
+        }
+
+        function showEventResult(phase, title, text, success) {
+            var container = document.getElementById(phase === 1 ? 'expEvent' : phase === 2 ? 'drillEvent' : 'extEvent');
+            container.innerHTML = '<div class="result-box"><h3>' + title + '</h3><p>' + text + '</p></div>';
+            // After showing result, wait and advance
+            setTimeout(function () {
+                var nextPhase = phase + 1;
+                showPhase(nextPhase);
+                if (nextPhase <= 3) renderOptions(nextPhase);
+                updateTopBar();
+            }, 200);
+        }
+
+        function triggerRandomEvent() {
+            var ev = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+            document.getElementById('evIcon').textContent = ev.icon;
+            document.getElementById('evTitle').textContent = ev.title;
+            document.getElementById('evText').innerHTML = ev.text;
+            ev.effect();
+            updateTopBar();
+            document.getElementById('eventOverlay').classList.add('open');
+        }
+
+        function closeEvent() {
+            document.getElementById('eventOverlay').classList.remove('open');
+        }
+
+        /* ============ RESULTS ============ */
+        function renderResults() {
+            var totalInvested = state.spent;
+            var dailyRevenue = state.production * state.oilPrice;
+            var dailyCost = state.production * 12;
+            var dailyProfit = dailyRevenue - dailyCost;
+            var annualProfit = dailyProfit * 365;
+            var payback = annualProfit > 0 ? (totalInvested * 1000000 / annualProfit).toFixed(1) : '∞';
+            var roi = annualProfit > 0 ? ((annualProfit / (totalInvested * 1000000)) * 100).toFixed(1) : '0';
+            var grade = '';
+            var gradeColor = '';
+            if (parseFloat(roi) >= 40) { grade = '⭐ EXCELENTE'; gradeColor = 'var(--success)' }
+            else if (parseFloat(roi) >= 20) { grade = '👍 BUENO'; gradeColor = 'var(--info)' }
+            else if (parseFloat(roi) >= 5) { grade = '⚠️ ACEPTABLE'; gradeColor = 'var(--accent)' }
+            else { grade = '❌ DEFICIENTE'; gradeColor = 'var(--danger)' }
+
+            var html = '';
+            html += '<div class="result-box"><h3>Evaluación General del Proyecto</h3>';
+            html += '<div class="big-num" style="color:' + gradeColor + '">' + grade + '</div>';
+            html += '<p>Retorno sobre inversión anual: <strong>' + roi + '%</strong></p></div>';
+
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px">';
+            html += '<div class="result-box"><p style="color:var(--muted);font-size:.75rem">INVERSIÓN TOTAL</p><div class="big-num neutral">$' + totalInvested.toFixed(1) + 'M</div></div>';
+            html += '<div class="result-box"><p style="color:var(--muted);font-size:.75rem">PRODUCCIÓN DIARIA</p><div class="big-num ' + (state.production > 500 ? 'positive' : 'negative') + '">' + state.production.toLocaleString() + ' BPD</div></div>';
+            html += '<div class="result-box"><p style="color:var(--muted);font-size:.75rem">PRECIO DEL CRUDO</p><div class="big-num neutral">$' + state.oilPrice + '/bbl</div></div>';
+            html += '<div class="result-box"><p style="color:var(--muted);font-size:.75rem">PRESUPUESTO RESTANTE</p><div class="big-num ' + (state.budget > 10 ? 'positive' : 'negative') + '">$' + state.budget.toFixed(1) + 'M</div></div>';
+            html += '</div>';
+
+            html += '<table class="summary-table" style="margin-top:24px">';
+            html += '<tr><th>Concepto</th><th>Valor</th></tr>';
+            html += '<tr><td>💰 Ingreso diario bruto</td><td><strong>$' + dailyRevenue.toLocaleString() + '/día</strong></td></tr>';
+            html += '<tr><td>📉 Costo operativo diario</td><td>$' + dailyCost.toLocaleString() + '/día</td></tr>';
+            html += '<tr><td>📈 Utilidad diaria neta</td><td style="color:' + (dailyProfit > 0 ? 'var(--success)' : 'var(--danger)') + '"><strong>$' + dailyProfit.toLocaleString() + '/día</strong></td></tr>';
+            html += '<tr><td>📅 Utilidad anual estimada</td><td style="color:' + (annualProfit > 0 ? 'var(--success)' : 'var(--danger)') + '"><strong>$' + (annualProfit / 1000000).toFixed(2) + 'M/año</strong></td></tr>';
+            html += '<tr><td>⏳ Tiempo de recuperación (payback)</td><td><strong>' + payback + ' años</strong></td></tr>';
+            html += '</table>';
+
+            // Decisions summary
+            html += '<h3 style="margin-top:30px;font-size:1.1rem;font-weight:700">📋 Resumen de Decisiones</h3>';
+            html += '<table class="summary-table">';
+            html += '<tr><th>Fase</th><th>Decisión</th><th>Inversión</th></tr>';
+            for (var i = 1; i <= 3; i++) {
+                var c = state.choices[i];
+                if (c) {
+                    var o = getOption(i, c);
+                    var phaseName = i === 1 ? '🔍 Exploración' : i === 2 ? '🔩 Perforación' : '⛽ Extracción';
+                    html += '<tr><td>' + phaseName + '</td><td>' + o.title + '</td><td>$' + o.cost + 'M</td></tr>';
+                }
+            }
+            html += '</table>';
+
+            // Educational insight
+            html += '<div class="result-box" style="margin-top:24px;text-align:left">';
+            html += '<h3 style="text-align:center">🎓 Reflexión Educativa</h3>';
+            html += '<p style="margin-top:12px"><strong>En la industria real:</strong></p>';
+            html += '<p>• La exploración representa ~<strong>10-30%</strong> de la inversión total y es la etapa de mayor riesgo. Invertir más en exploración reduce el riesgo de perforar pozos secos (que cuestan igual pero no producen nada).</p>';
+            html += '<p>• Un pozo exploratorio exitoso tiene probabilidades de éxito entre <strong>10% y 40%</strong> dependiendo de la calidad de los estudios previos.</p>';
+            html += '<p>• El <strong>costo operativo (OPEX)</strong> típico es de $8-$20 por barril, mientras el <strong>costo de capital (CAPEX)</strong> puede superar los $50M por pozo horizontal.</p>';
+            html += '<p>• La volatilidad del precio del petróleo es el factor externo más impactante. Un proyecto rentable a $80/bbl puede ser inviable a $40/bbl.</p>';
+            html += '<p>• En Colombia, la <strong>ANH</strong> (Agencia Nacional de Hidrocarburos) otorga los contratos E&P y las regalías van entre el <strong>8% y 25%</strong> dependiendo del volumen producido.</p>';
+            html += '</div>';
+
+            document.getElementById('resultsContent').innerHTML = html;
+            updateTopBar();
+        }
+
+        function resetGame() {
+            document.getElementById('topBar').style.display = 'none';
+            document.getElementById('progressWrap').style.display = 'none';
+            document.getElementById('expEvent').innerHTML = '';
+            document.getElementById('drillEvent').innerHTML = '';
+            document.getElementById('extEvent').innerHTML = '';
+            document.getElementById('btnExp').disabled = true;
+            document.getElementById('btnExp').textContent = 'Confirmar Decisión →';
+            document.getElementById('btnDrill').disabled = true;
+            document.getElementById('btnDrill').textContent = 'Confirmar Decisión →';
+            document.getElementById('btnExt').disabled = true;
+            document.getElementById('btnExt').textContent = 'Ver Resultados Finales →';
+            showPhase(0);
+        }
+    </script>
+</body>
+
+</html>
