@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taller - Gestión de Campo Petrolero</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a2f;
+      --panel-2:#18233f;
+      --line:rgba(255,255,255,.08);
+      --text:#eaf0ff;
+      --muted:#aab6d3;
+      --soft:#8fa2c9;
+      --accent:#7aa2ff;
+      --accent-2:#4fd1c5;
+      --gold:#d7b56d;
+      --danger:#ff6b6b;
+      --success:#7ee081;
+      --shadow:0 20px 60px rgba(0,0,0,.35);
+      --radius:20px;
+      --radius-sm:14px;
+      --max:1280px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(122,162,255,.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(79,209,197,.10), transparent 24%),
+        linear-gradient(180deg, #0a0f1d 0%, #0d1326 100%);
+      color:var(--text);
+      line-height:1.55;
+    }
+
+    .container{
+      width:min(var(--max), calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:30;
+      backdrop-filter:blur(16px);
+      background:rgba(9,14,28,.72);
+      border-bottom:1px solid var(--line);
+    }
+
+    .topbar-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:14px 0;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+
+    .brand-mark{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      background:linear-gradient(135deg, var(--gold), #8a6b2c);
+      box-shadow:0 10px 30px rgba(215,181,109,.28);
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:1rem;
+      font-weight:700;
+      letter-spacing:.02em;
+    }
+
+    .brand p{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size:.88rem;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    button{
+      border:none;
+      cursor:pointer;
+      color:var(--text);
+      background:linear-gradient(180deg, #1b2747, #141d36);
+      border:1px solid rgba(255,255,255,.08);
+      padding:11px 16px;
+      border-radius:12px;
+      font-weight:600;
+      transition:.2s ease;
+      box-shadow:var(--shadow);
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+      border-color:rgba(122,162,255,.45);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg, var(--accent), #5b7cfa);
+      color:white;
+    }
+
+    .btn-secondary{
+      background:linear-gradient(135deg, #19304a, #13243b);
+    }
+
+    .btn-danger{
+      background:linear-gradient(135deg, #482030, #31151f);
+      color:#ffd8d8;
+    }
+
+    .hero{
+      padding:42px 0 28px;
+    }
+
+    .hero-card{
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
+        linear-gradient(180deg, rgba(16,24,44,.9), rgba(11,18,33,.95));
+      box-shadow:var(--shadow);
+      padding:38px;
+    }
+
+    .hero-card::before{
+      content:"";
+      position:absolute;
+      inset:auto -60px -60px auto;
+      width:220px;
+      height:220px;
+      background:radial-gradient(circle, rgba(122,162,255,.35), transparent 65%);
+      pointer-events:none;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.4fr .8fr;
+      gap:24px;
+      align-items:end;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border:1px solid rgba(215,181,109,.28);
+      border-radius:999px;
+      color:#f5dfaa;
+      background:rgba(215,181,109,.08);
+      font-size:.85rem;
+      margin-bottom:16px;
+    }
+
+    .hero h2{
+      margin:0 0 12px;
+      font-size:clamp(2rem, 4vw, 3.4rem);
+      line-height:1.08;
+      letter-spacing:-.03em;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      max-width:850px;
+    }
+
+    .hero-metrics{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .metric{
+      padding:18px;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+    }
+
+    .metric span{
+      display:block;
+      color:var(--soft);
+      font-size:.84rem;
+      margin-bottom:8px;
+    }
+
+    .metric strong{
+      font-size:1.2rem;
+      letter-spacing:.02em;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:22px;
+      padding:12px 0 48px;
+    }
+
+    aside{
+      position:sticky;
+      top:84px;
+      align-self:start;
+    }
+
+    .side-card{
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(18,26,47,.9), rgba(14,21,39,.96));
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+
+    .side-card h3{
+      margin:0 0 10px;
+      font-size:1rem;
+    }
+
+    .nav-links{
+      display:grid;
+      gap:8px;
+    }
+
+    .nav-links a{
+      text-decoration:none;
+      color:var(--muted);
+      padding:10px 12px;
+      border-radius:12px;
+      transition:.2s ease;
+      border:1px solid transparent;
+    }
+
+    .nav-links a:hover{
+      color:var(--text);
+      background:rgba(255,255,255,.04);
+      border-color:var(--line);
+    }
+
+    .save-status{
+      margin-top:14px;
+      font-size:.9rem;
+      color:var(--accent-2);
+    }
+
+    main{
+      display:grid;
+      gap:20px;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(18,26,47,.92), rgba(13,19,35,.96));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:20px 24px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    }
+
+    .card-head h3{
+      margin:0;
+      font-size:1.08rem;
+      letter-spacing:.01em;
+    }
+
+    .card-head p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .card-body{
+      padding:24px;
+    }
+
+    .grid{
+      display:grid;
+      gap:16px;
+    }
+
+    .grid-2{
+      grid-template-columns:repeat(2, minmax(0,1fr));
+    }
+
+    .grid-3{
+      grid-template-columns:repeat(3, minmax(0,1fr));
+    }
+
+    .field{
+      display:grid;
+      gap:8px;
+    }
+
+    label{
+      font-size:.92rem;
+      color:#d8e1f7;
+      font-weight:600;
+    }
+
+    .hint{
+      color:var(--soft);
+      font-size:.84rem;
+      margin-top:-2px;
+    }
+
+    input, select, textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(7,11,22,.5);
+      color:var(--text);
+      border-radius:14px;
+      padding:13px 14px;
+      outline:none;
+      transition:.2s ease;
+      font:inherit;
+    }
+
+    input:focus, select:focus, textarea:focus{
+      border-color:rgba(122,162,255,.7);
+      box-shadow:0 0 0 4px rgba(122,162,255,.12);
+    }
+
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    .table-wrap{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:18px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:760px;
+    }
+
+    th, td{
+      border-bottom:1px solid var(--line);
+      padding:14px 14px;
+      text-align:left;
+      vertical-align:top;
+    }
+
+    th{
+      color:#f2f6ff;
+      background:rgba(255,255,255,.03);
+      font-size:.92rem;
+    }
+
+    td{
+      color:var(--muted);
+      font-size:.94rem;
+    }
+
+    .section-note{
+      margin:0 0 16px;
+      color:var(--muted);
+    }
+
+    .pill{
+      display:inline-block;
+      padding:7px 10px;
+      border-radius:999px;
+      background:rgba(122,162,255,.12);
+      border:1px solid rgba(122,162,255,.18);
+      color:#dce7ff;
+      font-size:.82rem;
+      font-weight:600;
+    }
+
+    .summary-box{
+      border:1px dashed rgba(215,181,109,.35);
+      background:rgba(215,181,109,.06);
+      border-radius:18px;
+      padding:16px;
+      color:#f4e6bf;
+    }
+
+    .footer-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      justify-content:flex-end;
+      margin-top:18px;
+    }
+
+    .small{
+      font-size:.84rem;
+      color:var(--soft);
+    }
+
+    .calc{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:16px;
+    }
+
+    .calc .field{
+      background:rgba(255,255,255,.02);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    @media (max-width: 1080px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+      aside{
+        position:relative;
+        top:0;
+      }
+      .hero-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 760px){
+      .grid-2, .grid-3, .calc{
+        grid-template-columns:1fr;
+      }
+      .topbar-inner{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .hero-card{
+        padding:24px;
+      }
+      .card-body, .card-head{
+        padding:18px;
+      }
+      .container{
+        width:min(var(--max), calc(100% - 20px));
+      }
+    }
+
+    @media print{
+      body{
+        background:white;
+        color:black;
+      }
+      .topbar, aside, .footer-actions{
+        display:none !important;
+      }
+      .layout{
+        display:block;
+      }
+      .card{
+        box-shadow:none;
+        border:1px solid #ccc;
+        background:white;
+        break-inside:avoid;
+        margin-bottom:16px;
+      }
+      .card-head, .card-body, .hero-card{
+        background:white;
+        color:black;
+      }
+      input, select, textarea{
+        border:1px solid #aaa;
+        background:white;
+        color:black;
+      }
+      .table-wrap{
+        border:1px solid #aaa;
+      }
+      th, td{
+        border-color:#ccc;
+        color:black;
+      }
+      .hero{
+        padding-top:0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1>Taller de Gestión de Campo Petrolero</h1>
+          <p>Formulario web editable para diligenciar directamente en el navegador</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-secondary" onclick="guardarManual()">Guardar</button>
+        <button class="btn-secondary" onclick="exportarJSON()">Exportar JSON</button>
+        <button class="btn-primary" onclick="window.print()">Imprimir / PDF</button>
+        <button class="btn-danger" onclick="limpiarFormulario()">Restablecer</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-card">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">Procesos Industriales I · Actividad Formativa</div>
+            <h2>Simulación de Gestión de Campo Petrolero</h2>
+            <p>
+              En esta actividad asumirás el rol de gerente de un proyecto de exploración y producción de petróleo,
+              con un presupuesto asignado de 50.000.000 USD y decisiones estratégicas en exploración, perforación y extracción [file:1].
+            </p>
+          </div>
+
+          <div class="hero-metrics">
+            <div class="metric">
+              <span>Presupuesto base</span>
+              <strong>50.000.000 USD</strong>
+            </div>
+            <div class="metric">
+              <span>Cadena analizada</span>
+              <strong>Upstream</strong>
+            </div>
+            <div class="metric">
+              <span>Modalidad</span>
+              <strong>Formulario diligenciable</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container layout">
+    <aside>
+      <div class="side-card">
+        <h3>Navegación</h3>
+        <div class="nav-links">
+          <a href="#datos">Datos generales</a>
+          <a href="#contexto">Contexto teórico</a>
+          <a href="#exploracion">Fase 1 · Exploración</a>
+          <a href="#perforacion">Fase 2 · Perforación</a>
+          <a href="#extraccion">Fase 3 · Extracción</a>
+          <a href="#resultados">Resultados finales</a>
+          <a href="#analisis">Preguntas de análisis</a>
+          <a href="#comparacion">Comparación</a>
+          <a href="#investigacion">Investigación</a>
+          <a href="#reto">Reto adicional</a>
+        </div>
+        <div class="save-status" id="saveStatus">Guardado automático activo</div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="card" id="datos">
+        <div class="card-head">
+          <div>
+            <h3>Datos generales</h3>
+            <p>Encabezado del estudiante y datos básicos del desarrollo del taller.</p>
+          </div>
+          <span class="pill">Editable</span>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-3">
+            <div class="field">
+              <label for="nombre">Nombre del estudiante</label>
+              <input type="text" id="nombre" name="nombre" data-save />
+            </div>
+            <div class="field">
+              <label for="codigo">Código</label>
+              <input type="text" id="codigo" name="codigo" data-save />
+            </div>
+            <div class="field">
+              <label for="grupo">Grupo</label>
+              <input type="text" id="grupo" name="grupo" data-save />
+            </div>
+            <div class="field">
+              <label for="docente">Docente</label>
+              <input type="text" id="docente" name="docente" data-save />
+            </div>
+            <div class="field">
+              <label for="fecha">Fecha</label>
+              <input type="date" id="fecha" name="fecha" data-save />
+            </div>
+            <div class="field">
+              <label for="presupuestoBase">Presupuesto asignado (USD)</label>
+              <input type="number" id="presupuestoBase" name="presupuestoBase" value="50000000" data-save />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="contexto">
+        <div class="card-head">
+          <div>
+            <h3>Contexto teórico</h3>
+            <p>El taller se enfoca en el segmento upstream, desde la búsqueda del hidrocarburo hasta su producción en superficie [file:1].</p>
+          </div>
+          <span class="pill">Referencia</span>
+        </div>
+        <div class="card-body">
+          <p class="section-note">
+            La industria del petróleo se divide en upstream, midstream y downstream; esta actividad trabaja específicamente el upstream [file:1].
+          </p>
+
+          <h4>Exploración</h4>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Técnica</th>
+                  <th>Descripción</th>
+                  <th>Costo</th>
+                  <th>Precisión</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Estudios geológicos básicos</td>
+                  <td>Análisis de mapas, afloramientos rocosos y datos históricos [file:1].</td>
+                  <td>Bajo ($1-5M) [file:1]</td>
+                  <td>Baja (20-30%) [file:1]</td>
+                </tr>
+                <tr>
+                  <td>Sísmica 2D + Gravimetría</td>
+                  <td>Ondas sísmicas para perfiles del subsuelo, complementadas con estudios gravimétricos [file:1].</td>
+                  <td>Medio ($5-12M) [file:1]</td>
+                  <td>Media (40-55%) [file:1]</td>
+                </tr>
+                <tr>
+                  <td>Sísmica 3D completa</td>
+                  <td>Modelo volumétrico tridimensional del subsuelo, estándar de la industria [file:1].</td>
+                  <td>Alto ($10-25M) [file:1]</td>
+                  <td>Alta (65-80%) [file:1]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 style="margin-top:22px;">Perforación</h4>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo de pozo</th>
+                  <th>Descripción</th>
+                  <th>Profundidad</th>
+                  <th>Costo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Pozo vertical</td>
+                  <td>Perforación recta con broca tricónica o PDC [file:1].</td>
+                  <td>2.000-3.500 m [file:1]</td>
+                  <td>$3-8M [file:1]</td>
+                </tr>
+                <tr>
+                  <td>Pozo direccional</td>
+                  <td>Se desvía para alcanzar objetivos laterales y usa motor de fondo con MWD/LWD [file:1].</td>
+                  <td>3.000-5.000 m [file:1]</td>
+                  <td>$8-18M [file:1]</td>
+                </tr>
+                <tr>
+                  <td>Pozo horizontal + fracking</td>
+                  <td>Incluye sección horizontal de 1.000-2.000 m y fracturamiento multietapa [file:1].</td>
+                  <td>4.000-6.000 m [file:1]</td>
+                  <td>$15-30M [file:1]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 style="margin-top:22px;">Extracción y facilidades</h4>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Método</th>
+                  <th>Descripción</th>
+                  <th>Producción típica</th>
+                  <th>Costo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Flujo natural</td>
+                  <td>La presión del yacimiento impulsa el petróleo; requiere separador bifásico básico [file:1].</td>
+                  <td>200-1.000 BPD [file:1]</td>
+                  <td>$2-5M [file:1]</td>
+                </tr>
+                <tr>
+                  <td>Bombeo mecánico</td>
+                  <td>Usa unidad de balancín, separador trifásico y deshidratador [file:1].</td>
+                  <td>500-2.500 BPD [file:1]</td>
+                  <td>$8-15M [file:1]</td>
+                </tr>
+                <tr>
+                  <td>Recuperación mejorada (EOR)</td>
+                  <td>Incluye inyección de agua o gas, bombeo electrosumergible y planta completa [file:1].</td>
+                  <td>2.000-5.000+ BPD [file:1]</td>
+                  <td>$15-25M [file:1]</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="summary-box" style="margin-top:18px;">
+            Dato clave: el documento indica que solo 1 de cada 5 pozos exploratorios resulta exitoso sin estudios geofísicos previos y que con sísmica 3D la tasa de éxito puede superar el 50% [file:1].
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="exploracion">
+        <div class="card-head">
+          <div>
+            <h3>Fase 1 · Exploración</h3>
+            <p>Primera decisión estratégica del proyecto [file:1].</p>
+          </div>
+          <span class="pill">Decisión 1</span>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-2">
+            <div class="field">
+              <label for="exp_p1">a) ¿Por qué una mayor inversión en exploración reduce el riesgo?</label>
+              <textarea id="exp_p1" name="exp_p1" data-save></textarea>
+            </div>
+            <div class="field">
+              <label for="exp_p2">b) ¿Qué opción elegiste y por qué?</label>
+              <textarea id="exp_p2" name="exp_p2" data-save></textarea>
+            </div>
+          </div>
+
+          <div class="grid grid-2" style="margin-top:16px;">
+            <div class="field">
+              <label for="exp_opcion">Opción seleccionada</label>
+              <select id="exp_opcion" name="exp_opcion" data-save>
+                <option value="">Seleccione</option>
+                <option>Estudios geológicos básicos</option>
+                <option>Sísmica 2D + Gravimetría</option>
+                <option>Sísmica 3D completa</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="exp_resultado">Resultado</label>
+              <select id="exp_resultado" name="exp_resultado" data-save>
+                <option value="">Seleccione</option>
+                <option>Éxito</option>
+                <option>Parcial</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-3" style="margin-top:16px;">
+            <div class="field">
+              <label for="exp_costo">Costo de la inversión (M USD)</label>
+              <input type="number" id="exp_costo" name="exp_costo" data-save data-calc />
+            </div>
+            <div class="field">
+              <label for="exp_restante">Presupuesto restante (M USD)</label>
+              <input type="number" id="exp_restante" name="exp_restante" data-save />
+            </div>
+            <div class="field">
+              <label for="exp_reservas">Reservas estimadas (millones de barriles)</label>
+              <input type="number" id="exp_reservas" name="exp_reservas" data-save />
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:16px;">
+            <label for="exp_evento">Evento aleatorio e impacto</label>
+            <textarea id="exp_evento" name="exp_evento" data-save></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="perforacion">
+        <div class="card-head">
+          <div>
+            <h3>Fase 2 · Perforación</h3>
+            <p>Selección del tipo de pozo según el presupuesto restante y la exploración [file:1].</p>
+          </div>
+          <span class="pill">Decisión 2</span>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-2">
+            <div class="field">
+              <label for="perf_p1">a) Diferencia entre pozo vertical, direccional y horizontal</label>
+              <textarea id="perf_p1" name="perf_p1" data-save></textarea>
+            </div>
+            <div class="field">
+              <label for="perf_p2">b) Opción elegida y justificación</label>
+              <textarea id="perf_p2" name="perf_p2" data-save></textarea>
+            </div>
+          </div>
+
+          <div class="grid grid-2" style="margin-top:16px;">
+            <div class="field">
+              <label for="perf_pozo">Tipo de pozo seleccionado</label>
+              <select id="perf_pozo" name="perf_pozo" data-save>
+                <option value="">Seleccione</option>
+                <option>Pozo vertical</option>
+                <option>Pozo direccional</option>
+                <option>Pozo horizontal + fracking</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="perf_resultado">Resultado</label>
+              <select id="perf_resultado" name="perf_resultado" data-save>
+                <option value="">Seleccione</option>
+                <option>Productivo</option>
+                <option>Sub-comercial</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-4 grid-3" style="margin-top:16px;">
+            <div class="field">
+              <label for="perf_costo">Costo de la inversión (M USD)</label>
+              <input type="number" id="perf_costo" name="perf_costo" data-save data-calc />
+            </div>
+            <div class="field">
+              <label for="perf_restante">Presupuesto restante (M USD)</label>
+              <input type="number" id="perf_restante" name="perf_restante" data-save />
+            </div>
+            <div class="field">
+              <label for="perf_bpd">Producción inicial de prueba (BPD)</label>
+              <input type="number" id="perf_bpd" name="perf_bpd" data-save />
+            </div>
+            <div class="field">
+              <label for="perf_api">Grados API del crudo</label>
+              <input type="number" id="perf_api" name="perf_api" data-save />
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:16px;">
+            <label for="perf_evento">Evento aleatorio</label>
+            <textarea id="perf_evento" name="perf_evento" data-save></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="extraccion">
+        <div class="card-head">
+          <div>
+            <h3>Fase 3 · Extracción y facilidades</h3>
+            <p>Tercera decisión estratégica sobre el sistema de producción [file:1].</p>
+          </div>
+          <span class="pill">Decisión 3</span>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-2">
+            <div class="field">
+              <label for="ext_p1">a) Explica qué es la recuperación mejorada (EOR)</label>
+              <textarea id="ext_p1" name="ext_p1" data-save></textarea>
+            </div>
+            <div class="field">
+              <label for="ext_p2">b) Sistema elegido y justificación</label>
+              <textarea id="ext_p2" name="ext_p2" data-save></textarea>
+            </div>
+          </div>
+
+          <div class="grid grid-3" style="margin-top:16px;">
+            <div class="field">
+              <label for="ext_sistema">Sistema seleccionado</label>
+              <select id="ext_sistema" name="ext_sistema" data-save>
+                <option value="">Seleccione</option>
+                <option>Flujo natural</option>
+                <option>Bombeo mecánico</option>
+                <option>Recuperación mejorada (EOR)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ext_costo">Costo de la inversión (M USD)</label>
+              <input type="number" id="ext_costo" name="ext_costo" data-save data-calc />
+            </div>
+            <div class="field">
+              <label for="ext_restante">Presupuesto restante final (M USD)</label>
+              <input type="number" id="ext_restante" name="ext_restante" data-save />
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:16px;">
+            <label for="ext_bpd_final">Producción final diaria (BPD)</label>
+            <input type="number" id="ext_bpd_final" name="ext_bpd_final" data-save />
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="resultados">
+        <div class="card-head">
+          <div>
+            <h3>Resultados finales del proyecto</h3>
+            <p>Registro de la evaluación financiera completa mostrada por el simulador [file:1].</p>
+          </div>
+          <span class="pill">Análisis</span>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-3">
+            <div class="field">
+              <label for="res_evaluacion">Evaluación general</label>
+              <select id="res_evaluacion" name="res_evaluacion" data-save>
+                <option value="">Seleccione</option>
+                <option>Excelente</option>
+                <option>Bueno</option>
+                <option>Aceptable</option>
+                <option>Deficiente</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="res_roi">ROI anual (%)</label>
+              <input type="number" id="res_roi" name="res_roi" data-save />
+            </div>
+            <div class="field">
+              <label for="res_inversion_total">Inversión total (M USD)</label>
+              <input type="number" id="res_inversion_total" name="res_inversion_total" data-save />
+            </div>
+            <div class="field">
+              <label for="res_produccion_final">Producción diaria final (BPD)</label>
+              <input type="number" id="res_produccion_final" name="res_produccion_final" data-save />
+            </div>
+            <div class="field">
+              <label for="res_precio">Precio del crudo ($/barril)</label>
+              <input type="number" id="res_precio" name="res_precio" data-save data-calc />
+            </div>
+            <div class="field">
+              <label for="res_ingreso_diario">Ingreso diario bruto ($/día)</label>
+              <input type="number" id="res_ingreso_diario" name="res_ingreso_diario" data-save />
+            </div>
+            <div class="field">
+              <label for="res_costo_operativo">Costo operativo diario ($/día)</label>
+              <input type="number" id="res_costo_operativo" name="res_costo_operativo" data-save />
+            </div>
+            <div class="field">
+              <label for="res_utilidad_neta">Utilidad diaria neta ($/día)</label>
+              <input type="number" id="res_utilidad_neta" name="res_utilidad_neta" data-save />
+            </div>
+            <div class="field">
+              <label for="res_utilidad_anual">Utilidad anual estimada (M/año)</label>
+              <input type="number" id="res_utilidad_anual" name="res_utilidad_anual" data-save />
+            </div>
+            <div class="field">
+              <label for="res_payback">Tiempo de recuperación (años)</label>
+              <input type="number" id="res_payback" name="res_payback" data-save />
+            </div>
+          </div>
+
+          <div class="summary-box" style="margin-top:18px;">
+            El documento solicita registrar evaluación general, ROI anual, inversión total, producción final, precio del crudo, ingresos, costos, utilidad y payback [file:1].
+          </div>
+
+          <div class="calc" style="margin-top:18px;">
+            <div class="field">
+              <label for="calc_ingreso_mensual">Ingreso bruto mensual</label>
+              <input type="text" id="calc_ingreso_mensual" readonly />
+            </div>
+            <div class="field">
+              <label for="calc_regalias_bpd">Regalías diarias al 12% (barriles)</label>
+              <input type="text" id="calc_regalias_bpd" readonly />
+            </div>
+            <div class="field">
+              <label for="calc_regalias_mes">Valor mensual de regalías</label>
+              <input type="text" id="calc_regalias_mes" readonly />
+            </div>
+            <div class="field">
+              <label for="calc_inversion_sumada">Suma de inversiones fases (M USD)</label>
+              <input type="text" id="calc_inversion_sumada" readonly />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="analisis">
+        <div class="card-head">
+          <div>
+            <h3>Preguntas de análisis y reflexión</h3>
+            <p>Sección para respuestas argumentativas del estudiante [file:1].</p>
+          </div>
+          <span class="pill">Desarrollo</span>
+        </div>
+        <div class="card-body">
+          <div class="grid">
+            <div class="field">
+              <label for="ana_1">Pregunta 1</label>
+              <textarea id="ana_1" name="ana_1" data-save placeholder="Si pudieras repetir la simulación, ¿qué cambiarías y por qué?"></textarea>
+            </div>
+            <div class="field">
+              <label for="ana_2">Pregunta 2</label>
+              <textarea id="ana_2" name="ana_2" data-save placeholder="¿Qué eventos aleatorios ocurrieron y cómo afectaron la rentabilidad?"></textarea>
+            </div>
+            <div class="field">
+              <label for="ana_3">Pregunta 3</label>
+              <textarea id="ana_3" name="ana_3" data-save placeholder="Muestra la operación del ingreso bruto mensual = Producción × Precio × 30 días"></textarea>
+            </div>
+            <div class="field">
+              <label for="ana_4">Pregunta 4</label>
+              <textarea id="ana_4" name="ana_4" data-save placeholder="Calcula barriles diarios y valor mensual de regalías con 12%"></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="comparacion">
+        <div class="card-head">
+          <div>
+            <h3>Comparación con compañeros</h3>
+            <p>El taller solicita contrastar resultados con al menos dos compañeros [file:1].</p>
+          </div>
+          <span class="pill">Tabla editable</span>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-3" style="margin-bottom:16px;">
+            <div class="field">
+              <label for="comp_nom_1">Nombre compañero 1</label>
+              <input type="text" id="comp_nom_1" name="comp_nom_1" data-save />
+            </div>
+            <div class="field">
+              <label for="comp_nom_2">Nombre compañero 2</label>
+              <input type="text" id="comp_nom_2" name="comp_nom_2" data-save />
+            </div>
+            <div class="field">
+              <label for="comp_analisis">Análisis comparativo</label>
+              <input type="text" id="comp_analisis" name="comp_analisis" data-save />
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Tu proyecto</th>
+                  <th>Compañero 1</th>
+                  <th>Compañero 2</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Inversión en exploración</td>
+                  <td><input type="text" data-save id="t1" /></td>
+                  <td><input type="text" data-save id="c11" /></td>
+                  <td><input type="text" data-save id="c21" /></td>
+                </tr>
+                <tr>
+                  <td>Tipo de pozo</td>
+                  <td><input type="text" data-save id="t2" /></td>
+                  <td><input type="text" data-save id="c12" /></td>
+                  <td><input type="text" data-save id="c22" /></td>
+                </tr>
+                <tr>
+                  <td>Sistema de extracción</td>
+                  <td><input type="text" data-save id="t3" /></td>
+                  <td><input type="text" data-save id="c13" /></td>
+                  <td><input type="text" data-save id="c23" /></td>
+                </tr>
+                <tr>
+                  <td>Inversión total</td>
+                  <td><input type="text" data-save id="t4" /></td>
+                  <td><input type="text" data-save id="c14" /></td>
+                  <td><input type="text" data-save id="c24" /></td>
+                </tr>
+                <tr>
+                  <td>Producción (BPD)</td>
+                  <td><input type="text" data-save id="t5" /></td>
+                  <td><input type="text" data-save id="c15" /></td>
+                  <td><input type="text" data-save id="c25" /></td>
+                </tr>
+                <tr>
+                  <td>ROI anual (%)</td>
+                  <td><input type="text" data-save id="t6" /></td>
+                  <td><input type="text" data-save id="c16" /></td>
+                  <td><input type="text" data-save id="c26" /></td>
+                </tr>
+                <tr>
+                  <td>Evaluación obtenida</td>
+                  <td><input type="text" data-save id="t7" /></td>
+                  <td><input type="text" data-save id="c17" /></td>
+                  <td><input type="text" data-save id="c27" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="field" style="margin-top:16px;">
+            <label for="comp_texto">¿Qué estrategia funcionó mejor? ¿Cuál fue la combinación más rentable?</label>
+            <textarea id="comp_texto" name="comp_texto" data-save></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="investigacion">
+        <div class="card-head">
+          <div>
+            <h3>Investigación</h3>
+            <p>Campos para resolver la investigación sobre Colombia y las entidades del sector [file:1].</p>
+          </div>
+          <span class="pill">Consulta</span>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="inv_6">Pregunta 6 · Principales campos de producción de petróleo en Colombia</label>
+            <textarea id="inv_6" name="inv_6" data-save placeholder="Nombra al menos 3, su ubicación y el operador"></textarea>
+          </div>
+
+          <div class="grid grid-2" style="margin-top:16px;">
+            <div class="field">
+              <label for="ent_anh">ANH</label>
+              <textarea id="ent_anh" name="ent_anh" data-save></textarea>
+            </div>
+            <div class="field">
+              <label for="ent_ecopetrol">Ecopetrol</label>
+              <textarea id="ent_ecopetrol" name="ent_ecopetrol" data-save></textarea>
+            </div>
+            <div class="field">
+              <label for="ent_creg">CREG</label>
+              <textarea id="ent_creg" name="ent_creg" data-save></textarea>
+            </div>
+            <div class="field">
+              <label for="ent_mme">MME</label>
+              <textarea id="ent_mme" name="ent_mme" data-save></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="reto">
+        <div class="card-head">
+          <div>
+            <h3>Reto adicional</h3>
+            <p>Comparación entre una primera y una segunda ejecución con estrategias distintas [file:1].</p>
+          </div>
+          <span class="pill">Punto extra</span>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fase</th>
+                  <th>Primera ejecución</th>
+                  <th>Segunda ejecución</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Exploración</td>
+                  <td><input type="text" data-save id="r1" /></td>
+                  <td><input type="text" data-save id="r2" /></td>
+                </tr>
+                <tr>
+                  <td>Perforación</td>
+                  <td><input type="text" data-save id="r3" /></td>
+                  <td><input type="text" data-save id="r4" /></td>
+                </tr>
+                <tr>
+                  <td>Extracción</td>
+                  <td><input type="text" data-save id="r5" /></td>
+                  <td><input type="text" data-save id="r6" /></td>
+                </tr>
+                <tr>
+                  <td>Inversión total</td>
+                  <td><input type="text" data-save id="r7" /></td>
+                  <td><input type="text" data-save id="r8" /></td>
+                </tr>
+                <tr>
+                  <td>Producción (BPD)</td>
+                  <td><input type="text" data-save id="r9" /></td>
+                  <td><input type="text" data-save id="r10" /></td>
+                </tr>
+                <tr>
+                  <td>ROI anual</td>
+                  <td><input type="text" data-save id="r11" /></td>
+                  <td><input type="text" data-save id="r12" /></td>
+                </tr>
+                <tr>
+                  <td>Evaluación</td>
+                  <td><input type="text" data-save id="r13" /></td>
+                  <td><input type="text" data-save id="r14" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="field" style="margin-top:16px;">
+            <label for="reto_reflexion">Reflexión del reto adicional</label>
+            <textarea id="reto_reflexion" name="reto_reflexion" data-save placeholder="¿Qué aprendiste de la comparación y cuál es la lección más importante sobre gestión del riesgo?"></textarea>
+          </div>
+
+          <div class="footer-actions">
+            <button class="btn-secondary" onclick="guardarManual()">Guardar progreso</button>
+            <button class="btn-primary" onclick="window.print()">Generar PDF</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "taller_gestion_campo_petrolero_premium_v1";
+    const saveStatus = document.getElementById("saveStatus");
+
+    function getFields() {
+      return document.querySelectorAll("[data-save]");
+    }
+
+    function guardarDatos() {
+      const data = {};
+      getFields().forEach(el => {
+        data[el.id || el.name] = el.value;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      actualizarEstado("Cambios guardados");
+      calcularCampos();
+    }
+
+    function cargarDatos() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        calcularCampos();
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        getFields().forEach(el => {
+          const key = el.id || el.name;
+          if (data[key] !== undefined) el.value = data[key];
+        });
+      } catch(e) {}
+      calcularCampos();
+    }
+
+    function actualizarEstado(texto) {
+      saveStatus.textContent = texto;
+      clearTimeout(window.__saveTimer);
+      window.__saveTimer = setTimeout(() => {
+        saveStatus.textContent = "Guardado automático activo";
+      }, 1800);
+    }
+
+    function guardarManual() {
+      guardarDatos();
+      alert("Los datos fueron guardados en este navegador.");
+    }
+
+    function limpiarFormulario() {
+      const ok = confirm("Se borrarán todos los datos guardados de este formulario en el navegador.");
+      if (!ok) return;
+      localStorage.removeItem(STORAGE_KEY);
+      getFields().forEach(el => el.value = "");
+      const presupuesto = document.getElementById("presupuestoBase");
+      if (presupuesto) presupuesto.value = 50000000;
+      calcularCampos();
+      actualizarEstado("Formulario restablecido");
+    }
+
+    function n(id) {
+      const val = parseFloat(document.getElementById(id)?.value);
+      return isNaN(val) ? 0 : val;
+    }
+
+    function money(v) {
+      return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 2
+      }).format(v || 0);
+    }
+
+    function number(v) {
+      return new Intl.NumberFormat("es-CO", {
+        maximumFractionDigits: 2
+      }).format(v || 0);
+    }
+
+    function calcularCampos() {
+      const produccion = n("res_produccion_final") || n("ext_bpd_final");
+      const precio = n("res_precio");
+      const costoOperativo = n("res_costo_operativo");
+      const exp = n("exp_costo");
+      const perf = n("perf_costo");
+      const ext = n("ext_costo");
+
+      const ingresoDiario = produccion * precio;
+      const ingresoMensual = ingresoDiario * 30;
+      const utilidadNeta = ingresoDiario - costoOperativo;
+      const utilidadAnual = utilidadNeta * 365;
+      const regaliasBpd = produccion * 0.12;
+      const regaliasMesValor = regaliasBpd * precio * 30;
+      const inversionSumada = exp + perf + ext;
+
+      if (!n("res_ingreso_diario") && ingresoDiario > 0) {
+        document.getElementById("res_ingreso_diario").value = ingresoDiario.toFixed(2);
+      }
+      if (!n("res_utilidad_neta") && utilidadNeta !== 0) {
+        document.getElementById("res_utilidad_neta").value = utilidadNeta.toFixed(2);
+      }
+      if (!n("res_utilidad_anual") && utilidadAnual !== 0) {
+        document.getElementById("res_utilidad_anual").value = (utilidadAnual / 1000000).toFixed(2);
+      }
+      if (!n("res_inversion_total") && inversionSumada > 0) {
+        document.getElementById("res_inversion_total").value = inversionSumada.toFixed(2);
+      }
+
+      document.getElementById("calc_ingreso_mensual").value = money(ingresoMensual);
+      document.getElementById("calc_regalias_bpd").value = number(regaliasBpd) + " bbl/día";
+      document.getElementById("calc_regalias_mes").value = money(regaliasMesValor);
+      document.getElementById("calc_inversion_sumada").value = number(inversionSumada) + " M USD";
+    }
+
+    function exportarJSON() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        alert("No hay datos guardados para exportar.");
+        return;
+      }
+      const blob = new Blob([raw], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "taller_gestion_campo_petrolero.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      actualizarEstado("Archivo JSON exportado");
+    }
+
+    getFields().forEach(el => {
+      el.addEventListener("input", guardarDatos);
+      el.addEventListener("change", guardarDatos);
+    });
+
+    document.addEventListener("DOMContentLoaded", cargarDatos);
+    cargarDatos();
+  </script>
+</body>
+</html>
