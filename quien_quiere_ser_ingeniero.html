@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Quién Quiere Ser Ingeniero Millonario? — Procesos Industriales I</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0a2e; --card: #111145; --border: rgba(255,255,255,.1);
+            --gold: #f1c40f; --gold2: #f39c12; --blue: #3498db; --green: #2ecc71;
+            --red: #e74c3c; --purple: #9b59b6; --text: #ecf0f1; --muted: #7f8c8d;
+            --dark: #060620;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+        /* Background effects */
+        .bg-effects { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .bg-effects .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: .06; }
+        .bg-effects .orb:nth-child(1) { width: 600px; height: 600px; background: var(--gold); top: -200px; left: -200px; }
+        .bg-effects .orb:nth-child(2) { width: 500px; height: 500px; background: var(--purple); bottom: -200px; right: -200px; }
+        .bg-effects .orb:nth-child(3) { width: 400px; height: 400px; background: var(--blue); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+        .app { max-width: 900px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+
+        /* HEADER */
+        .game-header { text-align: center; padding: 30px 0 20px; }
+        .game-header h1 { font-size: clamp(1.3rem, 3.5vw, 2.2rem); font-weight: 900; background: linear-gradient(135deg, var(--gold), var(--gold2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .game-header .subtitle { color: var(--muted); font-size: .85rem; margin-top: 6px; }
+
+        /* SCREENS */
+        .screen { display: none; animation: fadeIn .5s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* START SCREEN */
+        .start-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; max-width: 600px; margin: 40px auto; }
+        .start-card .logo { font-size: 4rem; margin-bottom: 16px; }
+        .start-card h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 10px; color: var(--gold); }
+        .start-card p { color: var(--muted); font-size: .9rem; line-height: 1.7; margin-bottom: 20px; }
+        .start-card .rules { text-align: left; background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+        .start-card .rules li { color: var(--muted); font-size: .82rem; margin-bottom: 8px; line-height: 1.5; list-style: none; }
+        .start-card .rules li::before { content: '▸ '; color: var(--gold); font-weight: 700; }
+        .name-input { width: 100%; padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,.05); color: var(--text); font-size: 1rem; font-family: inherit; margin-bottom: 20px; outline: none; transition: border-color .3s; }
+        .name-input:focus { border-color: var(--gold); }
+
+        /* BUTTONS */
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 50px; font-weight: 700; font-size: .95rem; border: none; cursor: pointer; color: #fff; transition: transform .3s, box-shadow .3s; font-family: inherit; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,.4); }
+        .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #000; }
+        .btn-blue { background: linear-gradient(135deg, var(--blue), #2980b9); }
+        .btn-green { background: linear-gradient(135deg, var(--green), #27ae60); }
+        .btn-red { background: linear-gradient(135deg, var(--red), #c0392b); }
+        .btn-sm { padding: 10px 20px; font-size: .82rem; }
+
+        /* GAME HUD */
+        .hud { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        .hud-left, .hud-right { display: flex; gap: 10px; align-items: center; }
+        .hud-pill { background: var(--card); border: 1px solid var(--border); border-radius: 50px; padding: 8px 18px; font-size: .8rem; display: flex; align-items: center; gap: 6px; }
+        .hud-pill .val { font-weight: 800; color: var(--gold); }
+        .hud-pill.timer .val { color: var(--red); }
+
+        /* PRIZE LADDER */
+        .ladder-wrap { display: flex; gap: 20px; margin-bottom: 20px; }
+        .ladder { flex: 0 0 200px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px; max-height: 520px; overflow-y: auto; }
+        .ladder-item { padding: 8px 12px; border-radius: 10px; font-size: .72rem; font-weight: 600; display: flex; justify-content: space-between; margin-bottom: 4px; color: var(--muted); transition: .3s; }
+        .ladder-item.current { background: linear-gradient(135deg, rgba(241,196,15,.15), rgba(243,156,18,.1)); color: var(--gold); border: 1px solid rgba(241,196,15,.3); }
+        .ladder-item.done { color: var(--green); }
+        .ladder-item.safe { color: var(--blue); font-weight: 800; }
+        .question-area { flex: 1; min-width: 0; }
+
+        /* LIFELINES */
+        .lifelines { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .lifeline { background: var(--card); border: 1px solid var(--border); border-radius: 50px; padding: 8px 16px; font-size: .78rem; font-weight: 600; cursor: pointer; transition: .3s; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .lifeline:hover { border-color: var(--gold); transform: translateY(-2px); }
+        .lifeline.used { opacity: .3; cursor: not-allowed; text-decoration: line-through; pointer-events: none; }
+
+        /* QUESTION */
+        .q-topic { font-size: .72rem; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+        .q-context { background: rgba(255,255,255,.03); border: 1px solid var(--border); border-left: 4px solid var(--blue); border-radius: 12px; padding: 18px; font-size: .85rem; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+        .q-text { font-size: 1rem; font-weight: 700; line-height: 1.6; margin-bottom: 20px; color: var(--text); }
+
+        /* OPTIONS */
+        .options { display: grid; gap: 10px; }
+        .option { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 16px 20px; cursor: pointer; transition: .3s; display: flex; align-items: flex-start; gap: 14px; }
+        .option:hover:not(.disabled) { border-color: rgba(241,196,15,.4); transform: translateX(4px); background: rgba(241,196,15,.03); }
+        .option .letter { flex: 0 0 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.06); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .85rem; color: var(--gold); border: 1px solid var(--border); }
+        .option .opt-text { font-size: .88rem; line-height: 1.6; color: var(--muted); flex: 1; padding-top: 6px; }
+        .option.selected { border-color: var(--gold); background: rgba(241,196,15,.08); }
+        .option.selected .letter { background: var(--gold); color: #000; }
+        .option.selected .opt-text { color: var(--text); }
+        .option.correct { border-color: var(--green); background: rgba(46,204,113,.1); animation: pulse-green .6s; }
+        .option.correct .letter { background: var(--green); color: #fff; }
+        .option.correct .opt-text { color: var(--green); }
+        .option.wrong { border-color: var(--red); background: rgba(231,76,60,.1); }
+        .option.wrong .letter { background: var(--red); color: #fff; }
+        .option.wrong .opt-text { color: var(--red); }
+        .option.disabled { pointer-events: none; }
+        .option.hidden-5050 { opacity: .15; pointer-events: none; }
+        @keyframes pulse-green { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 30px rgba(46,204,113,.3); } }
+
+        /* EXPLANATION */
+        .explanation { background: rgba(46,204,113,.05); border: 1px solid rgba(46,204,113,.2); border-left: 4px solid var(--green); border-radius: 12px; padding: 18px; margin-top: 16px; animation: fadeIn .4s; }
+        .explanation.wrong-exp { background: rgba(231,76,60,.05); border-color: rgba(231,76,60,.2); border-left-color: var(--red); }
+        .explanation h4 { font-size: .85rem; font-weight: 700; margin-bottom: 6px; }
+        .explanation p { font-size: .82rem; color: var(--muted); line-height: 1.7; }
+
+        /* CONFIRM BAR */
+        .confirm-bar { text-align: center; margin-top: 16px; }
+
+        /* RESULTS */
+        .result-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; max-width: 650px; margin: 30px auto; }
+        .result-card .trophy { font-size: 5rem; margin-bottom: 16px; }
+        .result-card h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 8px; }
+        .result-card .prize { font-size: 2.5rem; font-weight: 900; margin: 16px 0; }
+        .result-card .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin: 24px 0; }
+        .stat-box { background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+        .stat-box .stat-val { font-size: 1.5rem; font-weight: 900; }
+        .stat-box .stat-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* RESPONSIVE */
+        @media (max-width: 700px) {
+            .ladder-wrap { flex-direction: column; }
+            .ladder { flex: none; max-height: 150px; display: flex; flex-wrap: wrap; gap: 4px; }
+            .ladder-item { flex: 1; min-width: 80px; text-align: center; justify-content: center; gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+    <div class="app">
+        <div class="game-header">
+            <h1>💰 ¿Quién Quiere Ser Ingeniero Millonario?</h1>
+            <p class="subtitle">Procesos Industriales I — UNIPAZ</p>
+        </div>
+
+        <!-- START SCREEN -->
+        <div class="screen active" id="startScreen">
+            <div class="start-card">
+                <div class="logo">🛢️💰</div>
+                <h2>Bienvenido al Desafío</h2>
+                <p>Demuestra tus conocimientos en Energías Renovables, Centrales Eléctricas, y Cadenas de Valor del Crudo y el Gas. ¡Responde 20 preguntas tipo Saber Pro y conviértete en Ingeniero Millonario!</p>
+                <ul class="rules">
+                    <li>20 preguntas con dificultad creciente: cada una vale más que la anterior</li>
+                    <li>3 comodines disponibles: 50/50, Cambiar pregunta y Pista del experto</li>
+                    <li>2 niveles de seguridad ($5,000 en pregunta 5 y $50,000 en pregunta 10): si fallas después, conservas ese premio</li>
+                    <li>90 segundos por pregunta — si se acaba el tiempo, ¡pierdes!</li>
+                    <li>Respuesta correcta = avanzas. Respuesta incorrecta = caes al último nivel seguro</li>
+                </ul>
+                <input type="text" class="name-input" id="playerName" placeholder="Escribe tu nombre..." maxlength="40">
+                <br>
+                <button class="btn btn-gold" onclick="startGame()">🚀 ¡Comenzar el Desafío!</button>
+            </div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div class="screen" id="gameScreen">
+            <div class="hud">
+                <div class="hud-left">
+                    <div class="hud-pill"><span>👤</span><span class="val" id="hudName">Jugador</span></div>
+                    <div class="hud-pill"><span>💰</span><span class="val" id="hudPrize">$0</span></div>
+                </div>
+                <div class="hud-right">
+                    <div class="hud-pill"><span>📊</span><span class="val" id="hudQ">1/20</span></div>
+                    <div class="hud-pill timer"><span>⏱️</span><span class="val" id="hudTimer">90</span></div>
+                </div>
+            </div>
+
+            <div class="ladder-wrap">
+                <div class="ladder" id="ladder"></div>
+                <div class="question-area">
+                    <div class="lifelines" id="lifelines">
+                        <div class="lifeline" id="ll5050" onclick="useLifeline('5050')">✂️ 50/50</div>
+                        <div class="lifeline" id="llSwap" onclick="useLifeline('swap')">🔄 Cambiar</div>
+                        <div class="lifeline" id="llHint" onclick="useLifeline('hint')">🎓 Pista</div>
+                    </div>
+                    <div id="questionContainer"></div>
+                    <div class="confirm-bar" id="confirmBar" style="display:none">
+                        <button class="btn btn-gold" onclick="confirmAnswer()">✅ Confirmar Respuesta</button>
+                    </div>
+                    <div id="explanationBox"></div>
+                    <div class="confirm-bar" id="nextBar" style="display:none">
+                        <button class="btn btn-blue" onclick="nextQuestion()">Siguiente Pregunta →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div class="screen" id="resultScreen"></div>
+    </div>
+
+<script>
+// Prize ladder
+const prizes = [
+    { level: 1,  amount: 100,     label: "$100",        safe: false },
+    { level: 2,  amount: 200,     label: "$200",        safe: false },
+    { level: 3,  amount: 500,     label: "$500",        safe: false },
+    { level: 4,  amount: 1000,    label: "$1,000",      safe: false },
+    { level: 5,  amount: 5000,    label: "$5,000",      safe: true  },
+    { level: 6,  amount: 10000,   label: "$10,000",     safe: false },
+    { level: 7,  amount: 20000,   label: "$20,000",     safe: false },
+    { level: 8,  amount: 30000,   label: "$30,000",     safe: false },
+    { level: 9,  amount: 40000,   label: "$40,000",     safe: false },
+    { level: 10, amount: 50000,   label: "$50,000",     safe: true  },
+    { level: 11, amount: 75000,   label: "$75,000",     safe: false },
+    { level: 12, amount: 100000,  label: "$100,000",    safe: false },
+    { level: 13, amount: 150000,  label: "$150,000",    safe: false },
+    { level: 14, amount: 200000,  label: "$200,000",    safe: false },
+    { level: 15, amount: 300000,  label: "$300,000",    safe: false },
+    { level: 16, amount: 400000,  label: "$400,000",    safe: false },
+    { level: 17, amount: 500000,  label: "$500,000",    safe: false },
+    { level: 18, amount: 650000,  label: "$650,000",    safe: false },
+    { level: 19, amount: 800000,  label: "$800,000",    safe: false },
+    { level: 20, amount: 1000000, label: "$1,000,000",  safe: false },
+];
+
+const questions = [
+  // Level 1-5 (Easy)
+  { topic:"Energías Renovables", context:"Un campo petrolero remoto necesita 500 kW de potencia continua. Tiene gas asociado disponible (200 KSCFD), radiación solar de 4.8 kWh/m²/día y vientos de 6.2 m/s. La conexión a la red costaría $2.5M USD.", question:"¿Cuál es la fuente de energía más viable para el campo?", options:["Parque solar de 500 kW con baterías de litio","Sistema híbrido eólico-solar con respaldo diésel","Turbina de gas utilizando el gas asociado disponible in situ","Conexión a la red eléctrica nacional"], answer:2, hint:"Piensa en qué recurso energético ya está disponible en el campo sin costo adicional de combustible.", explanation:"El gas asociado (200 KSCFD) es un recurso in situ con costo marginal cercano a cero. Una turbina a gas ofrece generación 24/7 con factor de capacidad >90%, ideal para bombeo electrosumergible continuo." },
+
+  { topic:"Centrales Eléctricas", context:"Una planta de generación opera con una turbina a gas que produce 85 MW con eficiencia del 33%. Los gases de escape salen a 540°C. Se evalúa convertir a ciclo combinado.", question:"¿Cuál es el principal beneficio de la conversión a ciclo combinado?", options:["Duplicar la producción a 170 MW con el mismo gas","Incrementar la eficiencia a 50-55% generando 35-45 MW extra sin gas adicional","Eliminar las emisiones de NOx completamente","Eliminar el mantenimiento de la turbina a gas"], answer:1, hint:"El calor residual de los gases de escape se recupera para generar más potencia.", explanation:"El HRSG recupera calor de los gases a 540°C para producir vapor que mueve una turbina adicional. La eficiencia sube de 33% a 50-55%, generando 35-45 MW más SIN consumir gas adicional." },
+
+  { topic:"Cadena de Valor del Crudo", context:"Un oleoducto de 770 km muestra pérdida de espesor de pared del 35% en un tramo de 45 km. El reemplazo cuesta $180M USD. Sin intervención, la presión máxima debe reducirse 40%.", question:"¿Cuál plan de integridad implementaría?", options:["Reemplazar inmediatamente los 45 km de tubería","Reducir presión 40% y monitorear semestralmente","Reparación con camisas + inhibidores + recoating + monitoreo con smart pigs","Construir un oleoducto alterno de 45 km"], answer:2, hint:"Busca la opción que balancea seguridad, costo y continuidad operativa con múltiples técnicas.", explanation:"El programa escalonado combina reparación inmediata (camisas en puntos críticos), prevención (inhibidores y recoating) y monitoreo continuo (smart pigs), optimizando costo vs. seguridad." },
+
+  { topic:"Cadena de Valor del Gas", context:"Un campo produce gas con 82% metano, 8% etano, 4% propano, 1.8% CO₂ y 0.2% H₂S. Debe cumplir especificaciones de gasoducto: CO₂ <2%, H₂S <4 ppm, punto de rocío <-10°C.", question:"¿Cuál es la secuencia correcta de procesamiento?", options:["Compresión → Deshidratación → Endulzamiento → Separación","Separación → Endulzamiento → Deshidratación → Extracción de líquidos → Compresión","Deshidratación → Compresión → Endulzamiento → Venta directa","Endulzamiento → Fraccionamiento → Deshidratación → Separación criogénica"], answer:1, hint:"Primero se remueven los contaminantes ácidos, luego el agua, después los líquidos pesados.", explanation:"La secuencia lógica es: separación en campo → endulzamiento (aminas para CO₂/H₂S) → deshidratación (glicol TEG) → extracción de líquidos (turboexpansor) → compresión a gasoducto." },
+
+  { topic:"Energías Renovables", context:"Una refinería planea reducir su huella de carbono 30%. Consume 80 MW térmicos en destilación y 20 MW eléctricos. Dispone de una fuente geotérmica de baja entalpía (90°C) a 2 km.", question:"¿Qué estrategia renovable maximiza la reducción de emisiones?", options:["Paneles solares en techos para cubrir los 20 MW eléctricos","Fuente geotérmica para precalentamiento de crudo antes de la destilación","Parque eólico de 15 MW en terreno adyacente","Calderas eléctricas alimentadas con energía solar"], answer:1, hint:"La mayor demanda energética es térmica (80 MW). ¿Qué fuente renovable puede atacar directamente esa demanda?", explanation:"La fuente geotérmica a 90°C puede precalentar crudo de ~25°C a ~70°C, reduciendo masivamente el consumo de gas en los hornos de destilación. Atacar los 80 MW térmicos tiene 4× más impacto que los 20 MW eléctricos." },
+
+  // Level 6-10 (Medium)
+  { topic:"Centrales Eléctricas", context:"Colombia debe reemplazar 400 MW. Opciones: térmica a gas ciclo combinado (85% factor capacidad), parque eólico 800 MW (40% FC), o hidroeléctrica a filo de agua 400 MW (60% FC). El sistema ya es 70% hídrico.", question:"¿Qué opción mejora la seguridad energética?", options:["El parque eólico por mayor capacidad instalada","La hidroeléctrica por experiencia del país","La térmica a gas por generación firme que diversifica la matriz","Dividir la inversión entre las tres opciones"], answer:2, hint:"Colombia sufre El Niño (sequías). ¿Qué tipo de generación NO depende del clima?", explanation:"Con 70% de dependencia hídrica, Colombia es muy vulnerable a El Niño. La térmica a gas ofrece generación firme (85% FC), despachable y diversifica la matriz energética." },
+
+  { topic:"Cadena de Valor del Crudo", context:"Un campo produce 5,000 BPD de crudo pesado (12° API). La viscosidad de 15,000 cP imposibilita el bombeo. El diluyente (nafta) cuesta $65/bbl y se necesita 30% de mezcla.", question:"¿Qué estrategia de transporte minimiza costos operativos?", options:["Mantener dilución con nafta al 30%","Calentamiento a 70°C en estaciones cada 50 km","Calentamiento moderado (50°C) + dilución reducida (15%) + mejoradores de flujo","Construir un upgrader en campo para mejorar el API"], answer:2, hint:"La combinación de técnicas puede reducir costos más que depender de una sola tecnología.", explanation:"La combinación optimiza: calentamiento moderado reduce viscosidad parcialmente, menos diluyente ahorra nafta costosa, y los drag reducers reducen fricción hasta 40%. El costo total es menor que cualquier método individual." },
+
+  { topic:"Cadena de Valor del Gas", context:"Colombia proyecta un déficit de 200 MMSCFD para 2028. Opciones: GNL importado (12 USD/MMBTU), campos offshore (5 USD/MMBTU, 4 años desarrollo), estimulación de pozos existentes (7 USD/MMBTU, 100 MMSCFD rápido).", question:"¿Cuál estrategia maximiza seguridad de suministro minimizando costos?", options:["Importar todo mediante GNL","Desarrollar solo campos offshore","Estimulación inmediata + desarrollo offshore + GNL como respaldo transitorio","Sustituir gas por GLP importado"], answer:2, hint:"Piensa en tres horizontes: qué hacer ya, qué desarrollar a mediano plazo, y qué usar como puente.", explanation:"Estrategia de tres horizontes: corto plazo (estimulación, rápido y barato), mediano plazo (offshore, mejor costo unitario), transición (GNL flexible como respaldo mientras se desarrolla offshore)." },
+
+  { topic:"Energías Renovables", context:"Un campo offshore (12 plataformas, 45 MW) evalúa un parque eólico offshore de 30 MW. Viento medio 9.5 m/s, factor de capacidad 42%, profundidad 25-40 m.", question:"¿Cuál es el principal desafío técnico para integrar la energía eólica offshore?", options:["La intermitencia elimina todo beneficio económico","Gestión de variabilidad con demanda constante, requiriendo control integrado y almacenamiento","Imposibilidad de transmitir energía por cables submarinos","La corrosión destruiría los aerogeneradores en 5 años"], answer:1, hint:"El viento varía pero las plataformas necesitan potencia constante. ¿Cómo se maneja esa diferencia?", explanation:"Con FC del 42%, la producción media es ~12.6 MW pero varía. Se necesita control SCADA integrado, almacenamiento (baterías/flywheel) y las turbinas a gas existentes como respaldo inteligente." },
+
+  { topic:"Centrales Eléctricas", context:"Una planta eléctrica en isla (3 generadores de 15 MW) sufre caídas de frecuencia hasta 57 Hz cuando arrancan motores de 2 MW en bombas de condensado.", question:"¿Cuál solución mejora la estabilidad eléctrica?", options:["Instalar un cuarto generador de 15 MW","Arrancadores suaves/VFDs en bombas + gestión de carga secuenciada","Reemplazar motores de 2 MW por menores","Operar los tres generadores al 100% permanentemente"], answer:1, hint:"El problema es el pico de corriente en el arranque (6-8× nominal). ¿Cómo se limita esa corriente?", explanation:"Los soft starters/VFDs limitan la corriente de arranque a 1.5-2× nominal (vs. 6-8× directo). La gestión de carga evita arranques simultáneos. Solución económica y efectiva vs. un generador extra de $8M+." },
+
+  // Level 11-15 (Hard)
+  { topic:"Cadena de Valor del Crudo", context:"Reficar recibe crudo Castilla (13° API) y Vasconia (24° API). Tiene FCC, coquizador e hidrotratamiento. La demanda de diésel bajo azufre sube 8% y la de gasolina cae 5%.", question:"¿Cómo maximizar el margen de refinación?", options:["Incrementar proporción de Castilla pesado","Maximizar carga de Vasconia liviano","Optimizar relación Castilla/Vasconia y ajustar severidad FCC/coquizador para maximizar destilados medios","Cerrar FCC y procesar solo crudo importado liviano"], answer:2, hint:"Un ingeniero de refinación optimiza TODAS las variables: mezcla de crudos Y condiciones operativas de cada unidad.", explanation:"La programación lineal (LP) de refinería optimiza simultáneamente la mezcla de crudos y las condiciones del FCC y coquizador para maximizar destilados medios (diésel/jet) según la demanda del mercado." },
+
+  { topic:"Cadena de Valor del Gas", context:"Una planta de fraccionamiento recibe LGN: etano 35% (0.20 USD/gal), propano 30% (0.85 USD/gal), butanos 25% (0.95 USD/gal), gasolina natural 10% (1.60 USD/gal). Puede hacer separación completa o parcial.", question:"¿Qué modo maximiza el ingreso neto?", options:["Separación completa en 4 productos","Separación parcial: propano + mezcla C4+ (rechazando etano al gas residual)","Vender toda la mezcla sin fraccionar","Maximizar producción de etano"], answer:1, hint:"A 0.20 USD/gal, ¿el etano paga los costos de su propia separación criogénica?", explanation:"El etano a 0.20 USD/gal no justifica los altos costos energéticos de separación criogénica. Es mejor rechazarlo al gas residual (donde aporta poder calorífico) y vender propano puro + mezcla C4+ con mayor margen." },
+
+  { topic:"Energías Renovables", context:"Una estación de compresión necesita 8 MW. Le ofrecen un PPA solar de 12 MWp a 45 USD/MWh. El gas propio cuesta 35 USD/MWh. Se proyecta un impuesto al carbono de 25 USD/tonCO₂ desde 2028.", question:"¿Qué recomienda con horizonte de 15 años y tasa del 10%?", options:["Mantener gas porque es más barato (35 vs 45 USD/MWh)","Aceptar PPA solar porque es más limpio","Sistema híbrido gas-solar: solar cubre demanda diurna, gas cubre picos y noche","Rechazar PPA y construir su propio parque solar"], answer:2, hint:"Ni 100% gas ni 100% solar es óptimo. ¿Hay una forma de optimizar costos actuales Y mitigar riesgo futuro?", explanation:"El híbrido optimiza: solar cubre ~40% de la demanda (horas de sol), reduciendo consumo de gas. Si llega el impuesto al carbono, la exposición es menor. El gas cubre la noche y picos con ventaja actual de costos." },
+
+  { topic:"Cadena de Valor del Crudo", context:"Se descubre crudo extrapesado (8° API, 50,000 cP) con 350 millones de barriles. Se evalúan: CSS (cíclica de vapor), SAGD, y combustión in situ.", question:"¿Qué método de recobro térmico es más apropiado?", options:["CSS por ser el más sencillo y probado","SAGD si hay espesor >15m, buena permeabilidad vertical y sello adecuado","Combustión in situ por no requerir generación de vapor","Inyección de polímeros para reducir movilidad del agua"], answer:1, hint:"Para crudos extrapesados, el factor de recobro es clave. SAGD puede lograr 50-70% pero necesita condiciones específicas.", explanation:"SAGD ofrece 50-70% de recobro para crudos extrapesados, muy superior al CSS (20-35%). Requiere: espesor >15m para pozos horizontales paralelos, buena kv/kh para drenaje gravitacional, y sello que evite pérdida de vapor." },
+
+  { topic:"Centrales Eléctricas", context:"Una cogeneración produce 25 MW y 60 ton/h de vapor a 15 bar. Calderas cubren 20 ton/h adicionales. Una ampliación subirá la demanda de vapor a 110 ton/h.", question:"¿Cuál solución es más eficiente energéticamente?", options:["Calderas convencionales adicionales de 50 ton/h","Segunda turbina a gas con HRSG para producir 50 ton/h + electricidad extra","Duct burner en HRSG existente + caldera auxiliar de 20 ton/h","Caldera de biomasa de 110 ton/h reemplazando todo"], answer:1, hint:"La cogeneración genera electricidad + vapor simultáneamente. ¿Qué opción maximiza esa ventaja?", explanation:"Una segunda turbina con HRSG produce ~50 ton/h de vapor Y ~15 MW extra de electricidad vendible, desplazando las calderas ineficientes. La eficiencia global (80-85%) supera a las calderas convencionales." },
+
+  // Level 16-20 (Expert)
+  { topic:"Cadena de Valor del Gas", context:"Un campo offshore produce 150 MMSCFD con 12% CO₂ y 500 ppm H₂S. Está a 65 km de la costa. Se evalúa: gasoducto de 18\" con planta de tratamiento en tierra, o plataforma de procesamiento offshore con gasoducto de 14\".", question:"¿Qué factores determinan la ubicación de la planta de tratamiento?", options:["Siempre es mejor tratar en tierra por menor costo","Comparar costo de materiales CRA para el gasoducto sin tratar vs. plataforma de procesamiento offshore","Tratar offshore porque 12% CO₂ hace imposible cualquier transporte","Solo depende de la profundidad del mar"], answer:1, hint:"El gas ácido (CO₂ + H₂S) corroe tubería convencional. ¿Cuánto cuesta evitar esa corrosión en 65 km?", explanation:"12% CO₂ + H₂S causa corrosión severa. Se compara: 65 km de tubería CRA (Duplex/Super Duplex, 3-5× más cara) vs. plataforma offshore de tratamiento + 65 km de tubería convencional para gas dulce. Es un análisis CAPEX/OPEX." },
+
+  { topic:"Cadena de Valor del Crudo", context:"Una comercializadora tiene 30,000 BPD de Vasconia (24° API). Spot: Brent -$8. Un comprador asiático ofrece contrato a 12 meses: Brent -$6.5 con take-or-pay 85%. Flete a Asia: $4.5/bbl. Transporte campo-Coveñas: $5/bbl. Brent a $78.", question:"¿Cuál es el netback en boca de pozo con el contrato asiático?", options:["78 - 6.5 - 4.5 - 5 = $62/bbl","78 - 8 - 5 = $65/bbl","78 - 6.5 - 5 = $66.5/bbl","78 - 6.5 - 4.5 = $67/bbl"], answer:0, hint:"Netback = precio de venta MENOS todos los costos de transporte hasta llegar a boca de pozo.", explanation:"Netback = Precio venta FOB (78-6.5=71.5) - Flete marítimo (4.5) - Transporte interno (5) = $62/bbl. Las otras opciones omiten algún costo de transporte o usan el diferencial spot en vez del contractual." },
+
+  { topic:"Energías Renovables", context:"Un sistema híbrido para Putumayo necesita 2 MW. Época seca: alta radiación solar. Época húmeda (8 meses): río con caudal 3 m³/s y caída de 15 m.", question:"¿Qué configuración optimiza la generación anual?", options:["2 MW solares con baterías de 8 MWh","1.2 MW PCH + 0.8 MW solar fotovoltaico","2 MW eólicos aprovechando vientos amazónicos","1 MW biomasa + 1 MW diésel"], answer:1, hint:"La complementariedad estacional es la clave: un recurso cubre cuando el otro no está disponible.", explanation:"La PCH aprovecha 8 meses húmedos (P = ρgQH ≈ 1.3 MW con 3 m³/s × 15m). La solar complementa los 4 meses secos. Juntas dan cobertura anual completa sin baterías masivas." },
+
+  { topic:"Centrales Eléctricas", context:"6 motores Wärtsilä producen 54 MW con 65,000 horas. 3 necesitan overhaul a $1.2M cada uno. Gas a 3.8 USD/MMBTU con escalamiento del 5% anual. Se evalúa reemplazar los 3 motores por turbinas aeroderivadas.", question:"¿Qué factor es determinante en esta decisión?", options:["Las turbinas siempre son superiores en eficiencia","El análisis LCOE: eficiencia, mantenimiento a largo plazo y proyección del precio del gas","Solo la vida útil remanente de los motores","Las turbinas requieren menos espacio"], answer:1, hint:"LCOE integra TODOS los costos sobre la vida útil: inversión, combustible, mantenimiento, eficiencia.", explanation:"El LCOE (Levelized Cost of Energy) compara objetivamente: motores (42-48% eficiencia, overhaul $1.2M pero vida extendida) vs. turbinas (35-42% eficiencia, mayor CAPEX pero menores paradas). Con gas escalando 5%/año, la eficiencia pesa más cada año." },
+
+  { topic:"Cadena de Valor del Gas", context:"Una empresa de GNV evalúa expandir estaciones a ciudades intermedias. Margen: 0.45 USD/m³. Consumo/vehículo: 12 m³/día. Crecimiento GNV: 3%/año. Inversión/estación: $800,000. Equilibrio: 3,000 m³/día.", question:"¿Cuál criterio de ubicación garantiza la viabilidad?", options:["Proximidad al gasoducto troncal","Análisis integral: parque GNV, diferencial precio, acceso gasoducto, competencia y potencial de flotas","Seleccionar las ciudades más grandes","Ubicar donde ya hay gasolineras"], answer:1, hint:"Una estación viable necesita VOLUMEN suficiente. ¿Qué factores determinan si habrá 3,000+ m³/día?", explanation:"La viabilidad depende de múltiples factores simultáneos: demanda existente (parque GNV actual), incentivo de conversión (diferencial precio), costo de suministro (cercanía al gasoducto), saturación (competencia) y contratos cautivos (flotas de transporte público)." },
+];
+
+let state = { name:'', current:0, answered:0, correct:0, wrong:0, prize:0, safeAmount:0, timer:90, interval:null, lifelines:{fifty:false,swap:false,hint:false}, selected:-1, locked:false, swapUsed:false, originalQ:null };
+
+function startGame() {
+    const name = document.getElementById('playerName').value.trim() || 'Jugador';
+    state.name = name;
+    showScreen('gameScreen');
+    document.getElementById('hudName').textContent = name;
+    buildLadder();
+    loadQuestion();
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function buildLadder() {
+    const el = document.getElementById('ladder');
+    el.innerHTML = '';
+    for (let i = prizes.length - 1; i >= 0; i--) {
+        const p = prizes[i];
+        const cls = ['ladder-item'];
+        if (p.safe) cls.push('safe');
+        if (i === state.current) cls.push('current');
+        if (i < state.current) cls.push('done');
+        el.innerHTML += `<div class="${cls.join(' ')}" id="lad${i}"><span>${p.level}</span><span>${p.label}</span></div>`;
+    }
+}
+
+function loadQuestion() {
+    const q = questions[state.current];
+    document.getElementById('hudQ').textContent = `${state.current+1}/20`;
+    document.getElementById('hudPrize').textContent = state.current > 0 ? prizes[state.current-1].label : '$0';
+    state.selected = -1;
+    state.locked = false;
+    document.getElementById('confirmBar').style.display = 'none';
+    document.getElementById('nextBar').style.display = 'none';
+    document.getElementById('explanationBox').innerHTML = '';
+    buildLadder();
+
+    let html = `<div class="q-topic">${q.topic} — Pregunta ${state.current+1} de 20</div>`;
+    html += `<div class="q-context">${q.context}</div>`;
+    html += `<div class="q-text">${q.question}</div>`;
+    html += `<div class="options">`;
+    const letters = ['A','B','C','D'];
+    q.options.forEach((opt, i) => {
+        html += `<div class="option" id="opt${i}" onclick="selectOption(${i})"><div class="letter">${letters[i]}</div><div class="opt-text">${opt}</div></div>`;
+    });
+    html += `</div>`;
+    document.getElementById('questionContainer').innerHTML = html;
+
+    startTimer();
+}
+
+function startTimer() {
+    state.timer = 90;
+    document.getElementById('hudTimer').textContent = state.timer;
+    clearInterval(state.interval);
+    state.interval = setInterval(() => {
+        state.timer--;
+        document.getElementById('hudTimer').textContent = state.timer;
+        if (state.timer <= 10) document.getElementById('hudTimer').style.color = '#e74c3c';
+        else document.getElementById('hudTimer').style.color = '';
+        if (state.timer <= 0) {
+            clearInterval(state.interval);
+            timeUp();
+        }
+    }, 1000);
+}
+
+function timeUp() {
+    state.locked = true;
+    document.querySelectorAll('.option').forEach(o => o.classList.add('disabled'));
+    const q = questions[state.current];
+    document.getElementById(`opt${q.answer}`).classList.add('correct');
+    document.getElementById('explanationBox').innerHTML = `<div class="explanation wrong-exp"><h4>⏰ ¡Se acabó el tiempo!</h4><p>${q.explanation}</p></div>`;
+    document.getElementById('confirmBar').style.display = 'none';
+    state.wrong++;
+    setTimeout(() => showResult(false), 3000);
+}
+
+function selectOption(idx) {
+    if (state.locked) return;
+    state.selected = idx;
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    document.getElementById(`opt${idx}`).classList.add('selected');
+    document.getElementById('confirmBar').style.display = 'block';
+}
+
+function confirmAnswer() {
+    if (state.selected < 0 || state.locked) return;
+    clearInterval(state.interval);
+    state.locked = true;
+    state.answered++;
+
+    const q = questions[state.current];
+    const correct = state.selected === q.answer;
+
+    document.querySelectorAll('.option').forEach(o => o.classList.add('disabled'));
+    document.getElementById('confirmBar').style.display = 'none';
+
+    if (correct) {
+        document.getElementById(`opt${state.selected}`).classList.add('correct');
+        state.correct++;
+        state.prize = prizes[state.current].amount;
+        if (prizes[state.current].safe) state.safeAmount = state.prize;
+        document.getElementById('explanationBox').innerHTML = `<div class="explanation"><h4>✅ ¡Correcto! Ganaste ${prizes[state.current].label}</h4><p>${q.explanation}</p></div>`;
+        document.getElementById('hudPrize').textContent = prizes[state.current].label;
+
+        if (state.current >= 19) {
+            setTimeout(() => showResult(true), 2500);
+        } else {
+            document.getElementById('nextBar').style.display = 'block';
+        }
+    } else {
+        document.getElementById(`opt${state.selected}`).classList.add('wrong');
+        document.getElementById(`opt${q.answer}`).classList.add('correct');
+        state.wrong++;
+        state.prize = state.safeAmount;
+        document.getElementById('explanationBox').innerHTML = `<div class="explanation wrong-exp"><h4>❌ Incorrecto. La respuesta era: ${['A','B','C','D'][q.answer]}</h4><p>${q.explanation}</p></div>`;
+        setTimeout(() => showResult(false), 3500);
+    }
+}
+
+function nextQuestion() {
+    state.current++;
+    loadQuestion();
+}
+
+function useLifeline(type) {
+    const q = questions[state.current];
+    if (state.locked) return;
+
+    if (type === '5050' && !state.lifelines.fifty) {
+        state.lifelines.fifty = true;
+        document.getElementById('ll5050').classList.add('used');
+        const wrong = [];
+        q.options.forEach((_, i) => { if (i !== q.answer) wrong.push(i); });
+        wrong.sort(() => Math.random() - 0.5);
+        const hide = wrong.slice(0, 2);
+        hide.forEach(i => document.getElementById(`opt${i}`).classList.add('hidden-5050'));
+        if (state.selected >= 0 && hide.includes(state.selected)) {
+            state.selected = -1;
+            document.getElementById('confirmBar').style.display = 'none';
+        }
+    }
+    if (type === 'swap' && !state.lifelines.swap) {
+        state.lifelines.swap = true;
+        document.getElementById('llSwap').classList.add('used');
+        // Replace with a different question of similar topic if possible, otherwise just shuffle options
+        const alt = questions.filter((qq, i) => i !== state.current && qq.topic === q.topic);
+        if (alt.length > 0) {
+            const replacement = alt[Math.floor(Math.random() * alt.length)];
+            questions[state.current] = replacement;
+            loadQuestion();
+            // Remove used lifeline visual again
+            document.getElementById('llSwap').classList.add('used');
+            if (state.lifelines.fifty) document.getElementById('ll5050').classList.add('used');
+            if (state.lifelines.hint) document.getElementById('llHint').classList.add('used');
+        }
+    }
+    if (type === 'hint' && !state.lifelines.hint) {
+        state.lifelines.hint = true;
+        document.getElementById('llHint').classList.add('used');
+        const hintBox = document.createElement('div');
+        hintBox.className = 'explanation';
+        hintBox.innerHTML = `<h4>🎓 Pista del Experto:</h4><p>${q.hint}</p>`;
+        document.getElementById('explanationBox').innerHTML = '';
+        document.getElementById('explanationBox').appendChild(hintBox);
+    }
+}
+
+function showResult(won) {
+    clearInterval(state.interval);
+    const pct = Math.round((state.correct / 20) * 100);
+    let trophy, title, color;
+    if (won) { trophy = '🏆'; title = '¡INGENIERO MILLONARIO!'; color = 'var(--gold)'; }
+    else if (state.correct >= 15) { trophy = '🥈'; title = 'Casi en la cima'; color = 'var(--blue)'; }
+    else if (state.correct >= 10) { trophy = '🥉'; title = 'Buen intento'; color = 'var(--green)'; }
+    else if (state.correct >= 5) { trophy = '📊'; title = 'Sigue estudiando'; color = 'var(--purple)'; }
+    else { trophy = '📚'; title = 'A repasar los temas'; color = 'var(--red)'; }
+
+    const prizeLabel = prizes.find(p => p.amount === state.prize)?.label || '$0';
+
+    document.getElementById('resultScreen').innerHTML = `
+        <div class="result-card">
+            <div class="trophy">${trophy}</div>
+            <h2 style="color:${color}">${title}</h2>
+            <p style="color:var(--muted)">${state.name}, tu resultado final:</p>
+            <div class="prize" style="color:var(--gold)">${prizeLabel} USD</div>
+            <div class="stats">
+                <div class="stat-box"><div class="stat-val" style="color:var(--green)">${state.correct}</div><div class="stat-label">Correctas</div></div>
+                <div class="stat-box"><div class="stat-val" style="color:var(--red)">${state.wrong}</div><div class="stat-label">Incorrectas</div></div>
+                <div class="stat-box"><div class="stat-val" style="color:var(--blue)">${pct}%</div><div class="stat-label">Aciertos</div></div>
+                <div class="stat-box"><div class="stat-val" style="color:var(--gold)">${state.current + 1}/20</div><div class="stat-label">Llegaste a</div></div>
+            </div>
+            <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                <button class="btn btn-gold" onclick="resetGame()">🔄 Jugar de Nuevo</button>
+            </div>
+        </div>
+    `;
+    showScreen('resultScreen');
+}
+
+function resetGame() {
+    state = { name:state.name, current:0, answered:0, correct:0, wrong:0, prize:0, safeAmount:0, timer:90, interval:null, lifelines:{fifty:false,swap:false,hint:false}, selected:-1, locked:false };
+    document.getElementById('ll5050').classList.remove('used');
+    document.getElementById('llSwap').classList.remove('used');
+    document.getElementById('llHint').classList.remove('used');
+    showScreen('gameScreen');
+    buildLadder();
+    loadQuestion();
+}
+</script>
+</body>
+</html>
