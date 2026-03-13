@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío: Cadena de Valor del Gas y Petróleo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg-start: #0f2027;
+            --bg-mid: #203a43;
+            --bg-end: #2c5364;
+            --text-light: #ffffff;
+            --text-muted: #b0c4de;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #00e676;
+            --danger: #ff1744;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid), var(--bg-end));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Quiz UI */
+        .question-number {
+            font-size: 1rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background: rgba(0, 230, 118, 0.2);
+            border-color: var(--success);
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
+        }
+
+        .option-btn.wrong {
+            background: rgba(255, 23, 68, 0.2);
+            border-color: var(--danger);
+            box-shadow: 0 0 15px rgba(255, 23, 68, 0.3);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: #000;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        /* Result Screen */
+        .result-container {
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0%, transparent 0%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 30px;
+            position: relative;
+            animation: popIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .score-circle::before {
+            content: "";
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            background: var(--bg-mid);
+            border-radius: 50%;
+        }
+
+        .score-text {
+            position: relative;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .feedback-message {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .result-details {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* App decoration */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.5;
+        }
+        .blob-1 {
+            background: var(--primary);
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+        }
+        .blob-2 {
+            background: var(--secondary);
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            bottom: -50px;
+            right: -50px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <div class="header">
+                <h1>Cadena de Valor: Gas y Petróleo</h1>
+                <p>Prueba tus conocimientos sobre la industria de los hidrocarburos (Upstream, Midstream, Downstream).</p>
+            </div>
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="margin-bottom: 30px; color: var(--text-muted); font-size: 1.1rem;">10 Preguntas •  Desafío Rápido</p>
+                <button class="btn-primary" onclick="startGame()">Comenzar Desafío 🚀</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <span class="question-number" id="question-number">Pregunta 1 de 10</span>
+            <div class="header" style="text-align: left; margin-bottom: 20px;">
+                <h2 class="question-text" id="question-text">¿Pregunta?</h2>
+            </div>
+            <div class="options" id="options-container">
+                <!-- Options will be injected here -->
+            </div>
+            <div class="controls" id="controls" style="display: none;">
+                <button class="btn-primary" onclick="nextQuestion()" id="next-btn">Siguiente Pregunta ➔</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen">
+            <div class="result-container">
+                <div class="header">
+                    <h1>¡Desafío Completado!</h1>
+                </div>
+                <div class="score-circle" id="score-circle">
+                    <div class="score-text"><span id="score-display">0</span>0%</div>
+                </div>
+                <div class="feedback-message" id="feedback-message">¡Gran Trabajo!</div>
+                <div class="result-details">
+                    Has respondido correctamente <span id="correct-count" style="color:var(--primary); font-weight: bold;">0</span> de <span id="total-count" style="color:var(--primary); font-weight: bold;">10</span> preguntas.
+                </div>
+                <button class="btn-primary" onclick="restartGame()">Jugar de Nuevo 🔄</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "¿A qué sector de la cadena de valor pertenece la exploración y producción de crudo?",
+                options: ["Midstream", "Downstream", "Upstream", "Petroquímica"],
+                correct: 2
+            },
+            {
+                question: "¿Qué actividad principal ocurre en el sector Midstream?",
+                options: ["Perforación de pozos", "Transporte y almacenamiento", "Refinación", "Comercialización directa al cliente"],
+                correct: 1
+            },
+            {
+                question: "La refinación del petróleo crudo para convertirlo en gasolina o diésel pertenece al sector:",
+                options: ["Upstream", "Midstream", "Downstream", "Exploración"],
+                correct: 2
+            },
+            {
+                question: "¿Qué son los estudios sísmicos en la industria petrolera?",
+                options: ["Estudios para medir temblores en refinerías", "Métodos para transportar gas", "Estudios para encontrar posibles reservas en el subsuelo", "Procesos para limpiar derrames"],
+                correct: 2
+            },
+            {
+                question: "¿Qué infraestructura NO forma parte típica del Midstream?",
+                options: ["Oleoductos", "Gasoductos", "Torres de destilación fraccionada", "Buques tanque"],
+                correct: 2
+            },
+            {
+                question: "El proceso de venta y distribución de combustibles al consumidor final (ej. Estaciones de servicio) se encuentra en:",
+                options: ["Downstream", "Midstream", "Upstream", "Comercialización Primaria"],
+                correct: 0
+            },
+            {
+                question: "¿Cuál es la función principal de un oleoducto?",
+                options: ["Refinar el petróleo", "Extraer gas natural", "Transportar petróleo crudo a grandes distancias", "Inyectar agua a los pozos"],
+                correct: 2
+            },
+            {
+                question: "¿Cuál es el principal objetivo de la fase de Exploración (Upstream)?",
+                options: ["Construir tanques de almacenamiento", "Localizar yacimientos de hidrocarburos comercialmente viables", "Procesar crudo pesado", "Vender lubricantes"],
+                correct: 1
+            },
+            {
+                question: "El gas natural, antes de ser transportado a largas distancias por mar en buques especializados, suele ser:",
+                options: ["Comprimido a estado sólido", "Mezclado con diésel", "Licuado a GNL (Gas Natural Licuado)", "Quemado en antorchas"],
+                correct: 2
+            },
+            {
+                question: "La industria petroquímica, que produce plásticos y fertilizantes a partir de derivados del petróleo, se clasifica dentro de:",
+                options: ["Upstream", "Midstream", "Downstream", "Ninguno de los anteriores"],
+                correct: 2
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let hasAnswered = false;
+
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const questionNumber = document.getElementById('question-number');
+        const progressBar = document.getElementById('progress-bar');
+        const controls = document.getElementById('controls');
+        const nextBtn = document.getElementById('next-btn');
+
+        function startGame() {
+            startScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+            currentQuestionIndex = 0;
+            score = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            hasAnswered = false;
+            controls.style.display = 'none';
+            
+            const q = questions[currentQuestionIndex];
+            questionText.textContent = q.question;
+            questionNumber.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+            
+            // Update progress bar
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>${String.fromCharCode(65 + index)}. ${opt}</span>`;
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(index, btn) {
+            if (hasAnswered) return;
+            hasAnswered = true;
+
+            const isCorrect = index === questions[currentQuestionIndex].correct;
+            const allButtons = document.querySelectorAll('.option-btn');
+            
+            // Disable all buttons
+            allButtons.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                btn.innerHTML += ' <span>✅</span>';
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                btn.innerHTML += ' <span>❌</span>';
+                
+                // Show correct answer
+                const correctBtn = allButtons[questions[currentQuestionIndex].correct];
+                correctBtn.classList.add('correct');
+                correctBtn.innerHTML += ' <span>✅</span>';
+            }
+
+            // Show next button
+            controls.style.display = 'flex';
+            if (currentQuestionIndex === questions.length - 1) {
+                nextBtn.textContent = "Ver Resultados 🎉";
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.remove('active');
+            resultScreen.classList.add('active');
+
+            const scoreDisplay = document.getElementById('score-display');
+            const correctCount = document.getElementById('correct-count');
+            const totalCount = document.getElementById('total-count');
+            const feedbackMessage = document.getElementById('feedback-message');
+            const scoreCircle = document.getElementById('score-circle');
+
+            const percentage = (score / questions.length) * 100;
+            
+            // Animate score counter
+            let currentScore = 0;
+            const timer = setInterval(() => {
+                if (currentScore >= percentage) {
+                    clearInterval(timer);
+                } else {
+                    currentScore++;
+                    scoreDisplay.textContent = currentScore;
+                }
+            }, 20);
+
+            // Set final values
+            scoreDisplay.textContent = percentage;
+            correctCount.textContent = score;
+            totalCount.textContent = questions.length;
+
+            // Animate circle gradient
+            scoreCircle.style.background = `conic-gradient(var(--primary) ${percentage}%, rgba(255,255,255,0.1) ${percentage}%)`;
+
+            // Setup feedback message
+            if (percentage === 100) {
+                feedbackMessage.textContent = "¡Perfecto! Eres un experto en hidrocarburos. 🏆";
+                feedbackMessage.style.color = "var(--success)";
+            } else if (percentage >= 70) {
+                feedbackMessage.textContent = "¡Muy bien! Tienes un gran conocimiento de la industria. 👏";
+                feedbackMessage.style.color = "var(--primary)";
+            } else if (percentage >= 50) {
+                feedbackMessage.textContent = "Buen intento, pero aún puedes afianzar más conceptos. 💪";
+                feedbackMessage.style.color = "#ffd600";
+            } else {
+                feedbackMessage.textContent = "Necesitas repasar la cadena de valor. ¡Sigue estudiando! 📚";
+                feedbackMessage.style.color = "var(--danger)";
+            }
+        }
+
+        function restartGame() {
+            resultScreen.classList.remove('active');
+            startGame();
+        }
+    </script>
+</body>
+</html>
