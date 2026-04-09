@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UF3 — Tratamiento del Gas Natural | Procesos Industriales 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --primary: #2ecc71;
+            --primary-bg: rgba(46, 204, 113, .10);
+            --primary-border: rgba(46, 204, 113, .35);
+            --acid: #e74c3c;
+            --acid-bg: rgba(231, 76, 60, .10);
+            --acid-border: rgba(231, 76, 60, .35);
+            --water: #3498db;
+            --water-bg: rgba(52, 152, 219, .10);
+            --water-border: rgba(52, 152, 219, .35);
+            --lng: #9b59b6;
+            --lng-bg: rgba(155, 89, 182, .10);
+            --lng-border: rgba(155, 89, 182, .35);
+            --warn: #f39c12;
+            --warn-bg: rgba(243, 156, 18, .10);
+            --warn-border: rgba(243, 156, 18, .35);
+            --bg: #080810;
+            --card: #111122;
+            --card-hover: #161630;
+            --text: #e2e2ee;
+            --muted: #8888aa;
+            --border: rgba(255, 255, 255, .06);
+            --radius: 16px;
+            --gap: 24px;
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6
+        }
+
+        /* ── Layout ── */
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px;
+            position: relative
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+            max-width: 750px
+        }
+
+        .section-header .badge {
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 50px;
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px
+        }
+
+        .badge-green {
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-border);
+            color: var(--primary)
+        }
+
+        .badge-red {
+            background: var(--acid-bg);
+            border: 1px solid var(--acid-border);
+            color: var(--acid)
+        }
+
+        .badge-blue {
+            background: var(--water-bg);
+            border: 1px solid var(--water-border);
+            color: var(--water)
+        }
+
+        .badge-purple {
+            background: var(--lng-bg);
+            border: 1px solid var(--lng-border);
+            color: var(--lng)
+        }
+
+        .badge-yellow {
+            background: var(--warn-bg);
+            border: 1px solid var(--warn-border);
+            color: var(--warn)
+        }
+
+        .badge-neutral {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--border);
+            color: var(--muted)
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px
+        }
+
+        .section-header p {
+            font-size: 1rem;
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0 auto
+        }
+
+        /* ── Cards ── */
+        .card-grid {
+            display: grid;
+            gap: var(--gap);
+            width: 100%;
+            max-width: 1200px
+        }
+
+        .cols-2 {
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr))
+        }
+
+        .cols-3 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
+        }
+
+        .cols-4 {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            transition: transform .3s, border-color .3s, background .3s
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            background: var(--card-hover);
+            border-color: rgba(255, 255, 255, .12)
+        }
+
+        .card-icon {
+            font-size: 1.6rem;
+            margin-bottom: 14px;
+            display: block
+        }
+
+        .card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .card h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .card p,
+        .card .desc {
+            font-size: .88rem;
+            color: var(--muted);
+            line-height: 1.65
+        }
+
+        .card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0
+        }
+
+        .card ul li {
+            padding: 8px 0;
+            font-size: .88rem;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            cursor: pointer;
+            transition: color .2s, padding-left .2s
+        }
+
+        .card ul li:hover {
+            color: var(--text);
+            padding-left: 6px
+        }
+
+        .card ul li:last-child {
+            border-bottom: none
+        }
+
+        .card ul li::before {
+            content: '›';
+            font-weight: 700;
+            flex-shrink: 0
+        }
+
+        .card.green-accent {
+            border-left: 3px solid var(--primary)
+        }
+
+        .card.green-accent ul li::before {
+            color: var(--primary)
+        }
+
+        .card.red-accent {
+            border-left: 3px solid var(--acid)
+        }
+
+        .card.red-accent ul li::before {
+            color: var(--acid)
+        }
+
+        .card.blue-accent {
+            border-left: 3px solid var(--water)
+        }
+
+        .card.blue-accent ul li::before {
+            color: var(--water)
+        }
+
+        .card.purple-accent {
+            border-left: 3px solid var(--lng)
+        }
+
+        .card.purple-accent ul li::before {
+            color: var(--lng)
+        }
+
+        /* ── Step Cards ── */
+        .step-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 22px;
+            transition: transform .3s, border-color .3s;
+            cursor: pointer
+        }
+
+        .step-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, .12)
+        }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: .75rem;
+            font-weight: 800;
+            margin-bottom: 14px
+        }
+
+        .step-num.green-n {
+            background: var(--primary-bg);
+            color: var(--primary);
+            border: 1px solid var(--primary-border)
+        }
+
+        .step-num.red-n {
+            background: var(--acid-bg);
+            color: var(--acid);
+            border: 1px solid var(--acid-border)
+        }
+
+        .step-num.blue-n {
+            background: var(--water-bg);
+            color: var(--water);
+            border: 1px solid var(--water-border)
+        }
+
+        .step-num.purple-n {
+            background: var(--lng-bg);
+            color: var(--lng);
+            border: 1px solid var(--lng-border)
+        }
+
+        .step-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .step-card p {
+            font-size: .85rem;
+            color: var(--muted);
+            line-height: 1.6
+        }
+
+        /* ── Hero Banners ── */
+        .hero-grad {
+            width: 100%;
+            max-width: 1200px;
+            height: 200px;
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .hero-grad::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: .15;
+            pointer-events: none
+        }
+
+        .hero-grad.h-green {
+            background: linear-gradient(135deg, #001a0a 0%, #003316 30%, #2ecc71 200%)
+        }
+
+        .hero-grad.h-green::before {
+            background: radial-gradient(circle at 70% 30%, var(--primary), transparent 60%)
+        }
+
+        .hero-grad.h-red {
+            background: linear-gradient(135deg, #1a0000 0%, #330a0a 30%, #e74c3c 200%)
+        }
+
+        .hero-grad.h-red::before {
+            background: radial-gradient(circle at 30% 70%, var(--acid), transparent 60%)
+        }
+
+        .hero-grad.h-blue {
+            background: linear-gradient(135deg, #000a1a 0%, #001630 30%, #3498db 200%)
+        }
+
+        .hero-grad.h-blue::before {
+            background: radial-gradient(circle at 50% 50%, var(--water), transparent 60%)
+        }
+
+        .hero-grad.h-purple {
+            background: linear-gradient(135deg, #0e0016 0%, #1a0030 30%, #9b59b6 200%)
+        }
+
+        .hero-grad.h-purple::before {
+            background: radial-gradient(circle at 50% 50%, var(--lng), transparent 60%)
+        }
+
+        .hero-grad h2 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 900;
+            z-index: 2;
+            margin-bottom: 6px
+        }
+
+        .hero-grad .badge {
+            z-index: 2
+        }
+
+        /* ── Title ── */
+        #title {
+            background: linear-gradient(160deg, #080810 0%, #0a1a12 40%, #0e1e16 100%)
+        }
+
+        .title-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .12;
+            pointer-events: none
+        }
+
+        .title-glow.g1 {
+            background: var(--primary);
+            top: -150px;
+            right: -100px
+        }
+
+        .title-glow.g2 {
+            background: var(--acid);
+            bottom: -150px;
+            left: -100px
+        }
+
+        .title-glow.g3 {
+            background: var(--water);
+            bottom: 50px;
+            right: 30%
+        }
+
+        .title-wrap {
+            text-align: center;
+            z-index: 2;
+            max-width: 850px
+        }
+
+        .title-wrap h1 {
+            font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+            font-weight: 900;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 35%, #3498db 70%, #9b59b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px
+        }
+
+        .title-wrap .sub {
+            font-size: clamp(.95rem, 2vw, 1.25rem);
+            color: var(--muted);
+            font-weight: 300;
+            margin-bottom: 40px
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: .95rem;
+            text-decoration: none;
+            color: #fff;
+            transition: transform .3s, box-shadow .3s
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .5)
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #2ecc71, #1a9c54)
+        }
+
+        .btn-red {
+            background: linear-gradient(135deg, #e74c3c, #c0392b)
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, #3498db, #1a6da8)
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #9b59b6, #7d3c98)
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .78rem;
+            color: rgba(255, 255, 255, .25);
+            animation: float 2.5s ease-in-out infinite
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0)
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(-8px)
+            }
+        }
+
+        /* ── Flow Diagram ── */
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 50px
+        }
+
+        .flow-item {
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: .85rem;
+            text-align: center;
+            white-space: nowrap
+        }
+
+        .flow-item.f-red {
+            background: var(--acid-bg);
+            border: 1px solid var(--acid-border);
+            color: var(--acid)
+        }
+
+        .flow-item.f-blue {
+            background: var(--water-bg);
+            border: 1px solid var(--water-border);
+            color: var(--water)
+        }
+
+        .flow-item.f-purple {
+            background: var(--lng-bg);
+            border: 1px solid var(--lng-border);
+            color: var(--lng)
+        }
+
+        .flow-item.f-green {
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-border);
+            color: var(--primary)
+        }
+
+        .flow-item.f-yellow {
+            background: var(--warn-bg);
+            border: 1px solid var(--warn-border);
+            color: var(--warn)
+        }
+
+        .flow-arrow {
+            color: rgba(255, 255, 255, .2);
+            font-size: 1.2rem;
+            font-weight: 300
+        }
+
+        /* ── Stats ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--gap);
+            width: 100%;
+            max-width: 1000px
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 20px;
+            text-align: center
+        }
+
+        .stat-val {
+            font-size: 2.2rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 8px
+        }
+
+        .stat-val.green {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .stat-val.red {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .stat-label {
+            font-size: .82rem;
+            color: var(--muted)
+        }
+
+        /* ── Chemical Equation ── */
+        .chem-eq {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 30px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+            line-height: 2
+        }
+
+        .chem-eq .reactant {
+            color: var(--acid)
+        }
+
+        .chem-eq .product {
+            color: var(--primary)
+        }
+
+        .chem-eq .catalyst {
+            color: var(--water)
+        }
+
+        .chem-eq .arrow {
+            color: var(--muted);
+            margin: 0 12px
+        }
+
+        /* ── Process Diagram (CSS-only) ── */
+        .process-diagram {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .process-stage {
+            flex: 1;
+            min-width: 180px;
+            max-width: 250px;
+            text-align: center;
+            padding: 24px 16px;
+            position: relative
+        }
+
+        .process-stage .stage-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin: 0 auto 14px;
+            position: relative;
+            z-index: 2
+        }
+
+        .process-stage .stage-icon.si-red {
+            background: var(--acid-bg);
+            border: 2px solid var(--acid-border)
+        }
+
+        .process-stage .stage-icon.si-blue {
+            background: var(--water-bg);
+            border: 2px solid var(--water-border)
+        }
+
+        .process-stage .stage-icon.si-purple {
+            background: var(--lng-bg);
+            border: 2px solid var(--lng-border)
+        }
+
+        .process-stage .stage-icon.si-green {
+            background: var(--primary-bg);
+            border: 2px solid var(--primary-border)
+        }
+
+        .process-stage h4 {
+            font-size: .92rem;
+            font-weight: 700;
+            margin-bottom: 6px
+        }
+
+        .process-stage p {
+            font-size: .78rem;
+            color: var(--muted);
+            line-height: 1.5
+        }
+
+        .process-stage::after {
+            content: '→';
+            position: absolute;
+            right: -12px;
+            top: 50px;
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, .15);
+            z-index: 1
+        }
+
+        .process-stage:last-child::after {
+            display: none
+        }
+
+        /* ── Table ── */
+        .data-table {
+            width: 100%;
+            max-width: 1100px;
+            border-collapse: collapse;
+            margin-bottom: 30px
+        }
+
+        .data-table th {
+            background: rgba(255, 255, 255, .04);
+            padding: 14px 18px;
+            text-align: left;
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border)
+        }
+
+        .data-table td {
+            padding: 14px 18px;
+            font-size: .88rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted)
+        }
+
+        .data-table tr:hover td {
+            color: var(--text);
+            background: rgba(255, 255, 255, .02)
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 700
+        }
+
+        .pill-danger {
+            background: var(--acid-bg);
+            color: var(--acid);
+            border: 1px solid var(--acid-border)
+        }
+
+        .pill-safe {
+            background: var(--primary-bg);
+            color: var(--primary);
+            border: 1px solid var(--primary-border)
+        }
+
+        .pill-warn {
+            background: var(--warn-bg);
+            color: var(--warn);
+            border: 1px solid var(--warn-border)
+        }
+
+        /* ── Side Nav ── */
+        .side-nav {
+            position: fixed;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .side-nav a {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .15);
+            display: block;
+            transition: .3s
+        }
+
+        .side-nav a.active,
+        .side-nav a:hover {
+            background: rgba(255, 255, 255, .7);
+            transform: scale(1.3)
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .75);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .35s, visibility .35s
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible
+        }
+
+        .modal-body {
+            background: #13132a;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 20px;
+            padding: 36px 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateY(30px) scale(.95);
+            transition: transform .35s;
+            position: relative
+        }
+
+        .modal-overlay.open .modal-body {
+            transform: translateY(0) scale(1)
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: color .2s;
+            line-height: 1
+        }
+
+        .modal-close:hover {
+            color: #fff
+        }
+
+        .modal-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+            line-height: 1.3
+        }
+
+        .modal-text {
+            font-size: .92rem;
+            color: var(--muted);
+            line-height: 1.75
+        }
+
+        .modal-text strong {
+            color: var(--text)
+        }
+
+        .click-hint {
+            font-size: .7rem;
+            color: rgba(255, 255, 255, .2);
+            text-align: center;
+            margin-top: 8px;
+            letter-spacing: 1px
+        }
+
+        /* ── Animations ── */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity .6s ease, transform .6s ease
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        .section-divider {
+            width: 60px;
+            height: 3px;
+            border-radius: 3px;
+            margin: 0 auto 30px;
+            opacity: .6
+        }
+
+        .div-green {
+            background: var(--primary)
+        }
+
+        .div-red {
+            background: var(--acid)
+        }
+
+        .div-blue {
+            background: var(--water)
+        }
+
+        .div-purple {
+            background: var(--lng)
+        }
+
+        /* ── Footer ── */
+        #footer {
+            min-height: 40vh
+        }
+
+        #footer h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 10px
+        }
+
+        #footer p {
+            color: var(--muted);
+            font-size: .95rem
+        }
+
+        #footer .credit {
+            margin-top: 10px;
+            font-size: .8rem;
+            opacity: .4
+        }
+
+        /* ── Responsive ── */
+        @media(max-width:768px) {
+            .slide {
+                padding: 50px 20px
+            }
+
+            .hero-grad {
+                height: 160px
+            }
+
+            .cols-3,
+            .cols-4 {
+                grid-template-columns: 1fr
+            }
+
+            .flow-row {
+                flex-direction: column
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg)
+            }
+
+            .side-nav {
+                display: none
+            }
+
+            .btn-row {
+                flex-direction: column;
+                align-items: center
+            }
+
+            .process-diagram {
+                flex-direction: column;
+                align-items: center
+            }
+
+            .process-stage::after {
+                content: '↓';
+                right: auto;
+                bottom: -10px;
+                top: auto;
+                left: 50%
+            }
+
+            .data-table {
+                font-size: .8rem
+            }
+        }
+
+        /* ── Glossary Tooltip ── */
+        .gloss {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(52, 152, 219, .15);
+            border: 1px solid rgba(52, 152, 219, .4);
+            color: #3498db;
+            font-size: .65rem;
+            font-weight: 800;
+            cursor: pointer;
+            vertical-align: middle;
+            margin-left: 4px;
+            transition: background .2s, transform .2s;
+            line-height: 1;
+            position: relative;
+            text-decoration: none;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .gloss:hover {
+            background: rgba(52, 152, 219, .3);
+            transform: scale(1.15);
+        }
+
+        .gloss-popup {
+            position: fixed;
+            background: #1a1a36;
+            border: 1px solid rgba(52, 152, 219, .35);
+            border-radius: 14px;
+            padding: 16px 20px;
+            max-width: 340px;
+            width: 90%;
+            z-index: 11000;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .25s, visibility .25s, transform .25s;
+            transform: translateY(6px);
+            pointer-events: none;
+        }
+
+        .gloss-popup.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .gloss-popup .gp-term {
+            font-size: .78rem;
+            font-weight: 800;
+            color: #3498db;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .gloss-popup .gp-def {
+            font-size: .85rem;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .gloss-popup .gp-def strong {
+            color: var(--text);
+        }
+
+        .gloss-popup .gp-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .gloss-popup .gp-close:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="side-nav" id="sideNav"></nav>
+
+    <!-- ════════════════ SLIDE 1: TITLE ════════════════ -->
+    <section class="slide" id="title">
+        <div class="title-glow g1"></div>
+        <div class="title-glow g2"></div>
+        <div class="title-glow g3"></div>
+        <div class="title-wrap">
+            <h1>Tratamiento del Gas Natural</h1>
+            <p class="sub">Del gas crudo al gas comercial — Endulzamiento, deshidratación y extracción de líquidos</p>
+            <div class="btn-row">
+                <a href="#composicion" class="btn btn-green">🧪 Composición</a>
+                <a href="#endulzamiento-hero" class="btn btn-red">⚗️ Endulzamiento</a>
+                <a href="#deshidratacion-hero" class="btn btn-blue">💧 Deshidratación</a>
+                <a href="#extraccion-hero" class="btn btn-purple">🛢️ Extracción LGN</a>
+            </div>
+        </div>
+        <span class="scroll-hint">▼ Desplaza para explorar</span>
+    </section>
+
+    <!-- ════════════════ SLIDE 2: ¿POR QUÉ TRATAR? ════════════════ -->
+    <section class="slide" id="porque">
+        <div class="section-header">
+            <span class="badge badge-neutral">Introducción</span>
+            <h2>¿Por qué se trata el gas natural?</h2>
+            <p>El gas que sale del pozo (gas crudo) contiene impurezas que lo hacen peligroso, corrosivo e
+                inadecuado para el consumo. El tratamiento lo convierte en gas comercial seguro.</p>
+        </div>
+        <div class="card-grid cols-3">
+            <div class="card fade-in" style="border-top:3px solid var(--acid)">
+                <span class="card-icon">⚠️</span>
+                <h3>Seguridad</h3>
+                <p>El H₂S (ácido sulfhídrico) es <strong>letal en concentraciones de solo 100 ppm<span class="gloss" data-gloss="ppm">?</span></strong>. El gas
+                    crudo puede contener hasta 30% de H₂S. Debe eliminarse antes de cualquier uso.</p>
+            </div>
+            <div class="card fade-in" style="border-top:3px solid var(--warn)">
+                <span class="card-icon">🔧</span>
+                <h3>Protección de equipos</h3>
+                <p>El CO₂ y H₂S causan <strong>corrosión severa</strong> en tuberías, válvulas y compresores. El agua
+                    forma hidratos<span class="gloss" data-gloss="hidratos">?</span> que <strong>bloquean gasoductos</strong>.</p>
+            </div>
+            <div class="card fade-in" style="border-top:3px solid var(--primary)">
+                <span class="card-icon">📋</span>
+                <h3>Especificaciones comerciales</h3>
+                <p>El gas debe cumplir estándares de <strong>poder calorífico<span class="gloss" data-gloss="poder_calorifico">?</span></strong> (≥950 BTU<span class="gloss" data-gloss="btu">?</span>/ft³), máximo H₂S
+                    (≤4 ppm<span class="gloss" data-gloss="ppm">?</span>) y punto de rocío<span class="gloss" data-gloss="punto_rocio">?</span> controlado para venta y transporte.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════ SLIDE 3: COMPOSICIÓN ════════════════ -->
+    <section class="slide" id="composicion">
+        <div class="hero-grad h-green">
+            <span class="badge badge-green">Composición</span>
+            <h2>El Gas Natural Crudo</h2>
+        </div>
+
+        <div class="section-header">
+            <h2>Composición típica del gas crudo</h2>
+            <p>Una mezcla de hidrocarburos, gases ácidos, agua y otros componentes que varía según el yacimiento.</p>
+        </div>
+
+        <table class="data-table fade-in">
+            <thead>
+                <tr>
+                    <th>Componente</th>
+                    <th>Fórmula</th>
+                    <th>% Típico</th>
+                    <th>Clasificación</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Metano</strong></td>
+                    <td>CH₄</td>
+                    <td>70 – 90%</td>
+                    <td>Hidrocarburo principal</td>
+                    <td><span class="pill pill-safe">Deseado</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Etano</strong></td>
+                    <td>C₂H₆</td>
+                    <td>0 – 20%</td>
+                    <td>Hidrocarburo liviano</td>
+                    <td><span class="pill pill-safe">Deseado</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Propano</strong></td>
+                    <td>C₃H₈</td>
+                    <td>0 – 8%</td>
+                    <td>LGN<span class="gloss" data-gloss="lgn">?</span> / GLP<span class="gloss" data-gloss="glp">?</span></td>
+                    <td><span class="pill pill-safe">Extraíble</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Butano</strong></td>
+                    <td>C₄H₁₀</td>
+                    <td>0 – 4%</td>
+                    <td>LGN<span class="gloss" data-gloss="lgn">?</span> / GLP<span class="gloss" data-gloss="glp">?</span></td>
+                    <td><span class="pill pill-safe">Extraíble</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Pentanos+</strong></td>
+                    <td>C₅H₁₂+</td>
+                    <td>0 – 4%</td>
+                    <td>Gasolina natural</td>
+                    <td><span class="pill pill-safe">Extraíble</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Ácido Sulfhídrico</strong></td>
+                    <td>H₂S</td>
+                    <td>0 – 30%</td>
+                    <td>Gas ácido</td>
+                    <td><span class="pill pill-danger">Tóxico</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Dióxido de carbono</strong></td>
+                    <td>CO₂</td>
+                    <td>0 – 15%</td>
+                    <td>Gas ácido</td>
+                    <td><span class="pill pill-danger">Corrosivo</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Agua</strong></td>
+                    <td>H₂O</td>
+                    <td>Variable</td>
+                    <td>Contaminante</td>
+                    <td><span class="pill pill-warn">Hidratos<span class="gloss" data-gloss="hidratos">?</span></span></td>
+                </tr>
+                <tr>
+                    <td><strong>Nitrógeno</strong></td>
+                    <td>N₂</td>
+                    <td>0 – 5%</td>
+                    <td>Inerte / diluyente</td>
+                    <td><span class="pill pill-warn">Diluye</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="card-grid cols-2 fade-in" style="margin-top:20px">
+            <div class="card red-accent">
+                <h3>🔴 Gas Ácido (Sour Gas)</h3>
+                <ul>
+                    <li onclick="openModal('sour')">Contiene H₂S y/o CO₂ por encima de los límites</li>
+                    <li onclick="openModal('sour')">H₂S > 4 ppm y/o CO₂ > 2%</li>
+                    <li onclick="openModal('sour')">Requiere endulzamiento antes de transporte</li>
+                    <li onclick="openModal('sour')">Extremadamente corrosivo y tóxico</li>
+                </ul>
+            </div>
+            <div class="card green-accent">
+                <h3>🟢 Gas Dulce (Sweet Gas)</h3>
+                <ul>
+                    <li onclick="openModal('sweet')">Libre de gases ácidos o dentro de especificación</li>
+                    <li onclick="openModal('sweet')">H₂S ≤ 4 ppm, CO₂ ≤ 2%</li>
+                    <li onclick="openModal('sweet')">Apto para transporte por gasoducto</li>
+                    <li onclick="openModal('sweet')">Resultado del proceso de endulzamiento</li>
+                </ul>
+            </div>
+        </div>
+        <p class="click-hint" style="margin-top:14px">▸ Clic en cada ítem para más detalle</p>
+    </section>
+
+    <!-- ════════════════ SLIDE 4: PROCESO GENERAL ════════════════ -->
+    <section class="slide" id="proceso">
+        <div class="section-header">
+            <span class="badge badge-neutral">Vista General</span>
+            <h2>Tren de Tratamiento del Gas Natural</h2>
+            <p>Secuencia obligatoria de procesos que transforma el gas crudo en gas comercial listo para gasoductos.</p>
+        </div>
+
+        <div class="process-diagram fade-in">
+            <div class="process-stage">
+                <div class="stage-icon si-red">⚗️</div>
+                <h4>1. Separación</h4>
+                <p>Separar líquidos (agua, condensados) del gas en separadores trifásicos.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-red">🧪</div>
+                <h4>2. Endulzamiento</h4>
+                <p>Eliminar H₂S y CO₂ con aminas<span class="gloss" data-gloss="aminas">?</span> (MEA<span class="gloss" data-gloss="mea_gloss">?</span>, DEA<span class="gloss" data-gloss="dea_gloss">?</span>, MDEA<span class="gloss" data-gloss="mdea_gloss">?</span>). Gas ácido → gas dulce.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-blue">💧</div>
+                <h4>3. Deshidratación</h4>
+                <p>Remover vapor de agua con glicol<span class="gloss" data-gloss="glicol">?</span> (TEG<span class="gloss" data-gloss="teg_gloss">?</span>) o tamices. Prevenir hidratos<span class="gloss" data-gloss="hidratos">?</span>.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-purple">🛢️</div>
+                <h4>4. Extracción LGN<span class="gloss" data-gloss="lgn">?</span></h4>
+                <p>Separar hidrocarburos pesados (C₃+). Gas húmedo → gas seco.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-green">✅</div>
+                <h4>5. Gas Comercial</h4>
+                <p>Gas seco, dulce y deshidratado. Listo para gasoducto o licuefacción.</p>
+            </div>
+        </div>
+
+        <div class="flow-row fade-in">
+            <span class="flow-item f-red">Gas Crudo</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-red">Endulzamiento</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-blue">Deshidratación</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-purple">Extracción LGN</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-green">Gas Comercial</span>
+        </div>
+    </section>
+
+    <!-- ════════════════ SLIDE 5: ENDULZAMIENTO ════════════════ -->
+    <section class="slide" id="endulzamiento-hero">
+        <div class="hero-grad h-red">
+            <span class="badge badge-red">Proceso 1</span>
+            <h2>Endulzamiento con Aminas</h2>
+        </div>
+
+        <div class="section-header">
+            <h2>¿Cómo se eliminan el H₂S y CO₂?</h2>
+            <p>Las aminas<span class="gloss" data-gloss="aminas">?</span> son solventes químicos que reaccionan selectivamente con los gases ácidos, absorbiéndolos en
+                una torre contactora y liberándolos en una torre regeneradora.</p>
+        </div>
+
+        <div class="chem-eq fade-in">
+            <span class="catalyst">Amina (R-NH₂)</span>
+            <span class="arrow">+</span>
+            <span class="reactant">H₂S / CO₂</span>
+            <span class="arrow">⇌</span>
+            <span class="product">Sal de amina</span>
+            <span class="arrow">(reversible con calor)</span>
+        </div>
+
+        <div class="card-grid cols-3 fade-in">
+            <div class="card" style="border-top:3px solid var(--acid)">
+                <span class="card-icon">🏗️</span>
+                <h3>Torre Contactora (Absorbedora)</h3>
+                <p>El gas crudo entra por el <strong>fondo</strong> y sube. La amina pobre (limpia) se inyecta por
+                    <strong>arriba</strong> y baja. El contacto a contracorriente permite que la amina absorba H₂S y
+                    CO₂. Sale gas dulce por arriba.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--warn)">
+                <span class="card-icon">🔥</span>
+                <h3>Torre Regeneradora (Stripper)</h3>
+                <p>La amina rica (cargada de ácidos) se calienta a <strong>110-130°C</strong>. La reacción se revierte:
+                    se liberan H₂S y CO₂ como gas ácido. La amina se regenera y se recircula al proceso.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--primary)">
+                <span class="card-icon">♻️</span>
+                <h3>Circuito Cerrado</h3>
+                <p>La amina se recicla continuamente: <strong>absorbe → se satura → se regenera → absorbe</strong>. Se
+                    repone solo una pequeña cantidad por pérdidas. El gas ácido se envía a la planta de azufre (Claus).
+                </p>
+            </div>
+        </div>
+
+        <div class="section-divider div-red" style="margin-top:50px"></div>
+
+        <div class="section-header">
+            <h2>Tipos de Aminas</h2>
+            <p>Cada amina tiene propiedades diferentes. La selección depende del contenido de H₂S y CO₂ del gas crudo.</p>
+        </div>
+
+        <table class="data-table fade-in">
+            <thead>
+                <tr>
+                    <th>Amina</th>
+                    <th>Sigla</th>
+                    <th>Tipo</th>
+                    <th>Selectividad</th>
+                    <th>Uso Principal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr onclick="openModal('mea')">
+                    <td><strong>Monoetanolamina</strong></td>
+                    <td>MEA</td>
+                    <td>Primaria</td>
+                    <td>No selectiva (remueve H₂S y CO₂)</td>
+                    <td>Gas con bajo contenido ácido, bajo costo</td>
+                </tr>
+                <tr onclick="openModal('dea')">
+                    <td><strong>Dietanolamina</strong></td>
+                    <td>DEA</td>
+                    <td>Secundaria</td>
+                    <td>Parcialmente selectiva</td>
+                    <td>Gas con contenido medio de ácidos</td>
+                </tr>
+                <tr onclick="openModal('mdea')">
+                    <td><strong>Metildietanolamina</strong></td>
+                    <td>MDEA</td>
+                    <td>Terciaria</td>
+                    <td>Selectiva (prefiere H₂S sobre CO₂)</td>
+                    <td>Remoción selectiva de H₂S en gas con alto CO₂</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="click-hint">▸ Clic en cada fila para más detalle</p>
+    </section>
+
+    <!-- ════════════════ SLIDE 6: DESHIDRATACIÓN ════════════════ -->
+    <section class="slide" id="deshidratacion-hero">
+        <div class="hero-grad h-blue">
+            <span class="badge badge-blue">Proceso 2</span>
+            <h2>Deshidratación del Gas</h2>
+        </div>
+
+        <div class="section-header">
+            <h2>Remoción del Vapor de Agua</h2>
+            <p>El agua debe eliminarse para prevenir la formación de hidratos y la corrosión durante el transporte por
+                gasoductos.</p>
+        </div>
+
+        <div class="stats-grid fade-in" style="margin-bottom:50px">
+            <div class="stat-card">
+                <div class="stat-val red">-20°C</div>
+                <div class="stat-label">Punto de rocío requerido para gasoductos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val green">TEG</div>
+                <div class="stat-label">Trietilenglicol — solvente más usado</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val green">99.5%</div>
+                <div class="stat-label">Concentración de TEG regenerado</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val red">⛄</div>
+                <div class="stat-label">Hidratos: cristales que bloquean tuberías</div>
+            </div>
+        </div>
+
+        <div class="card-grid cols-2 fade-in">
+            <div class="card blue-accent">
+                <h3>💧 Absorción con Glicol<span class="gloss" data-gloss="glicol">?</span> (TEG<span class="gloss" data-gloss="teg_gloss">?</span>)</h3>
+                <ul>
+                    <li onclick="openModal('teg')">TEG contacta el gas húmedo en torre contactora</li>
+                    <li onclick="openModal('teg')">Absorbe el vapor de agua del gas por afinidad química</li>
+                    <li onclick="openModal('teg')">TEG rico se regenera a 200°C en el reboiler</li>
+                    <li onclick="openModal('teg')">Punto de rocío resultante: -15°C a -25°C</li>
+                    <li onclick="openModal('teg')">Método más económico y más usado en la industria</li>
+                </ul>
+            </div>
+            <div class="card blue-accent">
+                <h3>🔬 Adsorción con Tamices Moleculares</h3>
+                <ul>
+                    <li onclick="openModal('tamiz')">Lecho sólido de zeolitas o alúmina activada</li>
+                    <li onclick="openModal('tamiz')">Atrapa moléculas de agua en los poros del sólido</li>
+                    <li onclick="openModal('tamiz')">Se regenera con gas caliente (250-300°C)</li>
+                    <li onclick="openModal('tamiz')">Punto de rocío resultante: -70°C a -100°C</li>
+                    <li onclick="openModal('tamiz')">Usado antes de la licuefacción (GNL) donde se requiere agua < 1
+                        ppm</li>
+                </ul>
+            </div>
+        </div>
+        <p class="click-hint" style="margin-top:14px">▸ Clic en cada ítem para más detalle</p>
+
+        <div class="section-divider div-blue" style="margin-top:50px"></div>
+
+        <div class="section-header">
+            <h2>¿Qué son los Hidratos de Gas?</h2>
+            <p>Estructuras cristalinas parecidas al hielo que se forman cuando el agua se combina con metano a alta
+                presión y baja temperatura.</p>
+        </div>
+
+        <div class="card-grid cols-3 fade-in">
+            <div class="card" style="border-top:3px solid var(--water)">
+                <span class="card-icon">⛄</span>
+                <h3>Formación</h3>
+                <p>Alta presión + baja temperatura + presencia de agua = cristales sólidos tipo hielo que atrapan
+                    moléculas de metano. Se forman a <strong>T &lt; 20°C</strong> y presiones de gasoducto.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--acid)">
+                <span class="card-icon">🚫</span>
+                <h3>Consecuencias</h3>
+                <p><strong>Bloqueo total</strong> de tuberías y válvulas. Pueden causar sobrepresión, ruptura de líneas
+                    y accidentes graves. Su remoción es costosa y peligrosa.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--primary)">
+                <span class="card-icon">🛡️</span>
+                <h3>Prevención</h3>
+                <p>Deshidratación (TEG/tamices), inyección de inhibidores (metanol, MEG), calentamiento del gas, control
+                    de presión. La deshidratación es <strong>la solución más efectiva</strong>.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════ SLIDE 7: EXTRACCIÓN DE LGN ════════════════ -->
+    <section class="slide" id="extraccion-hero">
+        <div class="hero-grad h-purple">
+            <span class="badge badge-purple">Proceso 3</span>
+            <h2>Extracción de Líquidos del Gas Natural</h2>
+        </div>
+
+        <div class="section-header">
+            <h2>Separar los Hidrocarburos Pesados</h2>
+            <p>Los LGN<span class="gloss" data-gloss="lgn">?</span> (líquidos del gas natural) son hidrocarburos C₃+ que tienen alto valor comercial como materia
+                prima petroquímica y GLP<span class="gloss" data-gloss="glp">?</span>.</p>
+        </div>
+
+        <div class="card-grid cols-2 fade-in">
+            <div class="card purple-accent">
+                <h3>🧊 Proceso Criogénico<span class="gloss" data-gloss="criogenico">?</span> (Turboexpansión<span class="gloss" data-gloss="turboexpansor">?</span>)</h3>
+                <ul>
+                    <li onclick="openModal('cryo')">El gas se enfría rápidamente a -85°C a -100°C</li>
+                    <li onclick="openModal('cryo')">Un turboexpansor reduce la presión súbitamente</li>
+                    <li onclick="openModal('cryo')">Los hidrocarburos pesados se condensan (licúan)</li>
+                    <li onclick="openModal('cryo')">Se separan líquidos (LGN) del gas seco (metano)</li>
+                    <li onclick="openModal('cryo')">Recuperación de etano: hasta 95%</li>
+                    <li onclick="openModal('cryo')">Método más eficiente y más usado para alto volumen</li>
+                </ul>
+            </div>
+            <div class="card purple-accent">
+                <h3>🫧 Absorción con Aceite Magro</h3>
+                <ul>
+                    <li onclick="openModal('lean')">Aceite pesado absorbe C₃+ del gas en torre contactora</li>
+                    <li onclick="openModal('lean')">Aceite rico se calienta para liberar los LGN absorbidos</li>
+                    <li onclick="openModal('lean')">Aceite se regenera y recircula (aceite magro)</li>
+                    <li onclick="openModal('lean')">Método más antiguo, menor eficiencia</li>
+                    <li onclick="openModal('lean')">Se usa donde el criogénico no es viable</li>
+                </ul>
+            </div>
+        </div>
+        <p class="click-hint" style="margin-top:14px">▸ Clic en cada ítem para más detalle</p>
+
+        <div class="section-divider div-purple" style="margin-top:50px"></div>
+
+        <div class="section-header">
+            <h2>Productos de la Extracción de LGN</h2>
+            <p>Los líquidos extraídos se separan en fracciones individuales mediante destilación fraccionada en la planta
+                de fraccionamiento.</p>
+        </div>
+
+        <div class="card-grid cols-4 fade-in">
+            <div class="step-card" onclick="openModal('etano')">
+                <span class="step-num purple-n">C₂</span>
+                <h4>Etano</h4>
+                <p>Materia prima para producir etileno → base de la industria petroquímica (plásticos).</p>
+            </div>
+            <div class="step-card" onclick="openModal('propano')">
+                <span class="step-num purple-n">C₃</span>
+                <h4>Propano</h4>
+                <p>Componente del GLP<span class="gloss" data-gloss="glp">?</span>. Combustible doméstico, agrícola e industrial. Petroquímica (propileno).</p>
+            </div>
+            <div class="step-card" onclick="openModal('butano')">
+                <span class="step-num purple-n">C₄</span>
+                <h4>Butano</h4>
+                <p>GLP, blending de gasolina (isobutano), materia prima para alquilación.</p>
+            </div>
+            <div class="step-card" onclick="openModal('gasolina_nat')">
+                <span class="step-num purple-n">C₅+</span>
+                <h4>Gasolina Natural</h4>
+                <p>Pentanos+. Se mezcla con gasolinas de refinería o se usa como diluyente de crudo pesado.</p>
+            </div>
+        </div>
+        <p class="click-hint" style="margin-top:14px">▸ Clic en cada tarjeta para más detalle</p>
+    </section>
+
+    <!-- ════════════════ SLIDE 8: CLASIFICACIÓN DEL GAS ════════════════ -->
+    <section class="slide" id="clasificacion">
+        <div class="section-header">
+            <span class="badge badge-green">Clasificación</span>
+            <h2>Tipos de Gas según su Estado de Proceso</h2>
+            <p>El gas recibe diferentes nombres según los contaminantes que aún contiene.</p>
+        </div>
+
+        <div class="card-grid cols-2 fade-in">
+            <div class="card" style="border-top:3px solid var(--acid)">
+                <span class="card-icon">🔴</span>
+                <h3>Gas Ácido → Gas Dulce</h3>
+                <p class="desc">
+                    <strong>Gas ácido:</strong> Contiene H₂S > 4 ppm y/o CO₂ > 2%. Es corrosivo, tóxico y no puede
+                    transportarse.<br><br>
+                    <strong>Gas dulce:</strong> Sin gases ácidos. Resultado del endulzamiento. Seguro para transporte,
+                    pero puede tener agua y LGN.
+                </p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--water)">
+                <span class="card-icon">🔵</span>
+                <h3>Gas Húmedo → Gas Seco</h3>
+                <p class="desc">
+                    <strong>Gas húmedo:</strong> Contiene C₃+ (propano, butano, pentanos) que se pueden condensar. Tiene
+                    valor por sus líquidos extraíbles.<br><br>
+                    <strong>Gas seco:</strong> Principalmente metano (>95%). Sin hidrocarburos condensables. Producto
+                    final para gasoductos y centrales eléctricas.
+                </p>
+            </div>
+        </div>
+
+        <div class="flow-row fade-in" style="margin-top:40px">
+            <span class="flow-item f-red">Gas Crudo (ácido + húmedo)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-yellow">Gas Dulce (aún húmedo)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-blue">Gas Dulce Seco</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-green">Gas Comercial</span>
+        </div>
+    </section>
+
+    <!-- ════════════════ SLIDE 9: PLANTA DE AZUFRE ════════════════ -->
+    <section class="slide" id="azufre">
+        <div class="section-header">
+            <span class="badge badge-yellow">Subproducto</span>
+            <h2>Proceso Claus — Recuperación de Azufre</h2>
+            <p>El H₂S removido en el endulzamiento no se libera a la atmósfera. Se convierte en azufre elemental
+                sólido, un producto comercializable.</p>
+        </div>
+
+        <div class="process-diagram fade-in">
+            <div class="process-stage">
+                <div class="stage-icon si-red">⚗️</div>
+                <h4>Gas Ácido</h4>
+                <p>H₂S + CO₂ liberados del regenerador de aminas.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-red">🔥</div>
+                <h4>Horno Claus</h4>
+                <p>H₂S se quema parcialmente con aire. Se forma SO₂ y azufre elemental.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-purple">🧪</div>
+                <h4>Reactores catalíticos</h4>
+                <p>H₂S + SO₂ reaccionan sobre catalizador de alúmina → más azufre.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-green">🟡</div>
+                <h4>Azufre sólido</h4>
+                <p>Se condensa y almacena. Se vende para fertilizantes, ácido sulfúrico, caucho.</p>
+            </div>
+        </div>
+
+        <div class="chem-eq fade-in">
+            <span class="reactant">2 H₂S</span>
+            <span class="arrow">+</span>
+            <span class="reactant">SO₂</span>
+            <span class="arrow">→</span>
+            <span class="product">3 S (azufre)</span>
+            <span class="arrow">+</span>
+            <span class="product">2 H₂O</span>
+        </div>
+    </section>
+
+    <!-- ════════════════ SLIDE 10: ESPECIFICACIONES ════════════════ -->
+    <section class="slide" id="specs">
+        <div class="section-header">
+            <span class="badge badge-green">Resultado</span>
+            <h2>Especificaciones del Gas Comercial</h2>
+            <p>El gas tratado debe cumplir estas condiciones para ser transportado y vendido.</p>
+        </div>
+
+        <table class="data-table fade-in">
+            <thead>
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Límite</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Poder calorífico<span class="gloss" data-gloss="poder_calorifico">?</span></strong></td>
+                    <td>≥ 950 BTU<span class="gloss" data-gloss="btu">?</span>/ft³</td>
+                    <td>Garantizar energía mínima por unidad de volumen</td>
+                </tr>
+                <tr>
+                    <td><strong>H₂S</strong></td>
+                    <td>≤ 4 ppm<span class="gloss" data-gloss="ppm">?</span> (¼ grain/100 scf)</td>
+                    <td>Evitar toxicidad y corrosión</td>
+                </tr>
+                <tr>
+                    <td><strong>CO₂</strong></td>
+                    <td>≤ 2 – 3%</td>
+                    <td>Reducir corrosión y mantener poder calorífico</td>
+                </tr>
+                <tr>
+                    <td><strong>Punto de rocío<span class="gloss" data-gloss="punto_rocio">?</span> agua</strong></td>
+                    <td>-15°C a -20°C</td>
+                    <td>Prevenir condensación e hidratos</td>
+                </tr>
+                <tr>
+                    <td><strong>Punto de rocío HC</strong></td>
+                    <td>-10°C a 0°C</td>
+                    <td>Evitar condensación de líquidos en gasoducto</td>
+                </tr>
+                <tr>
+                    <td><strong>Azufre total</strong></td>
+                    <td>≤ 20 mg/m³</td>
+                    <td>Norma ambiental de emisiones</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ════════════════ SLIDE 11: RESUMEN ════════════════ -->
+    <section class="slide" id="resumen">
+        <div class="section-header">
+            <span class="badge badge-green">Resumen</span>
+            <h2>Mapa Completo del Tratamiento</h2>
+            <p>Los tres procesos clave que convierten el gas crudo en gas comercial.</p>
+        </div>
+
+        <div class="card-grid cols-3 fade-in">
+            <div class="card" style="border-top:3px solid var(--acid)">
+                <span class="card-icon">⚗️</span>
+                <h3>Endulzamiento</h3>
+                <p><strong>Elimina:</strong> H₂S y CO₂<br>
+                    <strong>Método:</strong> Absorción con aminas (MEA/DEA/MDEA)<br>
+                    <strong>Resultado:</strong> Gas ácido → Gas dulce<br>
+                    <strong>Subproducto:</strong> Azufre (Proceso Claus)
+                </p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--water)">
+                <span class="card-icon">💧</span>
+                <h3>Deshidratación</h3>
+                <p><strong>Elimina:</strong> Vapor de agua<br>
+                    <strong>Método:</strong> Absorción con TEG o adsorción con tamices<br>
+                    <strong>Resultado:</strong> Punto de rocío ≤ -20°C<br>
+                    <strong>Previene:</strong> Hidratos y corrosión
+                </p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--lng)">
+                <span class="card-icon">🛢️</span>
+                <h3>Extracción de LGN</h3>
+                <p><strong>Separa:</strong> C₃+ (propano, butano, pentanos+)<br>
+                    <strong>Método:</strong> Criogénico (turboexpansión) o aceite magro<br>
+                    <strong>Resultado:</strong> Gas húmedo → Gas seco<br>
+                    <strong>Productos:</strong> GLP, gasolina natural, etano
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════ FOOTER ════════════════ -->
+    <section class="slide" id="footer">
+        <h2>Fin de la Presentación</h2>
+        <p>UF3 — Tratamiento del Gas Natural | Procesos Industriales 1</p>
+        <p class="credit">UNIPAZ — Escuela de Ingeniería de Producción — 2026-1</p>
+    </section>
+
+    <!-- ════════════════ MODAL ════════════════ -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal-body" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <span class="modal-badge" id="modalBadge"></span>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-text" id="modalText"></div>
+        </div>
+    </div>
+
+    <script>
+        // ── Modal Data ──
+        const MODALS = {
+            sour: {
+                badge: 'Gas Ácido', badgeClass: 'badge-red',
+                title: 'Gas Ácido (Sour Gas)',
+                text: `El gas ácido contiene <strong>H₂S (ácido sulfhídrico)</strong> y/o <strong>CO₂</strong> en concentraciones superiores a los límites de especificación.<br><br>
+                <strong>H₂S</strong> es extremadamente tóxico — concentraciones de <strong>100 ppm son letales</strong> en pocos minutos. Además causa corrosión por picadura en aceros al carbono.<br><br>
+                <strong>CO₂</strong> forma ácido carbónico en presencia de agua, causando <strong>corrosión interna</strong> acelerada en tuberías.<br><br>
+                El gas ácido NO puede transportarse por gasoductos comerciales. Debe pasar por endulzamiento antes de su comercialización.`
+            },
+            sweet: {
+                badge: 'Gas Dulce', badgeClass: 'badge-green',
+                title: 'Gas Dulce (Sweet Gas)',
+                text: `El gas dulce es el resultado del <strong>endulzamiento</strong>: se han eliminado H₂S y CO₂ hasta cumplir especificaciones comerciales.<br><br>
+                <strong>Límites:</strong> H₂S ≤ 4 ppm, CO₂ ≤ 2-3%.<br><br>
+                Sin embargo, el gas dulce aún puede contener <strong>vapor de agua</strong> (que causaría hidratos) e <strong>hidrocarburos pesados</strong> (LGN). Por eso el tratamiento continúa con deshidratación y extracción.`
+            },
+            mea: {
+                badge: 'Amina Primaria', badgeClass: 'badge-red',
+                title: 'MEA — Monoetanolamina',
+                text: `<strong>Tipo:</strong> Amina primaria (tiene un grupo -NH₂ libre).<br><br>
+                <strong>Concentración:</strong> 15-20% en solución acuosa.<br><br>
+                <strong>Ventajas:</strong> Bajo costo, alta reactividad, remueve H₂S y CO₂ eficientemente.<br><br>
+                <strong>Desventajas:</strong> Alta corrosividad, alta energía de regeneración, se degrada con COS y CS₂, no es selectiva.<br><br>
+                <strong>Uso:</strong> Gas con bajo contenido ácido (<5% H₂S + CO₂) donde no se requiere selectividad.`
+            },
+            dea: {
+                badge: 'Amina Secundaria', badgeClass: 'badge-yellow',
+                title: 'DEA — Dietanolamina',
+                text: `<strong>Tipo:</strong> Amina secundaria (tiene NH con dos cadenas).<br><br>
+                <strong>Concentración:</strong> 25-35% en solución acuosa.<br><br>
+                <strong>Ventajas:</strong> Menor corrosividad que MEA, tolera COS y CS₂, menor energía de regeneración.<br><br>
+                <strong>Desventajas:</strong> Velocidad de reacción intermedia, menor capacidad que MEA por molécula.<br><br>
+                <strong>Uso:</strong> Gas con contenido ácido medio. Buen balance costo-efectividad.`
+            },
+            mdea: {
+                badge: 'Amina Terciaria', badgeClass: 'badge-purple',
+                title: 'MDEA — Metildietanolamina',
+                text: `<strong>Tipo:</strong> Amina terciaria (nitrógeno completamente sustituido).<br><br>
+                <strong>Concentración:</strong> 40-50% en solución acuosa.<br><br>
+                <strong>Ventajas:</strong> <strong>Selectiva para H₂S</strong> (no reacciona directamente con CO₂), baja corrosividad, baja energía de regeneración, alta capacidad de carga.<br><br>
+                <strong>Desventajas:</strong> Mayor costo, absorción lenta de CO₂.<br><br>
+                <strong>Uso:</strong> Gas con alto CO₂ donde se quiere remover selectivamente H₂S. La selectividad permite reducir el tamaño del equipo de regeneración.`
+            },
+            teg: {
+                badge: 'Deshidratación', badgeClass: 'badge-blue',
+                title: 'TEG — Trietilenglicol',
+                text: `El <strong>TEG</strong> es un líquido viscoso, higroscópico y de alto punto de ebullición que absorbe selectivamente el vapor de agua del gas natural.<br><br>
+                <strong>Proceso:</strong><br>
+                1. TEG pobre (lean, concentrado ~99%) contacta el gas húmedo en torre empacada.<br>
+                2. TEG absorbe la humedad del gas por afinidad química.<br>
+                3. TEG rico sale por el fondo, se calienta a ~200°C en el reboiler.<br>
+                4. El agua se evapora. TEG se regenera a 98.5-99.5% y se recircula.<br><br>
+                <strong>Resultado:</strong> Punto de rocío del gas: -15°C a -25°C. Suficiente para gasoductos terrestres.`
+            },
+            tamiz: {
+                badge: 'Deshidratación', badgeClass: 'badge-blue',
+                title: 'Tamices Moleculares',
+                text: `Los <strong>tamices moleculares</strong> son materiales sólidos (zeolitas sintéticas, alúmina activada, gel de sílice) con poros de tamaño controlado que atrapan moléculas de agua.<br><br>
+                <strong>Proceso:</strong><br>
+                1. Gas húmedo pasa a través de un lecho sólido de tamiz.<br>
+                2. Las moléculas de agua quedan atrapadas en los poros.<br>
+                3. Cuando el tamiz se satura, se regenera con gas caliente (250-300°C).<br>
+                4. Se usan dos o tres lechos en paralelo: uno activo, otro regenerando.<br><br>
+                <strong>Resultado:</strong> Punto de rocío: -70°C a -100°C. Contenido de agua < 1 ppm.<br><br>
+                <strong>Uso:</strong> Obligatorio antes de la licuefacción del gas natural (GNL) para evitar congelamiento de agua dentro del equipo criogénico.`
+            },
+            cryo: {
+                badge: 'Extracción LGN', badgeClass: 'badge-purple',
+                title: 'Proceso Criogénico — Turboexpansión',
+                text: `El proceso criogénico es el método más eficiente para separar LGN del gas natural.<br><br>
+                <strong>Principio:</strong> Al enfriar el gas a temperaturas de -85°C a -100°C, los hidrocarburos pesados (C₃+) se condensan mientras el metano permanece en estado gaseoso.<br><br>
+                <strong>Equipo clave — Turboexpansor:</strong><br>
+                Una turbina que expande el gas rápidamente, reduciendo presión y temperatura simultáneamente. La expansión adiabática enfría el gas de forma muy eficiente.<br><br>
+                <strong>Recuperaciones:</strong><br>
+                • Etano: hasta 95%<br>
+                • Propano: >99%<br>
+                • Butano: >99.5%<br><br>
+                <strong>Ventaja:</strong> Produce la máxima recuperación de líquidos con menor consumo energético que otros métodos.`
+            },
+            lean: {
+                badge: 'Extracción LGN', badgeClass: 'badge-purple',
+                title: 'Absorción con Aceite Magro (Lean Oil)',
+                text: `Método clásico de extracción de LGN. Un aceite pesado de alta absorción contacta el gas y absorbe los hidrocarburos pesados.<br><br>
+                <strong>Proceso:</strong><br>
+                1. Aceite magro (lean oil) se inyecta por el tope de una torre absorbedora.<br>
+                2. El gas rico en LGN sube a contracorriente.<br>
+                3. El aceite absorbe C₃+ del gas (el metano no se absorbe).<br>
+                4. Aceite rico se calienta en un stripper para liberar los LGN.<br>
+                5. Aceite magro regenerado se recircula.<br><br>
+                <strong>Recuperaciones:</strong> Propano: 40-60%, Butano: 70-90%.<br><br>
+                Menos eficiente que el criogénico, pero más sencillo y barato para baja producción.`
+            },
+            etano: {
+                badge: 'Producto LGN', badgeClass: 'badge-purple',
+                title: 'Etano (C₂H₆)',
+                text: `<strong>Fórmula:</strong> C₂H₆<br>
+                <strong>Estado:</strong> Gas a temperatura ambiente, se licúa a -89°C.<br><br>
+                <strong>Uso principal:</strong> Materia prima para <strong>cracking a etileno</strong> en plantas petroquímicas. El etileno es la base para polietileno (plásticos), PVC, etilenglicol (anticongelante), entre otros.<br><br>
+                <strong>Importancia:</strong> El etano tiene poco valor como combustible pero enorme valor como materia prima petroquímica. Su extracción del gas natural es económicamente muy rentable cuando los precios del etileno son altos.`
+            },
+            propano: {
+                badge: 'Producto LGN', badgeClass: 'badge-purple',
+                title: 'Propano (C₃H₈)',
+                text: `<strong>Fórmula:</strong> C₃H₈<br>
+                <strong>Estado:</strong> Gas a temperatura ambiente, se licúa a -42°C a presión atmosférica.<br><br>
+                <strong>Usos:</strong><br>
+                • <strong>GLP doméstico:</strong> Gas de cocina y calefacción en cilindros (mezclado con butano).<br>
+                • <strong>Industrial:</strong> Combustible para hornos, secado de grano, calentamiento temporal.<br>
+                • <strong>Petroquímica:</strong> Deshidrogenación a propileno → polipropileno (fibras, empaques).<br>
+                • <strong>Automotriz:</strong> Autogás (GLP vehicular) en vehículos adaptados.`
+            },
+            butano: {
+                badge: 'Producto LGN', badgeClass: 'badge-purple',
+                title: 'Butano (C₄H₁₀)',
+                text: `<strong>Fórmula:</strong> C₄H₁₀ (n-butano e isobutano)<br>
+                <strong>Estado:</strong> Gas a temperatura ambiente, se licúa a -0.5°C (n-butano).<br><br>
+                <strong>Usos:</strong><br>
+                • <strong>GLP:</strong> Mezclado con propano para gas doméstico e industrial.<br>
+                • <strong>Gasolina:</strong> El isobutano se usa en <strong>alquilación</strong> para producir gasolina de alto octanaje.<br>
+                • <strong>Blending:</strong> Se agrega directamente a gasolina para ajustar presión de vapor (RVP).<br>
+                • <strong>Aerosoles:</strong> Propelente en sprays y desodorantes.<br>
+                • <strong>Encendedores:</strong> El butano líquido es combustible de encendedores.`
+            },
+            gasolina_nat: {
+                badge: 'Producto LGN', badgeClass: 'badge-purple',
+                title: 'Gasolina Natural (C₅+)',
+                text: `<strong>Fórmula:</strong> C₅H₁₂ y superiores (pentano, hexano, heptano…)<br>
+                <strong>Estado:</strong> Líquido a temperatura ambiente.<br><br>
+                <strong>Usos:</strong><br>
+                • <strong>Blending de gasolinas:</strong> Se mezcla con gasolina de refinería para ajustar propiedades.<br>
+                • <strong>Diluyente de crudo pesado:</strong> Se agrega al crudo extrapesado para reducir su viscosidad y transportarlo por oleoducto.<br>
+                • <strong>Solventes:</strong> Hexano industrial para extracción de aceites vegetales.<br>
+                • <strong>Petroquímica:</strong> Alimentación a reformadores catalíticos para producir aromáticos (BTX).`
+            }
+        };
+
+        // ── Modal Functions ──
+        function openModal(key) {
+            const d = MODALS[key];
+            if (!d) return;
+            const ov = document.getElementById('modalOverlay');
+            document.getElementById('modalBadge').textContent = d.badge;
+            document.getElementById('modalBadge').className = 'modal-badge ' + d.badgeClass;
+            document.getElementById('modalTitle').textContent = d.title;
+            document.getElementById('modalText').innerHTML = d.text;
+            ov.classList.add('open');
+        }
+
+        function closeModal(e) {
+            if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-close')) return;
+            document.getElementById('modalOverlay').classList.remove('open');
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        // ── Intersection Observer for fade-in ──
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+        // ── Side Navigation ──
+        const sections = document.querySelectorAll('.slide');
+        const nav = document.getElementById('sideNav');
+        sections.forEach(s => {
+            const a = document.createElement('a');
+            a.href = '#' + s.id;
+            nav.appendChild(a);
+        });
+
+        const navDots = nav.querySelectorAll('a');
+        const secObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    navDots.forEach(d => d.classList.remove('active'));
+                    const dot = nav.querySelector(`a[href="#${e.target.id}"]`);
+                    if (dot) dot.classList.add('active');
+                }
+            });
+        }, { threshold: 0.4 });
+        sections.forEach(s => secObs.observe(s));
+        // ── Glossary System ──
+        const GLOSSARY = {
+            ppm: { term: 'ppm — Partes por millón', def: 'Unidad de concentración. <strong>1 ppm = 1 parte en un millón</strong>. Ejemplo: 4 ppm de H₂S significa 4 moléculas de H₂S por cada millón de moléculas de gas. Es equivalente a 0.0004%. Se usa para medir concentraciones muy bajas de contaminantes.' },
+            poder_calorifico: { term: 'Poder Calorífico', def: 'Cantidad de <strong>energía (calor) que libera un combustible al quemarse</strong> completamente. Para gas natural se mide en BTU por pie cúbico. Un gas con más metano tiene mayor poder calorífico. Si el gas tiene mucho CO₂ o N₂ (inertes), el poder calorífico baja porque esos gases no queman.' },
+            btu: { term: 'BTU — British Thermal Unit', def: 'Unidad de energía del sistema inglés. <strong>1 BTU = energía para calentar 1 libra de agua en 1°F</strong> (≈ 1,055 julios). El gas natural comercial debe tener mínimo 950 BTU/ft³. El metano puro tiene ~1,012 BTU/ft³.' },
+            lgn: { term: 'LGN — Líquidos del Gas Natural', def: 'Hidrocarburos que se encuentran <strong>disueltos en el gas natural en el yacimiento</strong> (etano, propano, butano, pentanos). Se llaman "líquidos" porque se pueden condensar (licuar) al enfriarlos o comprimirlos. Se extraen del gas y se venden como productos separados de alto valor.' },
+            glp: { term: 'GLP — Gas Licuado de Petróleo', def: 'Mezcla de <strong>propano y butano</strong> que se almacena como líquido a presión moderada (~8-10 atm). Es el gas de las "pipetas" de cocina. En Colombia se distribuye en cilindros de 40 y 100 libras. También se usa como combustible vehicular (autogas) e industrial.' },
+            hidratos: { term: 'Hidratos de Gas', def: 'Cristales sólidos parecidos al hielo que se forman cuando <strong>el agua se combina con moléculas de gas (metano)</strong> a alta presión y baja temperatura (típicamente < 20°C a presiones de gasoducto). Son peligrosos porque pueden <strong>bloquear tuberías y válvulas</strong>, causando sobrepresión y posibles rupturas. Se previenen quitando el agua del gas (deshidratación).' },
+            aminas: { term: 'Aminas', def: 'Compuestos químicos derivados del <strong>amoníaco (NH₃)</strong> donde uno, dos o tres hidrógenos se reemplazan por cadenas orgánicas. En el tratamiento de gas se usan disueltas en agua como <strong>solventes que reaccionan reversiblemente con H₂S y CO₂</strong>. La reacción es reversible: absorben a baja temperatura y liberan al calentarse.' },
+            mea_gloss: { term: 'MEA — Monoetanolamina', def: 'Amina <strong>primaria</strong> (1 hidrógeno sustituido en NH₃). La más barata y reactiva. <strong>No es selectiva</strong>: remueve tanto H₂S como CO₂ por igual. Se usa al 15-20% en agua. Desventaja: alta corrosividad y alto consumo de energía para regenerarla.' },
+            dea_gloss: { term: 'DEA — Dietanolamina', def: 'Amina <strong>secundaria</strong> (2 hidrógenos sustituidos en NH₃). Balance intermedio entre costo y desempeño.  Se usa al 25-35% en agua. Menos corrosiva que la MEA y tolera mejor ciertos contaminantes como COS.' },
+            mdea_gloss: { term: 'MDEA — Metildietanolamina', def: 'Amina <strong>terciaria</strong> (3 hidrógenos sustituidos en NH₃). Es <strong>selectiva: prefiere absorber H₂S y deja pasar gran parte del CO₂</strong>. Esto es ventajoso porque reduce el tamaño del equipo y el consumo de energía. La más usada en plantas modernas. Se usa al 40-50% en agua.' },
+            glicol: { term: 'Glicol', def: 'Familia de alcoholes con dos o más grupos -OH. En el tratamiento de gas se usa el <strong>TEG (trietilenglicol)</strong> porque es muy <strong>higroscópico</strong> (atrae y absorbe agua del ambiente). Al contactar el gas húmedo, el glicol "atrapa" el vapor de agua. Luego se calienta para liberarla y se reutiliza.' },
+            teg_gloss: { term: 'TEG — Trietilenglicol', def: 'Tipo específico de glicol (tiene 3 unidades de etilenglicol unidas). Es un <strong>líquido viscoso, incoloro y muy higroscópico</strong>. Se usa al 98.5-99.5% de concentración. Absorbe el vapor de agua del gas natural en una torre contactora. Se regenera calentándolo a ~200°C para evaporar el agua absorbida.' },
+            punto_rocio: { term: 'Punto de Rocío', def: 'Temperatura a la cual el <strong>vapor de agua (o hidrocarburo) comienza a condensarse</strong> en forma de gotitas. Si el gas se enfría por debajo de su punto de rocío, aparece líquido. En gasoductos esto causa problemas: agua líquida = corrosión e hidratos. Por eso el gas tratado debe tener punto de rocío ≤ -20°C (muy seco).' },
+            criogenico: { term: 'Proceso Criogénico', def: 'Proceso que opera a <strong>temperaturas extremadamente bajas</strong> (típicamente por debajo de -80°C). En el tratamiento de gas, se enfría el gas a -85°C a -100°C para que los hidrocarburos pesados (C₃+) se condensen y se separen del metano, que permanece como gas.' },
+            turboexpansor: { term: 'Turboexpansor', def: 'Turbina especial que <strong>expande un gas rápidamente</strong>, reduciendo su presión y temperatura simultáneamente (expansión adiabática). El gas se enfría drásticamente al expandirse sin intercambiar calor. Es el equipo clave de las plantas criogénicas. Además, la turbina genera energía que se aprovecha para comprimir gas.' }
+        };
+
+        // Popup element
+        const glossPopup = document.createElement('div');
+        glossPopup.className = 'gloss-popup';
+        glossPopup.innerHTML = '<button class="gp-close" onclick="hideGloss()">&times;</button><div class="gp-term" id="gpTerm"></div><div class="gp-def" id="gpDef"></div>';
+        document.body.appendChild(glossPopup);
+
+        document.addEventListener('click', function (e) {
+            const g = e.target.closest('.gloss');
+            if (g) {
+                e.stopPropagation();
+                const key = g.dataset.gloss;
+                const entry = GLOSSARY[key];
+                if (!entry) return;
+                document.getElementById('gpTerm').textContent = entry.term;
+                document.getElementById('gpDef').innerHTML = entry.def;
+                // Position
+                const rect = g.getBoundingClientRect();
+                let top = rect.bottom + 10;
+                let left = rect.left - 100;
+                if (left < 10) left = 10;
+                if (left + 340 > window.innerWidth) left = window.innerWidth - 350;
+                if (top + 200 > window.innerHeight) top = rect.top - 200;
+                glossPopup.style.top = top + 'px';
+                glossPopup.style.left = left + 'px';
+                glossPopup.classList.add('show');
+            } else if (!e.target.closest('.gloss-popup')) {
+                hideGloss();
+            }
+        });
+
+        function hideGloss() {
+            glossPopup.classList.remove('show');
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') hideGloss(); });
+    </script>
+
+</body>
+
+</html>

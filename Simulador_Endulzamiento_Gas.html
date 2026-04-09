@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador — Planta de Endulzamiento con Aminas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box }
+        :root {
+            --bg:#080810; --card:#111122; --card2:#161630;
+            --text:#e2e2ee; --muted:#8888aa; --border:rgba(255,255,255,.06);
+            --radius:16px; --gap:20px;
+            --acid:#e74c3c; --acid-bg:rgba(231,76,60,.1); --acid-bd:rgba(231,76,60,.35);
+            --sweet:#2ecc71; --sweet-bg:rgba(46,204,113,.1); --sweet-bd:rgba(46,204,113,.35);
+            --amine:#3498db; --amine-bg:rgba(52,152,219,.1); --amine-bd:rgba(52,152,219,.35);
+            --warn:#f39c12; --warn-bg:rgba(243,156,18,.1); --warn-bd:rgba(243,156,18,.35);
+        }
+        html { scroll-behavior:smooth }
+        body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:40px 20px }
+
+        h1 { font-size:clamp(1.6rem,4vw,2.4rem); font-weight:900; text-align:center; margin-bottom:8px;
+             background:linear-gradient(135deg,#e74c3c,#2ecc71); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text }
+        .subtitle { text-align:center; color:var(--muted); font-size:.95rem; margin-bottom:40px; max-width:700px }
+
+        .sim-layout { display:grid; grid-template-columns:320px 1fr; gap:var(--gap); width:100%; max-width:1200px }
+        @media(max-width:900px) { .sim-layout { grid-template-columns:1fr } }
+
+        /* ── Panel ── */
+        .panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px }
+        .panel h2 { font-size:1.1rem; font-weight:700; margin-bottom:18px; display:flex; align-items:center; gap:8px }
+        .panel h3 { font-size:.9rem; font-weight:700; margin:18px 0 10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-size:.75rem }
+
+        .field { margin-bottom:16px }
+        .field label { display:block; font-size:.82rem; color:var(--muted); margin-bottom:6px; font-weight:500 }
+        .field .val { font-size:.8rem; color:var(--text); float:right; font-weight:700 }
+        .field input[type=range] { width:100%; accent-color:var(--amine); height:6px; cursor:pointer }
+        .field select { width:100%; padding:10px 14px; background:var(--card2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:inherit; font-size:.88rem; cursor:pointer }
+        .field select:focus { outline:none; border-color:var(--amine) }
+
+        .btn-run { width:100%; padding:14px; border:none; border-radius:12px; font-family:inherit; font-weight:700; font-size:1rem; cursor:pointer; color:#fff; background:linear-gradient(135deg,var(--amine),#1a6da8); transition:transform .2s, box-shadow .2s; margin-top:8px }
+        .btn-run:hover { transform:translateY(-2px); box-shadow:0 6px 25px rgba(52,152,219,.3) }
+        .btn-run:active { transform:translateY(0) }
+
+        /* ── Results ── */
+        .results-area { display:flex; flex-direction:column; gap:var(--gap) }
+
+        .diagram { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:30px; position:relative; overflow:hidden; min-height:260px }
+        .diagram h2 { font-size:1rem; font-weight:700; margin-bottom:20px }
+
+        .flow-container { display:flex; align-items:center; justify-content:center; gap:0; flex-wrap:wrap; padding:10px 0 }
+        .flow-box { padding:16px 20px; border-radius:14px; text-align:center; min-width:130px; position:relative; transition:transform .3s }
+        .flow-box:hover { transform:translateY(-3px) }
+        .flow-box .fb-icon { font-size:1.5rem; margin-bottom:6px; display:block }
+        .flow-box .fb-title { font-size:.82rem; font-weight:700; margin-bottom:4px }
+        .flow-box .fb-val { font-size:.75rem; font-weight:500 }
+        .fb-acid { background:var(--acid-bg); border:1px solid var(--acid-bd); color:var(--acid) }
+        .fb-amine { background:var(--amine-bg); border:1px solid var(--amine-bd); color:var(--amine) }
+        .fb-sweet { background:var(--sweet-bg); border:1px solid var(--sweet-bd); color:var(--sweet) }
+        .fb-warn { background:var(--warn-bg); border:1px solid var(--warn-bd); color:var(--warn) }
+        .flow-arr { font-size:1.3rem; color:rgba(255,255,255,.15); padding:0 6px }
+
+        .metrics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:var(--gap) }
+        .metric-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; text-align:center; transition:border-color .3s }
+        .metric-card.pass { border-color:var(--sweet-bd) }
+        .metric-card.fail { border-color:var(--acid-bd) }
+        .metric-card .mc-val { font-size:1.8rem; font-weight:900; line-height:1; margin-bottom:6px }
+        .metric-card .mc-val.green { color:var(--sweet) }
+        .metric-card .mc-val.red { color:var(--acid) }
+        .metric-card .mc-val.blue { color:var(--amine) }
+        .metric-card .mc-val.yellow { color:var(--warn) }
+        .metric-card .mc-label { font-size:.78rem; color:var(--muted) }
+        .metric-card .mc-status { font-size:.7rem; font-weight:700; margin-top:6px; text-transform:uppercase; letter-spacing:1px }
+        .mc-status.ok { color:var(--sweet) }
+        .mc-status.ng { color:var(--acid) }
+
+        .verdict { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; display:flex; align-items:center; gap:16px }
+        .verdict .v-icon { font-size:2rem }
+        .verdict .v-text { flex:1 }
+        .verdict .v-text h3 { font-size:1.05rem; font-weight:700; margin-bottom:4px }
+        .verdict .v-text p { font-size:.85rem; color:var(--muted) }
+        .verdict.pass { border-color:var(--sweet-bd); background:rgba(46,204,113,.04) }
+        .verdict.fail { border-color:var(--acid-bd); background:rgba(231,76,60,.04) }
+
+        /* ── Explanation ── */
+        .explanation { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px }
+        .explanation h3 { font-size:.95rem; font-weight:700; margin-bottom:10px }
+        .explanation p { font-size:.85rem; color:var(--muted); line-height:1.7 }
+        .explanation strong { color:var(--text) }
+
+        .hidden { display:none }
+        .credit { text-align:center; font-size:.75rem; color:rgba(255,255,255,.2); margin-top:40px }
+    </style>
+</head>
+<body>
+    <h1>⚗️ Simulador — Planta de Endulzamiento</h1>
+    <p class="subtitle">Ajusta las condiciones del gas crudo y el tipo de amina para observar cómo cambian los resultados del proceso de endulzamiento.</p>
+
+    <div class="sim-layout">
+        <!-- ── Left: Controls ── -->
+        <div class="panel">
+            <h2>⚙️ Parámetros de Entrada</h2>
+
+            <h3>Gas Crudo</h3>
+            <div class="field">
+                <label>Caudal de gas <span class="val" id="vFlow">50</span> MMSCFD</label>
+                <input type="range" id="flow" min="10" max="200" value="50" step="5" oninput="updateVal('flow','vFlow')">
+            </div>
+            <div class="field">
+                <label>Contenido de H₂S <span class="val" id="vH2S">5.0</span> % mol</label>
+                <input type="range" id="h2s" min="0" max="30" value="5" step="0.5" oninput="updateVal('h2s','vH2S')">
+            </div>
+            <div class="field">
+                <label>Contenido de CO₂ <span class="val" id="vCO2">8.0</span> % mol</label>
+                <input type="range" id="co2" min="0" max="20" value="8" step="0.5" oninput="updateVal('co2','vCO2')">
+            </div>
+            <div class="field">
+                <label>Temperatura del gas <span class="val" id="vTemp">35</span> °C</label>
+                <input type="range" id="temp" min="20" max="60" value="35" step="1" oninput="updateVal('temp','vTemp')">
+            </div>
+            <div class="field">
+                <label>Presión del gas <span class="val" id="vPres">700</span> psi</label>
+                <input type="range" id="pres" min="200" max="1500" value="700" step="50" oninput="updateVal('pres','vPres')">
+            </div>
+
+            <h3>Amina</h3>
+            <div class="field">
+                <label>Tipo de amina</label>
+                <select id="amineType">
+                    <option value="MEA">MEA — Monoetanolamina (primaria)</option>
+                    <option value="DEA">DEA — Dietanolamina (secundaria)</option>
+                    <option value="MDEA" selected>MDEA — Metildietanolamina (terciaria)</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Concentración de amina <span class="val" id="vConc">45</span> % peso</label>
+                <input type="range" id="conc" min="10" max="55" value="45" step="1" oninput="updateVal('conc','vConc')">
+            </div>
+            <div class="field">
+                <label>Tasa de circulación <span class="val" id="vCirc">150</span> GPM</label>
+                <input type="range" id="circ" min="50" max="500" value="150" step="10" oninput="updateVal('circ','vCirc')">
+            </div>
+
+            <button class="btn-run" onclick="simulate()">▶ Simular Proceso</button>
+        </div>
+
+        <!-- ── Right: Results ── -->
+        <div class="results-area" id="resultsArea">
+            <div class="diagram" id="initMsg">
+                <h2>📊 Resultados del Proceso</h2>
+                <p style="color:var(--muted);font-size:.9rem;text-align:center;margin-top:60px">
+                    Ajusta los parámetros y presiona <strong>"Simular Proceso"</strong> para ver los resultados del endulzamiento.
+                </p>
+            </div>
+
+            <!-- Flow Diagram -->
+            <div class="diagram hidden" id="flowDiagram">
+                <h2>🔄 Diagrama de Flujo del Proceso</h2>
+                <div class="flow-container">
+                    <div class="flow-box fb-acid">
+                        <span class="fb-icon">🔴</span>
+                        <div class="fb-title">Gas Ácido</div>
+                        <div class="fb-val" id="fbIn"></div>
+                    </div>
+                    <span class="flow-arr">→</span>
+                    <div class="flow-box fb-amine">
+                        <span class="fb-icon">⚗️</span>
+                        <div class="fb-title">Torre Contactora</div>
+                        <div class="fb-val" id="fbTower"></div>
+                    </div>
+                    <span class="flow-arr">→</span>
+                    <div class="flow-box" id="fbOutBox">
+                        <span class="fb-icon" id="fbOutIcon">🟢</span>
+                        <div class="fb-title">Gas Tratado</div>
+                        <div class="fb-val" id="fbOut"></div>
+                    </div>
+                </div>
+                <div class="flow-container" style="margin-top:10px">
+                    <div class="flow-box fb-amine">
+                        <span class="fb-icon">♻️</span>
+                        <div class="fb-title">Amina Regenerada</div>
+                        <div class="fb-val" id="fbLean"></div>
+                    </div>
+                    <span class="flow-arr">←</span>
+                    <div class="flow-box fb-warn">
+                        <span class="fb-icon">🔥</span>
+                        <div class="fb-title">Regenerador</div>
+                        <div class="fb-val" id="fbRegen"></div>
+                    </div>
+                    <span class="flow-arr">←</span>
+                    <div class="flow-box fb-acid">
+                        <span class="fb-icon">📤</span>
+                        <div class="fb-title">Amina Rica</div>
+                        <div class="fb-val" id="fbRich"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics -->
+            <div class="metrics-grid hidden" id="metricsGrid">
+                <div class="metric-card" id="mcH2S">
+                    <div class="mc-val" id="mcH2SVal">—</div>
+                    <div class="mc-label">H₂S en gas tratado (ppm)</div>
+                    <div class="mc-status" id="mcH2SSt"></div>
+                </div>
+                <div class="metric-card" id="mcCO2">
+                    <div class="mc-val" id="mcCO2Val">—</div>
+                    <div class="mc-label">CO₂ en gas tratado (%)</div>
+                    <div class="mc-status" id="mcCO2St"></div>
+                </div>
+                <div class="metric-card" id="mcEff">
+                    <div class="mc-val blue" id="mcEffVal">—</div>
+                    <div class="mc-label">Eficiencia de remoción H₂S</div>
+                    <div class="mc-status" id="mcEffSt"></div>
+                </div>
+                <div class="metric-card" id="mcSulfur">
+                    <div class="mc-val yellow" id="mcSulfurVal">—</div>
+                    <div class="mc-label">Azufre producido (ton/día)</div>
+                    <div class="mc-status" id="mcSulfurSt"></div>
+                </div>
+                <div class="metric-card" id="mcEnergy">
+                    <div class="mc-val" id="mcEnergyVal">—</div>
+                    <div class="mc-label">Energía de regeneración (MMBTU/h)</div>
+                    <div class="mc-status" id="mcEnergySt"></div>
+                </div>
+                <div class="metric-card" id="mcLoading">
+                    <div class="mc-val" id="mcLoadingVal">—</div>
+                    <div class="mc-label">Carga de amina (mol AG/mol amina)</div>
+                    <div class="mc-status" id="mcLoadingSt"></div>
+                </div>
+            </div>
+
+            <!-- Verdict -->
+            <div class="verdict hidden" id="verdict">
+                <div class="v-icon" id="vIcon">✅</div>
+                <div class="v-text">
+                    <h3 id="vTitle">—</h3>
+                    <p id="vDesc">—</p>
+                </div>
+            </div>
+
+            <!-- Explanation -->
+            <div class="explanation hidden" id="explanation">
+                <h3>📖 Análisis del Proceso</h3>
+                <p id="explText"></p>
+            </div>
+        </div>
+    </div>
+
+    <p class="credit">UNIPAZ — Procesos Industriales 1 — UF3: Tratamiento del Gas Natural</p>
+
+<script>
+function updateVal(sliderId, valId) {
+    document.getElementById(valId).textContent = document.getElementById(sliderId).value;
+}
+
+function simulate() {
+    const flow = +document.getElementById('flow').value;
+    const h2sIn = +document.getElementById('h2s').value;
+    const co2In = +document.getElementById('co2').value;
+    const temp = +document.getElementById('temp').value;
+    const pres = +document.getElementById('pres').value;
+    const amineType = document.getElementById('amineType').value;
+    const conc = +document.getElementById('conc').value;
+    const circ = +document.getElementById('circ').value;
+
+    // Amine properties
+    const amineProps = {
+        MEA:  { maxLoad:0.35, h2sEff:0.98, co2Eff:0.95, regenE:1.0,  concRange:[15,25], name:'MEA' },
+        DEA:  { maxLoad:0.45, h2sEff:0.97, co2Eff:0.85, regenE:0.85, concRange:[25,35], name:'DEA' },
+        MDEA: { maxLoad:0.55, h2sEff:0.995,co2Eff:0.50, regenE:0.70, concRange:[40,55], name:'MDEA' }
+    };
+    const ap = amineProps[amineType];
+
+    // Concentration penalty
+    let concFactor = 1.0;
+    if (conc < ap.concRange[0]) concFactor = 0.6 + 0.4 * (conc / ap.concRange[0]);
+    else if (conc > ap.concRange[1]) concFactor = Math.max(0.7, 1.0 - 0.02 * (conc - ap.concRange[1]));
+
+    // Temperature effect (optimal ~35-40°C)
+    let tempFactor = 1.0;
+    if (temp < 30) tempFactor = 0.85 + 0.005 * (temp - 20);
+    else if (temp > 45) tempFactor = Math.max(0.75, 1.0 - 0.01 * (temp - 45));
+
+    // Pressure effect (higher pressure = better absorption)
+    let presFactor = Math.min(1.1, 0.7 + 0.0004 * pres);
+
+    // Calculate acid gas to absorb (tons/day approximate)
+    const totalAcidMol = flow * (h2sIn + co2In) / 100;
+    const h2sMol = flow * h2sIn / 100;
+
+    // Required circulation vs actual
+    const requiredCirc = totalAcidMol * 15; // Rough GPM requirement
+    const circRatio = Math.min(1.5, circ / Math.max(requiredCirc, 1));
+
+    // Actual loading
+    const loading = (totalAcidMol * 0.8) / (circ * conc / 1000);
+    const loadingCapped = Math.min(loading, ap.maxLoad * 1.3);
+    const overloaded = loadingCapped > ap.maxLoad;
+
+    // Efficiency
+    let h2sEffActual = ap.h2sEff * concFactor * tempFactor * presFactor * Math.min(1, circRatio);
+    let co2EffActual = ap.co2Eff * concFactor * tempFactor * presFactor * Math.min(1, circRatio);
+
+    if (overloaded) {
+        const overFactor = Math.max(0.5, ap.maxLoad / loadingCapped);
+        h2sEffActual *= overFactor;
+        co2EffActual *= overFactor;
+    }
+
+    h2sEffActual = Math.min(0.9999, Math.max(0, h2sEffActual));
+    co2EffActual = Math.min(0.99, Math.max(0, co2EffActual));
+
+    // Outputs
+    const h2sOut_ppm = h2sIn * 10000 * (1 - h2sEffActual);
+    const co2Out_pct = co2In * (1 - co2EffActual);
+
+    // Sulfur production (from H₂S removed)
+    const h2sRemoved_mol = h2sMol * h2sEffActual;
+    const sulfurTpd = h2sRemoved_mol * 0.85; // tons/day approximate
+
+    // Regen energy
+    const regenEnergy = circ * conc / 100 * ap.regenE * 0.08;
+
+    // Spec check
+    const h2sPass = h2sOut_ppm <= 4;
+    const co2Pass = co2Out_pct <= 3;
+    const overallPass = h2sPass && co2Pass;
+
+    // ── Update UI ──
+    document.getElementById('initMsg').classList.add('hidden');
+    ['flowDiagram','metricsGrid','verdict','explanation'].forEach(id => 
+        document.getElementById(id).classList.remove('hidden'));
+
+    // Flow diagram
+    document.getElementById('fbIn').textContent = `H₂S: ${h2sIn}% | CO₂: ${co2In}%`;
+    document.getElementById('fbTower').textContent = `${ap.name} al ${conc}%`;
+    document.getElementById('fbOut').textContent = `H₂S: ${h2sOut_ppm.toFixed(1)} ppm | CO₂: ${co2Out_pct.toFixed(2)}%`;
+    const outBox = document.getElementById('fbOutBox');
+    outBox.className = 'flow-box ' + (overallPass ? 'fb-sweet' : 'fb-acid');
+    document.getElementById('fbOutIcon').textContent = overallPass ? '🟢' : '🔴';
+    document.getElementById('fbRich').textContent = `Carga: ${loadingCapped.toFixed(3)} mol/mol`;
+    document.getElementById('fbRegen').textContent = `${regenEnergy.toFixed(1)} MMBTU/h`;
+    document.getElementById('fbLean').textContent = `${circ} GPM recirculando`;
+
+    // Metrics
+    const mcH2S = document.getElementById('mcH2S');
+    document.getElementById('mcH2SVal').textContent = h2sOut_ppm < 10 ? h2sOut_ppm.toFixed(1) : h2sOut_ppm.toFixed(0);
+    document.getElementById('mcH2SVal').className = 'mc-val ' + (h2sPass ? 'green' : 'red');
+    document.getElementById('mcH2SSt').textContent = h2sPass ? '✓ Cumple (≤4 ppm)' : '✗ No cumple (>4 ppm)';
+    document.getElementById('mcH2SSt').className = 'mc-status ' + (h2sPass ? 'ok' : 'ng');
+    mcH2S.className = 'metric-card ' + (h2sPass ? 'pass' : 'fail');
+
+    const mcCO2 = document.getElementById('mcCO2');
+    document.getElementById('mcCO2Val').textContent = co2Out_pct.toFixed(2);
+    document.getElementById('mcCO2Val').className = 'mc-val ' + (co2Pass ? 'green' : 'red');
+    document.getElementById('mcCO2St').textContent = co2Pass ? '✓ Cumple (≤3%)' : '✗ No cumple (>3%)';
+    document.getElementById('mcCO2St').className = 'mc-status ' + (co2Pass ? 'ok' : 'ng');
+    mcCO2.className = 'metric-card ' + (co2Pass ? 'pass' : 'fail');
+
+    document.getElementById('mcEffVal').textContent = (h2sEffActual * 100).toFixed(1) + '%';
+    document.getElementById('mcEffSt').textContent = h2sEffActual > 0.99 ? '✓ Excelente' : h2sEffActual > 0.95 ? '~ Buena' : '✗ Baja';
+    document.getElementById('mcEffSt').className = 'mc-status ' + (h2sEffActual > 0.95 ? 'ok' : 'ng');
+
+    document.getElementById('mcSulfurVal').textContent = sulfurTpd.toFixed(1);
+    document.getElementById('mcSulfurSt').textContent = 'Proceso Claus';
+
+    document.getElementById('mcEnergyVal').textContent = regenEnergy.toFixed(1);
+    document.getElementById('mcEnergyVal').className = 'mc-val ' + (regenEnergy < 30 ? 'green' : regenEnergy < 60 ? 'yellow' : 'red');
+    document.getElementById('mcEnergySt').textContent = regenEnergy < 30 ? '✓ Eficiente' : regenEnergy < 60 ? '~ Moderada' : '✗ Alta';
+    document.getElementById('mcEnergySt').className = 'mc-status ' + (regenEnergy < 60 ? 'ok' : 'ng');
+
+    document.getElementById('mcLoadingVal').textContent = loadingCapped.toFixed(3);
+    document.getElementById('mcLoadingVal').className = 'mc-val ' + (overloaded ? 'red' : 'green');
+    document.getElementById('mcLoadingSt').textContent = overloaded ? `✗ Sobrecargada (máx ${ap.maxLoad})` : `✓ Normal (máx ${ap.maxLoad})`;
+    document.getElementById('mcLoadingSt').className = 'mc-status ' + (overloaded ? 'ng' : 'ok');
+
+    // Verdict
+    const vd = document.getElementById('verdict');
+    vd.className = 'verdict ' + (overallPass ? 'pass' : 'fail');
+    document.getElementById('vIcon').textContent = overallPass ? '✅' : '❌';
+    document.getElementById('vTitle').textContent = overallPass ? 'Gas Dulce — Cumple Especificaciones' : 'Gas NO Cumple Especificaciones';
+    
+    let vDesc = '';
+    if (overallPass) {
+        vDesc = `El gas tratado con ${ap.name} al ${conc}% cumple los límites comerciales. H₂S: ${h2sOut_ppm.toFixed(1)} ppm (≤4) y CO₂: ${co2Out_pct.toFixed(2)}% (≤3%). Apto para transporte por gasoducto.`;
+    } else {
+        const issues = [];
+        if (!h2sPass) issues.push(`H₂S = ${h2sOut_ppm.toFixed(1)} ppm (límite: 4 ppm)`);
+        if (!co2Pass) issues.push(`CO₂ = ${co2Out_pct.toFixed(2)}% (límite: 3%)`);
+        vDesc = `Parámetros fuera de especificación: ${issues.join('; ')}. Ajuste la tasa de circulación, concentración de amina o tipo de amina.`;
+    }
+    document.getElementById('vDesc').textContent = vDesc;
+
+    // Explanation
+    let expl = `<strong>Análisis:</strong> Se procesaron <strong>${flow} MMSCFD</strong> de gas con ${h2sIn}% H₂S y ${co2In}% CO₂ usando <strong>${ap.name}</strong> al ${conc}%.<br><br>`;
+    
+    if (amineType === 'MDEA') {
+        expl += `La MDEA es una amina <strong>selectiva</strong>: remueve preferencialmente el H₂S (${(h2sEffActual*100).toFixed(1)}% eficiencia) mientras deja pasar parte del CO₂ (${(co2EffActual*100).toFixed(1)}% eficiencia). Esto es ventajoso cuando el CO₂ no es excesivo, ya que <strong>reduce el tamaño del regenerador y el consumo de energía</strong>.<br><br>`;
+    } else if (amineType === 'MEA') {
+        expl += `La MEA remueve tanto H₂S como CO₂ de forma <strong>no selectiva</strong> (${(h2sEffActual*100).toFixed(1)}% y ${(co2EffActual*100).toFixed(1)}% respectivamente). Esto genera una carga ácida total alta en la amina, requiriendo <strong>más energía de regeneración</strong>.<br><br>`;
+    } else {
+        expl += `La DEA es <strong>parcialmente selectiva</strong> con eficiencias de ${(h2sEffActual*100).toFixed(1)}% para H₂S y ${(co2EffActual*100).toFixed(1)}% para CO₂. Ofrece un <strong>buen balance</strong> entre selectividad y capacidad.<br><br>`;
+    }
+
+    if (overloaded) {
+        expl += `⚠️ <strong>ALERTA:</strong> La amina está sobrecargada (${loadingCapped.toFixed(3)} vs máximo ${ap.maxLoad} mol AG/mol amina). Esto reduce la eficiencia de absorción y puede causar corrosión acelerada. <strong>Aumente la tasa de circulación</strong> o <strong>la concentración de amina</strong>.<br><br>`;
+    }
+
+    if (sulfurTpd > 0.5) {
+        expl += `Se producen <strong>${sulfurTpd.toFixed(1)} ton/día de azufre</strong> en la unidad Claus a partir del H₂S removido. Este azufre se comercializa para la producción de ácido sulfúrico y fertilizantes.`;
+    }
+
+    document.getElementById('explText').innerHTML = expl;
+}
+
+// Initialize value displays
+document.querySelectorAll('input[type=range]').forEach(s => {
+    const valId = s.nextElementSibling ? null : s.parentElement.querySelector('.val')?.id;
+});
+</script>
+
+</body>
+</html>
