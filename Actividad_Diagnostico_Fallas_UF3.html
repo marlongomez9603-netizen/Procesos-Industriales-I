@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividad — Diagnóstico de Fallas | UF3 Gas Natural</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#080810;--card:#111122;--card2:#161630;
+            --text:#e2e2ee;--muted:#8888aa;--border:rgba(255,255,255,.07);
+            --radius:16px;--gap:24px;
+            --c1:#e74c3c;--c2:#e67e22;--c3:#3498db;--c4:#2ecc71;--c5:#9b59b6;
+        }
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;padding:40px 20px}
+        .page{max-width:900px;margin:0 auto}
+
+        /* Header */
+        .header{text-align:center;margin-bottom:50px;padding-bottom:30px;border-bottom:1px solid var(--border)}
+        .header .badge{display:inline-block;padding:6px 20px;border-radius:50px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted)}
+        .header h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;line-height:1.2;margin-bottom:10px;background:linear-gradient(135deg,#e74c3c,#e67e22,#9b59b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .header .subtitle{color:var(--muted);font-size:.95rem;margin-bottom:20px}
+        .instrucciones{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;text-align:left;max-width:700px;margin:0 auto}
+        .instrucciones h3{font-size:.9rem;font-weight:700;margin-bottom:10px;color:var(--text)}
+        .instrucciones ul{list-style:none;padding:0}
+        .instrucciones ul li{font-size:.85rem;color:var(--muted);padding:4px 0;display:flex;gap:8px}
+        .instrucciones ul li::before{content:'›';color:#e67e22;font-weight:700;flex-shrink:0}
+
+        /* Cases */
+        .caso{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px 28px;margin-bottom:32px;position:relative;overflow:hidden}
+        .caso::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+        .caso.c1::before{background:var(--c1)} .caso.c2::before{background:var(--c2)}
+        .caso.c3::before{background:var(--c3)} .caso.c4::before{background:var(--c4)}
+        .caso.c5::before{background:var(--c5)}
+        .caso-num{display:inline-flex;align-items:center;gap:10px;margin-bottom:16px}
+        .caso-num .num{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0}
+        .c1 .num{background:rgba(231,76,60,.15);color:var(--c1);border:1px solid rgba(231,76,60,.3)}
+        .c2 .num{background:rgba(230,126,34,.15);color:var(--c2);border:1px solid rgba(230,126,34,.3)}
+        .c3 .num{background:rgba(52,152,219,.15);color:var(--c3);border:1px solid rgba(52,152,219,.3)}
+        .c4 .num{background:rgba(46,204,113,.15);color:var(--c4);border:1px solid rgba(46,204,113,.3)}
+        .c5 .num{background:rgba(155,89,182,.15);color:var(--c5);border:1px solid rgba(155,89,182,.3)}
+        .caso-num h2{font-size:1.25rem;font-weight:800}
+        .sintoma{border-radius:12px;padding:18px 20px;margin-bottom:22px;font-size:.92rem;line-height:1.7}
+        .c1 .sintoma{background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2)}
+        .c2 .sintoma{background:rgba(230,126,34,.07);border:1px solid rgba(230,126,34,.2)}
+        .c3 .sintoma{background:rgba(52,152,219,.07);border:1px solid rgba(52,152,219,.2)}
+        .c4 .sintoma{background:rgba(46,204,113,.07);border:1px solid rgba(46,204,113,.2)}
+        .c5 .sintoma{background:rgba(155,89,182,.07);border:1px solid rgba(155,89,182,.2)}
+        .sintoma h4{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;opacity:.7}
+        .sintoma p{color:var(--muted)}
+        .sintoma p strong{color:var(--text)}
+        .reportes{margin-bottom:22px}
+        .reportes h4{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:12px}
+        .reporte-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:.87rem;color:var(--muted)}
+        .reporte-item:last-child{border-bottom:none}
+        .reporte-item::before{content:'📋';font-size:.85rem;flex-shrink:0;margin-top:2px}
+        .reporte-item strong{color:var(--text)}
+        .preguntas h4{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px}
+        .pregunta{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+        .pregunta .pnum{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border)}
+        .pregunta p{font-size:.88rem;color:var(--text);line-height:1.5;padding-top:4px}
+        .respuesta-box{background:var(--card2);border:1px dashed rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;margin-top:8px;min-height:60px}
+        .respuesta-box span{font-size:.72rem;color:rgba(255,255,255,.15);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+
+        /* Footer */
+        .footer-activity{text-align:center;margin-top:50px;padding-top:24px;border-top:1px solid var(--border);color:rgba(255,255,255,.2);font-size:.75rem}
+        .footer-activity strong{color:rgba(255,255,255,.35)}
+
+        /* Print */
+        @media print{
+            body{background:#fff;color:#111;padding:20px}
+            .caso{background:#fff;border:1px solid #ddd;break-inside:avoid;color:#111}
+            .caso::before{display:none}
+            .sintoma{background:#f8f8f8;border:1px solid #ddd}
+            .reporte-item,.pregunta p{color:#444}
+            .pnum{background:#f0f0f0!important;color:#333!important}
+            .respuesta-box{background:#fafafa;border:1px dashed #ccc;min-height:80px}
+            .header h1{color:#111;background:none;-webkit-text-fill-color:#111}
+            .header .subtitle,.instrucciones ul li,.instrucciones h3{color:#333}
+            .reportes h4,.preguntas h4,.sintoma h4{color:#666}
+            .footer-activity{color:#aaa}
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <div class="header">
+        <span class="badge">UF3 — Tratamiento del Gas Natural</span>
+        <h1>¿Qué está fallando en la planta?</h1>
+        <p class="subtitle">Actividad formativa · Grupos de 3 estudiantes · UNIPAZ 2026-1</p>
+        <div class="instrucciones">
+            <h3>📋 Instrucciones</h3>
+            <ul>
+                <li>Trabajen en grupos de 3 personas. Cada grupo recibe un caso diferente.</li>
+                <li>Leen el contexto y los reportes de operación con atención.</li>
+                <li>Discuten las preguntas y construyen una respuesta conjunta.</li>
+                <li>Tiempo de análisis: <strong>15 minutos</strong>.</li>
+                <li>Exposición ante el grupo: <strong>3 minutos</strong> por equipo.</li>
+                <li><strong>No se requieren fórmulas ni cálculos</strong> — solo razonamiento y conceptos de la clase.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 1 ═══ -->
+    <div class="caso c1">
+        <div class="caso-num">
+            <div class="num">C1</div>
+            <h2>"El cliente rechazó el cargamento"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>La Planta de Tratamiento Río Verde lleva 6 meses operando sin problemas. Esta semana, el cliente al final del gasoducto (una termoeléctrica a 120 km) <strong>rechazó el gas</strong> y envió un reporte: sus medidores detectaron <strong>18 ppm de H₂S</strong> en la entrada. El contrato exige máximo <strong>4 ppm</strong>.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Reportes del operador de turno</h4>
+            <div class="reporte-item">La torre de <strong>deshidratación y extracción de LGN</strong> funcionan con normalidad.</div>
+            <div class="reporte-item">El gas crudo que entra tiene <strong>12% de H₂S</strong> — valor normal para este campo.</div>
+            <div class="reporte-item">La amina circulante es <strong>MDEA al 45%</strong>, igual que siempre.</div>
+            <div class="reporte-item">Hace <strong>8 días llegó un nuevo lote de amina</strong> del proveedor, y se completó el inventario de la planta ese mismo día.</div>
+            <div class="reporte-item">La amina sale del regenerador con <strong>color más oscuro de lo habitual</strong>.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas para el grupo</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>¿En qué proceso del tren de tratamiento está la falla? ¿Por qué?</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Qué pudo haber causado que el sistema dejara de funcionar correctamente?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>¿Qué harían en las próximas 24 horas para resolver el problema sin parar la producción?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>¿Cómo evitarían que esto vuelva a ocurrir?</p></div>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 2 ═══ -->
+    <div class="caso c2">
+        <div class="caso-num">
+            <div class="num">C2</div>
+            <h2>"Los tapones del gasoducto"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>Hace 3 semanas comenzó la <strong>temporada seca</strong> en la región con temperaturas más bajas en la noche. Esta semana el equipo de mantenimiento del gasoducto reporta <strong>dos tapones sólidos similares al hielo</strong> a 8 km y 15 km de la planta, que bloquearon el flujo durante <strong>6 horas</strong>.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Reportes del operador de turno</h4>
+            <div class="reporte-item">El <strong>endulzamiento</strong> opera perfecto: H₂S &lt; 4 ppm, CO₂ &lt; 2%.</div>
+            <div class="reporte-item">La <strong>unidad de extracción de LGN está en mantenimiento</strong> desde hace 4 días y fue puesta fuera de servicio.</div>
+            <div class="reporte-item">El nivel de <strong>TEG en el contactador bajó</strong> la semana pasada por una pequeña fuga en una válvula. Ya fue reparada, pero el nivel estuvo bajo por <strong>3 días</strong>.</div>
+            <div class="reporte-item">La temperatura en el gasoducto durante la noche ha bajado a <strong>8°C</strong>.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas para el grupo</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>¿Qué son esos tapones? ¿Cómo se formaron?</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Qué proceso falló y por qué?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>¿Tiene algo que ver que la unidad de LGN esté en mantenimiento?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>¿Qué acciones tomarían para resolver el problema y prevenir nuevos tapones?</p></div>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 3 ═══ -->
+    <div class="caso c3">
+        <div class="caso-num">
+            <div class="num">C3</div>
+            <h2>"El gas no tiene suficiente energía"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>La empresa distribuidora presentó una <strong>queja formal</strong>: los usuarios reportan que las estufas no calientan bien y los calentadores de agua no alcanzan temperatura. Los técnicos midieron un <strong>poder calorífico de 820 BTU/ft³</strong> cuando el contrato exige mínimo <strong>950 BTU/ft³</strong>.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Reportes del operador de turno</h4>
+            <div class="reporte-item">El <strong>endulzamiento y deshidratación</strong> operan dentro de especificaciones.</div>
+            <div class="reporte-item">El gas crudo de este campo presenta esta semana <strong>22% de CO₂ y 8% de N₂</strong>, valores más altos que los históricos (normalmente 8% CO₂ y 3% N₂).</div>
+            <div class="reporte-item">La <strong>unidad de extracción de LGN funciona con normalidad</strong> y está extrayendo propano y butano como siempre.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas para el grupo</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>¿Por qué bajó el poder calorífico del gas?</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Hay algún proceso del tren de tratamiento que esté fallando, o el problema es otro?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>¿Qué opciones tiene el operador para mejorar el poder calorífico del gas que entrega?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>¿A quién le corresponde resolver este problema: a la planta de tratamiento o al campo productor?</p></div>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 4 ═══ -->
+    <div class="caso c4">
+        <div class="caso-num">
+            <div class="num">C4</div>
+            <h2>"El solvente se está acabando rápido"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>El consumo histórico de TEG es <strong>20 litros/día</strong>. Desde hace 3 semanas el consumo subió a <strong>180 litros/día</strong> sin ninguna fuga visible. El gas sigue saliendo en especificación, pero el inventario se agotará en <strong>10 días</strong> y el gasto operativo se disparó.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Reportes del operador de turno</h4>
+            <div class="reporte-item">Hay un <strong>olor dulce inusual</strong> cerca del mechero (flare) de la planta.</div>
+            <div class="reporte-item">La <strong>temperatura del regenerador de TEG</strong> está <strong>15°C más alta</strong> de lo normal según los registros históricos.</div>
+            <div class="reporte-item">Hace un mes se cambió el <strong>quemador del reboiler</strong> del regenerador por uno de mayor capacidad para mejorar la producción.</div>
+            <div class="reporte-item">No se han encontrado fugas visibles en ninguna parte del sistema de TEG.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas para el grupo</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>¿A dónde se está yendo el TEG si no hay fugas visibles?</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Qué proceso está fallando y cuál es la causa probable?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>¿Por qué es relevante que el quemador fue cambiado recientemente?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>¿Qué harían para solucionar el problema?</p></div>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 5 ═══ -->
+    <div class="caso c5">
+        <div class="caso-num">
+            <div class="num">C5</div>
+            <h2>"El propano llegó contaminado"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>La envasadora de GLP rechazó el último cargamento de propano: el laboratorio detectó <strong>alta concentración de H₂S en el propano líquido</strong>. Este gas ácido no debería estar presente en el producto final.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Reportes del operador de turno</h4>
+            <div class="reporte-item">A mitad de semana el <strong>caudal de gas crudo aumentó un 40%</strong> por decisión de la gerencia de producción para cumplir metas del mes.</div>
+            <div class="reporte-item">El operador de endulzamiento <strong>no ajustó la tasa de circulación de amina</strong> cuando subió el caudal de gas.</div>
+            <div class="reporte-item">El equipo de <strong>extracción de LGN</strong> funciona perfectamente.</div>
+            <div class="reporte-item">La planta de <strong>fraccionamiento</strong> (donde se separa el propano) <strong>no tiene sistema de purificación adicional</strong>.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas para el grupo</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>¿Por qué el propano llegó contaminado con H₂S si la planta de fraccionamiento funciona bien?</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Qué proceso falló y por qué?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>¿Qué error operativo concreto ocurrió?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>¿Quién tiene la responsabilidad: el operador de endulzamiento, la gerencia de producción, o ambos? Justifiquen.</p></div>
+            <div class="pregunta"><div class="pnum">5</div><p>¿Qué procedimiento debería existir en la planta para evitar que esto ocurra?</p></div>
+        </div>
+    </div>
+
+    <div class="footer-activity">
+        <strong>UNIPAZ</strong> — Procesos Industriales 1 — UF3: Tratamiento del Gas Natural — 2026-1<br>
+        Actividad formativa: Diagnóstico de fallas operativas — Grupos de 3 estudiantes
+    </div>
+
+</div>
+</body>
+</html>
