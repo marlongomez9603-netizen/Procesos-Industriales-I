@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador — Endulzamiento de Gas con Aminas | Procesos Industriales 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<style>
+:root {
+  --bg: #07071a;
+  --surface: rgba(255,255,255,0.04);
+  --surface2: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.09);
+  --text: #e2e8f6;
+  --muted: #7a879e;
+  --accent: #4d96ff;
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #fb923c;
+  --yellow: #fbbf24;
+  --purple: #a78bfa;
+  --teal: #2dd4bf;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  display:flex;
+  flex-direction:column;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 60% at 15% 30%,rgba(77,150,255,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 85% 70%,rgba(167,139,250,.06) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 24px;
+  border-bottom:1px solid var(--border);
+  background:rgba(7,7,26,.82);
+  backdrop-filter:blur(12px);
+  z-index:100;flex-shrink:0;
+}
+header .logo{font-size:1.5rem;}
+header h1{font-size:1rem;font-weight:800;letter-spacing:-.2px;}
+header p{font-size:.72rem;color:var(--muted);margin-top:1px;}
+.h-badge{
+  margin-left:auto;padding:4px 14px;
+  background:rgba(77,150,255,.12);border:1px solid rgba(77,150,255,.3);
+  border-radius:20px;font-size:.7rem;color:var(--accent);font-weight:700;
+  white-space:nowrap;
+}
+
+/* ── MAIN LAYOUT ── */
+.layout{
+  display:grid;
+  grid-template-columns:1fr 370px;
+  flex:1;overflow:hidden;
+}
+
+/* ── DIAGRAM PANEL ── */
+.diagram-panel{
+  position:relative;overflow:hidden;
+  background:rgba(0,0,0,.25);
+  border-right:1px solid var(--border);
+}
+#svg-diagram{width:100%;height:100%;}
+
+/* Animated dash flow */
+.flow-dash{
+  fill:none;stroke-width:5;stroke-linecap:round;
+  stroke-dasharray:10 8;
+  animation:dashMove 1.4s linear infinite;
+}
+.flow-dash-rev{animation:dashMoveRev 1.4s linear infinite;}
+@keyframes dashMove{from{stroke-dashoffset:0}to{stroke-dashoffset:-36}}
+@keyframes dashMoveRev{from{stroke-dashoffset:0}to{stroke-dashoffset:36}}
+
+.eq-glow{filter:url(#glow-blue);}
+
+/* Absorber ripple animation */
+@keyframes ripple{
+  0%{opacity:.6;transform:scaleY(0) translateY(0)}
+  50%{opacity:.3;}
+  100%{opacity:0;transform:scaleY(1) translateY(-20px)}
+}
+
+/* ── CONTROLS PANEL ── */
+.ctrl-panel{
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.1) transparent;
+}
+.ctrl-panel::-webkit-scrollbar{width:3px;}
+.ctrl-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+.ctrl-section{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+}
+.ctrl-section h3{
+  font-size:.65rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:1.5px;color:var(--muted);margin-bottom:12px;
+}
+
+/* Amine selector */
+.amine-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;}
+.amine-btn{
+  padding:9px 4px;border-radius:9px;
+  border:1.5px solid var(--border);
+  background:var(--surface);
+  color:var(--muted);
+  font-family:inherit;font-size:.78rem;font-weight:700;
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.amine-btn:hover{border-color:rgba(77,150,255,.5);color:var(--text);}
+.amine-btn.active{
+  background:rgba(77,150,255,.12);
+  border-color:var(--accent);color:var(--accent);
+}
+.amine-btn small{display:block;font-size:.6rem;font-weight:400;margin-top:2px;opacity:.7;}
+.amine-info{
+  font-size:.73rem;color:var(--muted);line-height:1.6;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;margin-top:6px;
+}
+
+/* Sliders */
+.sl-row{
+  display:grid;grid-template-columns:1fr 68px;
+  align-items:center;gap:8px;margin-bottom:10px;
+}
+.sl-label{font-size:.78rem;color:var(--text);margin-bottom:4px;}
+.sl-label span{font-size:.68rem;color:var(--muted);}
+.sl-val{
+  font-size:.85rem;font-weight:800;color:var(--accent);
+  text-align:right;
+}
+input[type=range]{
+  width:100%;-webkit-appearance:none;
+  height:4px;border-radius:2px;
+  background:rgba(255,255,255,.1);outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--accent);cursor:pointer;
+  box-shadow:0 0 8px rgba(77,150,255,.6);
+}
+input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border:none;
+  border-radius:50%;background:var(--accent);cursor:pointer;
+}
+
+/* Results */
+.status{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;border-radius:9px;
+  font-size:.8rem;font-weight:700;
+  margin-bottom:12px;transition:all .3s;
+}
+.status.ok{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);color:var(--green);}
+.status.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:var(--yellow);}
+.status.fail{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.35);color:var(--red);}
+.status .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.status.ok .dot{background:var(--green);}
+.status.warn .dot{background:var(--yellow);}
+.status.fail .dot{background:var(--red);}
+
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.res-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:10px 12px;transition:border-color .3s;
+}
+.res-card.ok{border-color:rgba(74,222,128,.3);}
+.res-card.warn{border-color:rgba(251,191,36,.3);}
+.res-card.fail{border-color:rgba(248,113,113,.35);}
+.res-lbl{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);}
+.res-val{font-size:1.1rem;font-weight:900;margin:3px 0 1px;transition:color .3s;}
+.res-sub{font-size:.62rem;color:var(--muted);}
+.val-ok{color:var(--green);}
+.val-warn{color:var(--yellow);}
+.val-fail{color:var(--red);}
+.val-blue{color:#60a5fa;}
+.val-purple{color:var(--purple);}
+.val-orange{color:var(--orange);}
+.val-teal{color:var(--teal);}
+
+.tip-box{
+  font-size:.72rem;color:var(--muted);line-height:1.65;
+  background:rgba(77,150,255,.04);border:1px solid rgba(77,150,255,.12);
+  border-radius:8px;padding:10px 12px;
+}
+.tip-box strong{color:rgba(255,255,255,.5);}
+</style>
+</head>
+<body>
+
+<!-- ════════════ HEADER ════════════ -->
+<header>
+  <span class="logo">⚗️</span>
+  <div>
+    <h1>Simulador — Endulzamiento de Gas con Aminas</h1>
+    <p>UF3 · Tratamiento de Gas Natural · Procesos Industriales 1 · UNIPAZ 2026-1</p>
+  </div>
+  <span class="h-badge">⟵ modifica variables → ve el efecto en tiempo real</span>
+</header>
+
+<!-- ════════════ LAYOUT ════════════ -->
+<div class="layout">
+
+  <!-- ════ DIAGRAM ════ -->
+  <div class="diagram-panel">
+  <svg id="svg-diagram" viewBox="0 0 980 530" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <!-- Absorber gradient: changes dynamically -->
+      <linearGradient id="absGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop id="ag0" offset="0%" stop-color="#ef4444" stop-opacity=".75"/>
+        <stop id="ag1" offset="55%" stop-color="#f97316" stop-opacity=".45"/>
+        <stop id="ag2" offset="100%" stop-color="#4ade80" stop-opacity=".35"/>
+      </linearGradient>
+      <!-- Regenerator gradient -->
+      <linearGradient id="regGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fb923c" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#2dd4bf" stop-opacity=".45"/>
+      </linearGradient>
+      <!-- Plate pattern inside columns -->
+      <pattern id="plts" x="0" y="0" width="80" height="22" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="11" x2="80" y2="11" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+      </pattern>
+      <!-- Glow filters -->
+      <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect width="980" height="530" fill="url(#bgGrad)" opacity=".01"/>
+
+    <!-- ════ PIPE PATHS (background — colour fill) ════ -->
+    <!-- Feed gas -->
+    <path id="p-feed"  d="M 40,370 H 210" fill="none" stroke="rgba(239,68,68,.2)"   stroke-width="10" stroke-linecap="round"/>
+    <!-- Sweet gas -->
+    <path id="p-sweet" d="M 290,100 H 950" fill="none" stroke="rgba(74,222,128,.2)"  stroke-width="10" stroke-linecap="round"/>
+    <!-- Rich A: absorber → HX -->
+    <path id="p-rich1" d="M 250,390 V 445 H 430" fill="none" stroke="rgba(167,139,250,.2)" stroke-width="8" stroke-linecap="round"/>
+    <!-- Rich A: HX → regen top -->
+    <path id="p-rich2" d="M 560,445 H 680 V 90"  fill="none" stroke="rgba(167,139,250,.2)" stroke-width="8" stroke-linecap="round"/>
+    <!-- Lean A: regen → HX -->
+    <path id="p-lean1" d="M 760,390 V 460 H 560"  fill="none" stroke="rgba(45,212,191,.18)" stroke-width="8" stroke-linecap="round"/>
+    <!-- Lean A: HX → cooler → absorber top -->
+    <path id="p-lean2" d="M 430,460 H 155 V 200"  fill="none" stroke="rgba(45,212,191,.18)" stroke-width="8" stroke-linecap="round"/>
+    <path id="p-lean3" d="M 155,150 V 110 H 210"  fill="none" stroke="rgba(45,212,191,.18)" stroke-width="8" stroke-linecap="round"/>
+    <!-- Acid gas exit -->
+    <path id="p-acid"  d="M 720,90 V 40 H 950"    fill="none" stroke="rgba(251,146,60,.18)"  stroke-width="7" stroke-linecap="round"/>
+
+    <!-- ════ ANIMATED DASH FLOWS ════ -->
+    <path d="M 40,370 H 210"       fill="none" stroke="rgba(239,68,68,.55)"   stroke-width="5" class="flow-dash" stroke-linecap="round" stroke-dasharray="10 8"/>
+    <path d="M 290,100 H 950"      fill="none" stroke="rgba(74,222,128,.6)" id="sweet-dash" stroke-width="5" class="flow-dash" stroke-linecap="round" stroke-dasharray="10 8"/>
+    <path d="M 250,390 V 445 H 430" fill="none" stroke="rgba(167,139,250,.5)" stroke-width="4" class="flow-dash" stroke-linecap="round" stroke-dasharray="8 7"/>
+    <path d="M 560,445 H 680 V 90"  fill="none" stroke="rgba(167,139,250,.5)" stroke-width="4" class="flow-dash" stroke-linecap="round" stroke-dasharray="8 7"/>
+    <path d="M 760,390 V 460 H 560" fill="none" stroke="rgba(45,212,191,.5)" stroke-width="4" class="flow-dash-rev" stroke-linecap="round" stroke-dasharray="8 7"/>
+    <path d="M 430,460 H 155 V 200" fill="none" stroke="rgba(45,212,191,.5)" stroke-width="4" class="flow-dash-rev" stroke-linecap="round" stroke-dasharray="8 7"/>
+    <path d="M 155,150 V 110 H 210" fill="none" stroke="rgba(45,212,191,.5)" stroke-width="4" class="flow-dash-rev" stroke-linecap="round" stroke-dasharray="8 7"/>
+    <path d="M 720,90 V 40 H 950"   fill="none" stroke="rgba(251,146,60,.5)"  stroke-width="4" class="flow-dash" stroke-linecap="round" stroke-dasharray="8 7"/>
+
+    <!-- ════ ABSORBEDORA ════ -->
+    <g id="g-abs">
+      <!-- Column body with absorption gradient -->
+      <rect x="210" y="85" width="80" height="312" rx="5" fill="url(#absGrad)" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/>
+      <!-- Plate pattern overlay -->
+      <rect x="210" y="85" width="80" height="312" rx="5" fill="url(#plts)" opacity=".9"/>
+      <!-- Labels -->
+      <text x="250" y="228" text-anchor="middle" fill="rgba(255,255,255,.85)" font-size="12" font-weight="800">ABSORBEDORA</text>
+      <text x="250" y="246" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="9.5">Torre Contactora</text>
+      <!-- Interior arrows -->
+      <text x="222" y="195" fill="rgba(255,255,255,.25)" font-size="20">↑</text>
+      <text x="272" y="195" fill="rgba(255,255,255,.25)" font-size="20">↓</text>
+      <!-- Gas inlet tag -->
+      <text x="250" y="310" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="8">≋ RELLENO ≋</text>
+      <!-- Reading: rich loading -->
+      <rect x="213" y="305" width="74" height="34" rx="4" fill="rgba(0,0,0,.55)"/>
+      <text x="250" y="319" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="7.5">Carga amina rica</text>
+      <text x="250" y="332" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="800" id="diag-rich">0.42 mol/mol</text>
+    </g>
+
+    <!-- ════ REGENERADORA ════ -->
+    <g id="g-reg">
+      <rect x="680" y="85" width="80" height="312" rx="5" fill="url(#regGrad)" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/>
+      <rect x="680" y="85" width="80" height="312" rx="5" fill="url(#plts)" opacity=".9"/>
+      <text x="720" y="228" text-anchor="middle" fill="rgba(255,255,255,.85)" font-size="12" font-weight="800">REGENERADORA</text>
+      <text x="720" y="246" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="9.5">Stripper de amina</text>
+      <text x="700" y="195" fill="rgba(255,255,255,.25)" font-size="20">↑</text>
+      <text x="750" y="195" fill="rgba(255,255,255,.25)" font-size="20">↓</text>
+      <!-- Regen temperature indicator -->
+      <text x="688" y="100" fill="rgba(251,146,60,.7)" font-size="8.5">T: ~120°C</text>
+    </g>
+
+    <!-- ════ REBOILER ════ -->
+    <g>
+      <rect x="680" y="402" width="80" height="52" rx="5" fill="rgba(251,146,60,.14)" stroke="rgba(251,146,60,.55)" stroke-width="1.5"/>
+      <text x="720" y="422" text-anchor="middle" font-size="14">🔥</text>
+      <text x="720" y="435" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="800">REBOILER</text>
+      <text x="720" y="447" text-anchor="middle" fill="#fb923c" font-size="8.5" id="diag-duty">— MMBTU/h</text>
+    </g>
+
+    <!-- ════ CONDENSER ════ -->
+    <g>
+      <rect x="680" y="16" width="80" height="44" rx="5" fill="rgba(45,212,191,.1)" stroke="rgba(45,212,191,.4)" stroke-width="1.5"/>
+      <text x="720" y="34" text-anchor="middle" fill="#2dd4bf" font-size="10" font-weight="800">CONDENSADOR</text>
+      <text x="720" y="48" text-anchor="middle" fill="#2dd4bf" font-size="8">Reflux</text>
+    </g>
+
+    <!-- ════ HEAT EXCHANGER ════ -->
+    <g>
+      <rect x="430" y="430" width="130" height="48" rx="5" fill="rgba(139,92,246,.1)" stroke="rgba(139,92,246,.45)" stroke-width="1.5"/>
+      <!-- HX lines inside -->
+      <line x1="460" y1="430" x2="460" y2="478" stroke="rgba(139,92,246,.4)" stroke-width="1"/>
+      <line x1="490" y1="430" x2="490" y2="478" stroke="rgba(139,92,246,.4)" stroke-width="1"/>
+      <line x1="520" y1="430" x2="520" y2="478" stroke="rgba(139,92,246,.4)" stroke-width="1"/>
+      <text x="495" y="452" text-anchor="middle" fill="#8b5cf6" font-size="9.5" font-weight="800">INTERCAMBIADOR</text>
+      <text x="495" y="467" text-anchor="middle" fill="#8b5cf6" font-size="7.5">Lean/Rich HX</text>
+    </g>
+
+    <!-- ════ COOLER ════ -->
+    <g>
+      <ellipse cx="155" cy="175" rx="52" ry="38" fill="rgba(45,212,191,.08)" stroke="rgba(45,212,191,.4)" stroke-width="1.5"/>
+      <text x="155" y="172" text-anchor="middle" fill="#2dd4bf" font-size="9.5" font-weight="800">ENFRIADOR</text>
+      <text x="155" y="186" text-anchor="middle" fill="#2dd4bf" font-size="7.5">Lean Cooler</text>
+    </g>
+
+    <!-- ════ LABELS & NODE NODES ════ -->
+
+    <!-- Feed gas node -->
+    <circle cx="47" cy="370" r="22" fill="rgba(239,68,68,.14)" stroke="rgba(239,68,68,.55)" stroke-width="1.5"/>
+    <text x="47" y="366" text-anchor="middle" font-size="15">⚠️</text>
+    <text x="47" y="379" text-anchor="middle" fill="#ef4444" font-size="7" font-weight="700">GAS</text>
+    <text x="47" y="389" text-anchor="middle" fill="#ef4444" font-size="7" font-weight="700">ÁCIDO</text>
+    <!-- Feed composition labels -->
+    <text x="105" y="357" fill="#ef4444" font-size="9" font-weight="700" id="lbl-feed-h2s">H₂S: 5.0%</text>
+    <text x="105" y="370" fill="#fb923c" font-size="9" font-weight="700" id="lbl-feed-co2">CO₂: 8.0%</text>
+    <text x="105" y="383" fill="#60a5fa" font-size="9" id="lbl-feed-qgas">Q: 50 MMSCFD</text>
+
+    <!-- Sweet gas labels -->
+    <text x="850" y="86"  fill="#4ade80" font-size="10" font-weight="800">GAS DULCE ✔</text>
+    <text x="850" y="99"  fill="#4ade80" font-size="9" id="lbl-sweet-h2s">H₂S: — ppm</text>
+    <text x="850" y="112" fill="#4ade80" font-size="9" id="lbl-sweet-co2">CO₂: —%</text>
+    <text x="850" y="125" fill="#4ade80" font-size="8.5" id="lbl-sweet-spec" opacity=".8">Cumple espec.</text>
+
+    <!-- Acid gas labels -->
+    <text x="760" y="28"  fill="#f97316" font-size="9" font-weight="800">Gas Ácido Residual</text>
+    <text x="760" y="40"  fill="#f97316" font-size="8">(→ proceso Claus)</text>
+
+    <!-- L/G ratio label (center) -->
+    <rect x="325" y="195" width="110" height="34" rx="5" fill="rgba(0,0,0,.5)"/>
+    <text x="380" y="210" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="7.5">RELACIÓN L/G</text>
+    <text x="380" y="224" text-anchor="middle" fill="#4d96ff" font-size="11" font-weight="800" id="diag-lg">— GPM/MMSCFD</text>
+
+    <!-- T & P on absorber -->
+    <text x="218" y="98" fill="rgba(77,150,255,.8)" font-size="8" id="diag-T">T: 40°C</text>
+    <text x="218" y="388" fill="rgba(77,150,255,.8)" font-size="8" id="diag-P">P: 70 bar</text>
+
+    <!-- Amine type on lean pipe -->
+    <text x="200" y="465" fill="rgba(45,212,191,.7)" font-size="8" id="diag-amine">MDEA 45%</text>
+
+    <!-- Particle layer (always on top) -->
+    <g id="particles"></g>
+
+  </svg>
+  </div>
+
+  <!-- ════ CONTROLS ════ -->
+  <div class="ctrl-panel">
+
+    <!-- Amine type -->
+    <div class="ctrl-section">
+      <h3>Tipo de Solvente (Amina)</h3>
+      <div class="amine-grid">
+        <button class="amine-btn" data-a="MEA" onclick="setAmine('MEA')">MEA<small>Primaria</small></button>
+        <button class="amine-btn" data-a="DEA" onclick="setAmine('DEA')">DEA<small>Secundaria</small></button>
+        <button class="amine-btn active" data-a="MDEA" onclick="setAmine('MDEA')">MDEA<small>Terciaria ★</small></button>
+      </div>
+      <div class="amine-info" id="amine-info-box"></div>
+    </div>
+
+    <!-- Gas feed -->
+    <div class="ctrl-section">
+      <h3>Gas de Entrada (Gas Ácido)</h3>
+      <div class="sl-row">
+        <div>
+          <div class="sl-label">Concentración H₂S <span>(%mol)</span></div>
+          <input type="range" id="sl-h2s" min="0.1" max="20" step="0.1" value="5">
+        </div>
+        <div class="sl-val" id="v-h2s">5.0%</div>
+      </div>
+      <div class="sl-row">
+        <div>
+          <div class="sl-label">Concentración CO₂ <span>(%mol)</span></div>
+          <input type="range" id="sl-co2" min="0" max="30" step="0.5" value="8">
+        </div>
+        <div class="sl-val" id="v-co2">8.0%</div>
+      </div>
+      <div class="sl-row">
+        <div>
+          <div class="sl-label">Flujo de gas <span>(MMSCFD)</span></div>
+          <input type="range" id="sl-qgas" min="5" max="200" step="5" value="50">
+        </div>
+        <div class="sl-val" id="v-qgas">50</div>
+      </div>
+    </div>
+
+    <!-- Amine system -->
+    <div class="ctrl-section">
+      <h3>Sistema de Amina</h3>
+      <div class="sl-row">
+        <div>
+          <div class="sl-label">Concentración amina <span>(%wt)</span></div>
+          <input type="range" id="sl-ca" min="10" max="55" step="1" value="45">
+        </div>
+        <div class="sl-val" id="v-ca">45%</div>
+      </div>
+      <div class="sl-row">
+        <div>
+          <div class="sl-label">Flujo de amina <span>(GPM)</span></div>
+          <input type="range" id="sl-qa" min="20" max="2000" step="10" value="150">
+        </div>
+        <div class="sl-val" id="v-qa">150</div>
+      </div>
+    </div>
+
+    <!-- Operating conditions -->
+    <div class="ctrl-section">
+      <h3>Condiciones de Operación</h3>
+      <div class="sl-row">
+        <div>
+          <div class="sl-label">Temperatura absorbedor <span>(°C)</span></div>
+          <input type="range" id="sl-T" min="20" max="65" step="1" value="40">
+        </div>
+        <div class="sl-val" id="v-T">40°C</div>
+      </div>
+      <div class="sl-row">
+        <div>
+          <div class="sl-label">Presión de operación <span>(bar)</span></div>
+          <input type="range" id="sl-P" min="5" max="100" step="5" value="70">
+        </div>
+        <div class="sl-val" id="v-P">70 bar</div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="ctrl-section">
+      <h3>Resultados en Tiempo Real</h3>
+      <div class="status ok" id="status">
+        <div class="dot"></div>
+        <span id="status-txt">Gas dentro de especificación</span>
+      </div>
+      <div class="res-grid">
+        <div class="res-card" id="c-h2s">
+          <div class="res-lbl">H₂S salida</div>
+          <div class="res-val val-ok" id="r-h2s">—</div>
+          <div class="res-sub">Espec: ≤ 4 ppm</div>
+        </div>
+        <div class="res-card" id="c-co2">
+          <div class="res-lbl">CO₂ salida</div>
+          <div class="res-val val-ok" id="r-co2">—</div>
+          <div class="res-sub">Espec: ≤ 2.0%</div>
+        </div>
+        <div class="res-card">
+          <div class="res-lbl">Remoción H₂S</div>
+          <div class="res-val val-green" id="r-rem-h2s">—</div>
+          <div class="res-sub">Eficiencia</div>
+        </div>
+        <div class="res-card">
+          <div class="res-lbl">Remoción CO₂</div>
+          <div class="res-val val-teal" id="r-rem-co2">—</div>
+          <div class="res-sub">Eficiencia</div>
+        </div>
+        <div class="res-card">
+          <div class="res-lbl">Carga amina rica</div>
+          <div class="res-val val-purple" id="r-load">—</div>
+          <div class="res-sub">mol AG/mol amina</div>
+        </div>
+        <div class="res-card">
+          <div class="res-lbl">Calor reboiler</div>
+          <div class="res-val val-orange" id="r-duty">—</div>
+          <div class="res-sub">MMBTU/h</div>
+        </div>
+        <div class="res-card">
+          <div class="res-lbl">Flujo amina (n)</div>
+          <div class="res-val val-blue" id="r-namine">—</div>
+          <div class="res-sub">kmol/h circulando</div>
+        </div>
+        <div class="res-card">
+          <div class="res-lbl">L/G actual</div>
+          <div class="res-val val-teal" id="r-lg">—</div>
+          <div class="res-sub">GPM/MMSCFD</div>
+        </div>
+        <div class="res-card" id="c-qrec" style="grid-column:span 2;border-color:rgba(251,191,36,.35)">
+          <div class="res-lbl">⚡ Amina mínima recomendada para cumplir H₂S ≤ 4 ppm</div>
+          <div class="res-val" id="r-qrec" style="font-size:.95rem;">—</div>
+          <div class="res-sub" id="r-qrec-sub">a condiciones actuales de T y P</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formula explanation -->
+    <div class="ctrl-section">
+      <div class="tip-box">
+        <strong>📐 ¿Cuánta amina necesito?</strong><br>
+        La regla práctica para cumplir especificación es:<br><br>
+        <span style="color:rgba(255,255,255,.6);font-family:monospace;font-size:.7rem;">Q_amina ≈ (Q_gas × %H₂S × factor_exceso) / constante_amina</span><br><br>
+        Con condiciones normales (P≥50 bar, T=40°C):<br>
+        • <strong>MDEA 45%:</strong> ~2.0 GPM por MMSCFD por % H₂S<br>
+        • <strong>DEA 30%:</strong> ~3.0 GPM por MMSCFD por % H₂S<br>
+        • <strong>MEA 20%:</strong> ~4.5 GPM por MMSCFD por % H₂S<br><br>
+        <em>Ejemplo: 50 MMSCFD con 5% H₂S usando MDEA 45%:</em><br>
+        → Q_mín ≈ 50 × 5 × 2.0 = <strong style="color:#fbbf24;">500 GPM</strong><br><br>
+        💡 Experimenta: sube el slider de amina hasta la recomendación y ve cómo el gas dulce pasa a ✅ verde
+      </div>
+    </div>
+
+  </div><!-- /ctrl-panel -->
+</div><!-- /layout -->
+
+<script>
+// ═══════════════════════════════════════════════════
+//  AMINE DATABASE
+// ═══════════════════════════════════════════════════
+const AMINES = {
+  MEA:{
+    MW:61.08, density:1.012, maxLoad:.35, leanLoad:.05,
+    H2Ssel:1.0, CO2sel:1.0, maxConc:20, heatPerKmol:62000,
+    info:'⚠️ Amina primaria. No selectiva: remueve H₂S y CO₂ por igual. Alta reactividad. Capacidad baja (máx 35% carga, 20% conc). Mayor consumo energético en regeneración. Uso: gas con poco H₂S + CO₂ < 5%.'
+  },
+  DEA:{
+    MW:105.14, density:1.09, maxLoad:.45, leanLoad:.05,
+    H2Ssel:1.0, CO2sel:.82, maxConc:35, heatPerKmol:47000,
+    info:'🔶 Amina secundaria. Parcialmente selectiva (CO₂ sel. 82%). Balance intermedio costo-desempeño. Mayor capacidad de carga que MEA (45%). Menos corrosiva. Tolera COS y CS₂.'
+  },
+  MDEA:{
+    MW:119.16, density:1.042, maxLoad:.50, leanLoad:.05,
+    H2Ssel:1.0, CO2sel:.25, maxConc:55, heatPerKmol:35000,
+    info:'✅ Amina terciaria. SELECTIVA: absorbe H₂S eficientemente y deja pasar gran parte del CO₂ (cinéticamente limitada). Mayor capacidad (50%), menor energía de regeneración. Usada en plantas modernas con alto CO₂.'
+  }
+};
+
+let currentAmine = 'MDEA';
+let activeAnims = [];
+let spawnTimers = [];
+
+// ═══════════════════════════════════════════════════
+//  PHYSICS MODEL  (v2 — excess-ratio based)
+//
+//  Correcciones vs v1:
+//  · Eficiencia basada en EXCESO de amina vs carga de gas ácido
+//    → permite alcanzar <4 ppm H₂S con amina suficiente
+//  · Amina sobrecargada: absorbe hasta su CAPACIDAD (no cero)
+//    → reboiler muestra calor real aunque no cumpla especificación
+//  · Factor operativo (T, P) afecta la cantidad efectiva de amina
+// ═══════════════════════════════════════════════════
+function calc() {
+  const H2S_in = +document.getElementById('sl-h2s').value;
+  const CO2_in = +document.getElementById('sl-co2').value;
+  const Q_gas  = +document.getElementById('sl-qgas').value;
+  const C_a    = +document.getElementById('sl-ca').value;
+  const Q_a    = +document.getElementById('sl-qa').value;
+  const T      = +document.getElementById('sl-T').value;
+  const P      = +document.getElementById('sl-P').value;
+
+  const a = AMINES[currentAmine];
+
+  // ── Flujos molares (kmol/hr) ──────────────────────
+  // 1 MMSCFD ≈ 44.5 kmol/hr (condiciones estándar 60°F, 14.7 psia)
+  const nGas  = Q_gas * 44.5;
+  const nH2S  = nGas * H2S_in / 100;
+  const nCO2  = nGas * CO2_in  / 100;
+  const nHC   = nGas * Math.max(0, 1 - (H2S_in + CO2_in) / 100);
+
+  // ── Flujo molar de amina ──────────────────────────
+  // Q[GPM] × 3.785[L/gal] × 60[min/hr] × ρ[g/L] × %wt / PM[g/mol]
+  const nAmine = Q_a * 3.785 * 60 * a.density * (C_a / 100) / a.MW;
+
+  // ── Capacidad de absorción (swing lean→rich) ──────
+  const delta  = a.maxLoad - a.leanLoad;              // mol AG / mol amina por ciclo
+  const capH2S = nAmine * delta * a.H2Ssel;           // kmol H₂S/hr absorbible
+  const capCO2 = nAmine * delta * a.CO2sel;           // kmol CO₂/hr absorbible
+
+  // ── Factor operativo (T y P modifican la efectividad de la amina) ──
+  // Mayor P → absorción favorecida (mayor presión parcial del gas)
+  // Mayor T → absorción perjudicada (equilibrio se desplaza al desorber)
+  // Referencia: P=70 bar, T=40°C → op_eff ≈ 1.08
+  const P_fact  = Math.min(1.25, 0.20 + Math.log10(Math.max(P, 5)) * 0.50);
+  const T_fact  = Math.max(0.15, 1.00 - Math.max(0, T - 40) * 0.018);
+  const op_eff  = P_fact * T_fact;
+
+  // ── Exceso de amina (relación capacidad / carga de gas ácido) ────
+  // exceso > 1 → amina SUFICIENTE;  exceso < 1 → amina INSUFICIENTE
+  const exH2S = nH2S > 0 ? capH2S / nH2S : 999;
+  const exCO2 = nCO2 > 0 && a.CO2sel > 0 ? capCO2 / nCO2 : 999;
+
+  // ── Modelo de absorción (físicamente correcto) ────────────────────
+  //  Caso A — Exceso ≥ 1 (amina suficiente):
+  //    La eficiencia crece con el exceso. Al exceso ≈ 2.2 se alcanza
+  //    99.993% remoción → cumple H₂S ≤ 4 ppm para la mayoría de casos.
+  //    eff = 1 - exp[-6 × (exceso_efectivo - 0.70)]
+  //  Caso B — Exceso < 1 (amina sobrecargada):
+  //    La amina se satura y absorbe hasta su capacidad máxima.
+  //    Lo que no alcanza la amina pasa al gas dulce (breakthrough).
+  //    Absorción ≈ capH2S × op_eff   (el reboiler SÍ trabaja)
+
+  const absH2S_func = (ex, cap, nIn) => {
+    if (nIn <= 0) return 0;
+    if (ex >= 1.0) {
+      // Amina suficiente: eficiencia determinada por exceso y condiciones
+      const eff = Math.min(0.999999, 1 - Math.exp(-6.0 * (ex * op_eff - 0.70)));
+      return Math.min(cap, nIn * eff);
+    } else {
+      // Amina sobrecargada: se llena hasta la capacidad
+      return Math.min(cap, cap * Math.min(1.0, op_eff));
+    }
+  };
+
+  const absCO2_func = (ex, cap, nIn) => {
+    if (nIn <= 0 || a.CO2sel <= 0.01) return 0;
+    if (ex >= 1.0) {
+      const eff = Math.min(0.999999, 1 - Math.exp(-6.0 * (ex * op_eff - 0.70)));
+      return Math.min(cap, nIn * eff);
+    } else {
+      return Math.min(cap, cap * Math.min(1.0, op_eff));
+    }
+  };
+
+  const nH2S_abs = Math.max(0, absH2S_func(exH2S, capH2S, nH2S));
+  const nCO2_abs = Math.max(0, absCO2_func(exCO2, capCO2, nCO2));
+
+  // ── Composición del gas dulce ─────────────────────
+  const nH2S_out = Math.max(0, nH2S - nH2S_abs);
+  const nCO2_out = Math.max(0, nCO2 - nCO2_abs);
+  const nOut = nHC + nH2S_out + nCO2_out;
+
+  const H2S_ppm = nOut > 0 ? nH2S_out / nOut * 1e6 : 0;
+  const CO2_pct = nOut > 0 ? nCO2_out / nOut * 100  : 0;
+
+  // ── Carga amina rica ──────────────────────────────
+  const richLoad = Math.min(a.maxLoad + 0.05,
+    a.leanLoad + (nH2S_abs + nCO2_abs) / Math.max(nAmine, 0.001));
+
+  // ── Calor del reboiler (MMBTU/hr) ────────────────
+  // Basado en lo QUE REALMENTE SE ABSORBE (no en eficiencia ficticia)
+  // → no es cero aunque la amina esté sobrecargada
+  const duty = (nH2S_abs + nCO2_abs) * a.heatPerKmol / 1e6;
+
+  // ── Relación L/G ─────────────────────────────────
+  const LG = Q_a / Math.max(Q_gas, 0.001);
+
+  // ── Amina mínima recomendada para H₂S ≤ 4 ppm ───
+  // Despejando de la ecuación de eficiencia: exceso_efectivo_req ≈ 1.95/op_eff
+  // para lograr ~99.992% remoción con las condiciones actuales de T y P.
+  const exReq    = Math.max(1.0, 1.95 / Math.max(op_eff, 0.1));
+  const nAm_rec  = nH2S > 0 ? (exReq * nH2S) / Math.max(delta * a.H2Ssel, 0.001) : 0;
+  const Q_rec    = nAm_rec * a.MW / (3.785 * 60 * a.density * (C_a / 100));
+  const LG_min   = nH2S > 0 ? Q_rec / Math.max(Q_gas, 1) : 0;
+
+  return {
+    H2S_in, CO2_in, Q_gas, C_a, Q_a, T, P,
+    H2S_ppm: Math.max(0, H2S_ppm),
+    CO2_pct:  Math.max(0, CO2_pct),
+    remH2S:  nH2S > 0 ? (nH2S_abs / nH2S) * 100 : 100,
+    remCO2:  nCO2 > 0 ? (nCO2_abs / nCO2) * 100 : 100,
+    richLoad, duty, LG,
+    nAmine: +nAmine.toFixed(1),
+    Q_rec: Math.max(1, Q_rec),
+    LG_min,
+    exH2S, exCO2,
+    meetH2S: H2S_ppm <= 4.0,
+    meetCO2: CO2_pct <= 2.0
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//  UPDATE UI
+// ═══════════════════════════════════════════════════
+function updateUI(r) {
+  const fmt = v => v < 1 ? (v*1000).toFixed(2)+' ppb' : v.toFixed(1)+' ppm';
+
+  // Diagram labels
+  document.getElementById('lbl-feed-h2s').textContent = `H₂S: ${r.H2S_in.toFixed(1)}%`;
+  document.getElementById('lbl-feed-co2').textContent = `CO₂: ${r.CO2_in.toFixed(1)}%`;
+  document.getElementById('lbl-feed-qgas').textContent= `Q: ${r.Q_gas} MMSCFD`;
+  document.getElementById('lbl-sweet-h2s').textContent= `H₂S: ${fmt(r.H2S_ppm)}`;
+  document.getElementById('lbl-sweet-co2').textContent= `CO₂: ${r.CO2_pct.toFixed(2)}%`;
+  document.getElementById('lbl-sweet-spec').textContent= r.meetH2S && r.meetCO2 ? '✅ Cumple especificación' : '❌ Fuera de especificación';
+  document.getElementById('lbl-sweet-spec').setAttribute('fill', r.meetH2S && r.meetCO2 ? '#4ade80' : '#f87171');
+  document.getElementById('diag-rich').textContent = `${r.richLoad.toFixed(3)} mol/mol`;
+  document.getElementById('diag-lg').textContent = `L/G: ${r.LG.toFixed(1)} GPM/MMSCFD`;
+  document.getElementById('diag-T').textContent = `T: ${r.T}°C`;
+  document.getElementById('diag-P').textContent = `P: ${r.P} bar`;
+  document.getElementById('diag-amine').textContent = `${currentAmine} ${r.C_a}%`;
+  document.getElementById('diag-duty').textContent = `${r.duty.toFixed(2)} MMBTU/h`;
+
+  // Sweet gas dash color (green when clean, red when breakthrough)
+  const sweetDash = document.getElementById('sweet-dash');
+  if (r.meetH2S) sweetDash.setAttribute('stroke','rgba(74,222,128,.6)');
+  else if (r.H2S_ppm < 50) sweetDash.setAttribute('stroke','rgba(251,191,36,.6)');
+  else sweetDash.setAttribute('stroke','rgba(248,113,113,.7)');
+
+  // Status banner
+  const st = document.getElementById('status');
+  const stTxt = document.getElementById('status-txt');
+  if (r.meetH2S && r.meetCO2) {
+    st.className = 'status ok';
+    stTxt.textContent = '✅ Gas cumple especificaciones de gasoducto';
+  } else if (!r.meetH2S && r.H2S_ppm > 100) {
+    st.className = 'status fail';
+    stTxt.textContent = `❌ Breakthrough! H₂S = ${r.H2S_ppm.toFixed(0)} ppm (Espec: ≤4 ppm)`;
+  } else {
+    st.className = 'status warn';
+    stTxt.textContent = '⚠️ Parcialmente fuera de especificación — ajustar sistema';
+  }
+
+  // Result cards
+  const setCard = (cardId, valId, val, cls) => {
+    document.getElementById(cardId).className = `res-card ${cls}`;
+    const el = document.getElementById(valId);
+    el.textContent = val;
+    el.className = `res-val val-${cls}`;
+  };
+
+  const h2sCls = r.meetH2S ? 'ok' : (r.H2S_ppm < 50 ? 'warn' : 'fail');
+  const co2Cls = r.meetCO2 ? 'ok' : (r.CO2_pct < 5 ? 'warn' : 'fail');
+
+  setCard('c-h2s', 'r-h2s', fmt(r.H2S_ppm), h2sCls);
+  setCard('c-co2', 'r-co2', `${r.CO2_pct.toFixed(2)}%`, co2Cls);
+
+  const set = (id, val, cls) => {
+    const el = document.getElementById(id);
+    el.textContent = val;
+    el.className = `res-val ${cls}`;
+  };
+  set('r-rem-h2s', `${r.remH2S.toFixed(1)}%`, 'val-ok');
+  set('r-rem-co2', `${r.remCO2.toFixed(1)}%`, 'val-teal');
+  set('r-load', `${r.richLoad.toFixed(3)} mol/mol`,
+      r.richLoad > AMINES[currentAmine].maxLoad ? 'val-fail' : 'val-purple');
+  set('r-duty', `${r.duty.toFixed(2)} MMBTU/h`, 'val-orange');
+  set('r-namine', `${r.nAmine.toFixed(0)} kmol/h`, 'val-blue');
+  set('r-lg', `${r.LG.toFixed(1)} GPM/MMSCFD`, 'val-teal');
+
+  // Recommended amine flow card
+  const qRecEl  = document.getElementById('r-qrec');
+  const qRecSub = document.getElementById('r-qrec-sub');
+  const qRecCard = document.getElementById('c-qrec');
+  if (r.Q_rec >= 1999) {
+    qRecEl.textContent = `> 2000 GPM`;
+    qRecEl.style.color = '#f87171';
+    qRecCard.style.borderColor = 'rgba(248,113,113,.4)';
+    qRecSub.textContent = '⚠️ Excede rango del simulador. Considere redumir % H₂S o flujo de gas.';
+  } else {
+    const okQ = r.Q_a >= r.Q_rec * 0.97;
+    qRecEl.textContent = `${r.Q_rec.toFixed(0)} GPM  (L/G mín: ${r.LG_min.toFixed(1)} GPM/MMSCFD)`;
+    qRecEl.style.color = okQ ? '#4ade80' : '#fbbf24';
+    qRecCard.style.borderColor = okQ ? 'rgba(74,222,128,.35)' : 'rgba(251,191,36,.35)';
+    qRecSub.textContent = okQ
+      ? '✅ Flujo actual cubre la recomendación — gas cumplirá especificación'
+      : `⬆️ Necesitas aumentar amina de ${r.Q_a} → ${r.Q_rec.toFixed(0)} GPM`;
+  }
+
+  // Absorber gradient update (visual absorption quality)
+  updateAbsGradient(r.remH2S);
+}
+
+function updateAbsGradient(remH2S) {
+  const e = remH2S / 100;
+  const stop0 = document.getElementById('ag0');
+  const stop1 = document.getElementById('ag1');
+  const stop2 = document.getElementById('ag2');
+  if (e > .95) {
+    // High efficiency: clean exit (green top)
+    stop2.setAttribute('stop-color','#4ade80');
+    stop1.setAttribute('stop-color','#fb923c');
+    stop0.setAttribute('stop-color','#ef4444');
+  } else if (e > .70) {
+    // Medium: yellow top
+    stop2.setAttribute('stop-color','#fbbf24');
+    stop1.setAttribute('stop-color','#f97316');
+    stop0.setAttribute('stop-color','#ef4444');
+  } else {
+    // Low: red throughout (breakthrough)
+    stop2.setAttribute('stop-color','#dc2626');
+    stop1.setAttribute('stop-color','#ef4444');
+    stop0.setAttribute('stop-color','#b91c1c');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  PARTICLE ANIMATION SYSTEM
+// ═══════════════════════════════════════════════════
+const svgNS = 'http://www.w3.org/2000/svg';
+const pContainer = document.getElementById('particles');
+
+function spawnParticle(pathId, color, r=5, dur=2000) {
+  const path = document.getElementById(pathId);
+  if (!path) return;
+
+  const dot = document.createElementNS(svgNS, 'circle');
+  dot.setAttribute('r', r);
+  dot.setAttribute('fill', color);
+  dot.setAttribute('opacity', '0');
+  pContainer.appendChild(dot);
+
+  const motionPath = anime.path(path);
+
+  const anim = anime({
+    targets: dot,
+    translateX: motionPath('x'),
+    translateY: motionPath('y'),
+    opacity: [0, .9, .9, 0],
+    duration: dur,
+    easing: 'linear',
+    complete: () => { if (dot.parentNode) dot.parentNode.removeChild(dot); }
+  });
+  return anim;
+}
+
+function clearTimers() {
+  spawnTimers.forEach(clearInterval);
+  spawnTimers = [];
+}
+
+function initParticles(r) {
+  clearTimers();
+
+  const gasSpeed = Math.max(.4, r.Q_gas / 60);
+  const amineSpeed = Math.max(.4, r.Q_a / 200);
+
+  // Base durations (lower = faster)
+  const gasBase  = Math.max(800, 2400 / gasSpeed);
+  const amineBase = Math.max(1000, 3200 / amineSpeed);
+
+  // ── Feed gas particles (mix of red+orange+blue by composition)
+  spawnTimers.push(setInterval(() => {
+    const rnd = Math.random() * 100;
+    let col;
+    if (rnd < r.H2S_in) col = '#ef4444';        // H₂S
+    else if (rnd < r.H2S_in + r.CO2_in) col = '#fb923c'; // CO₂
+    else col = '#60a5fa';                         // CH₄
+    spawnParticle('p-feed', col, 4.5, gasBase * .65);
+  }, gasBase * .55));
+
+  // ── Sweet gas particles (color changes with efficiency)
+  spawnTimers.push(setInterval(() => {
+    let col;
+    if (r.meetH2S) col = '#4ade80';
+    else if (r.H2S_ppm < 50) col = '#fbbf24';
+    else col = '#ef4444';
+    spawnParticle('p-sweet', col, 4.5, gasBase * .7);
+  }, gasBase * .6));
+
+  // ── Rich amine (purple, darker when highly loaded)
+  spawnTimers.push(setInterval(() => {
+    const loadFrac = Math.min(1, r.richLoad / AMINES[currentAmine].maxLoad);
+    const g = Math.round(139 - loadFrac * 80);
+    const col = `rgb(167,${g},250)`;
+    spawnParticle('p-rich1', col, 4.5, amineBase * .8);
+  }, amineBase * .7));
+
+  spawnTimers.push(setInterval(() => {
+    const col = '#8b5cf6';
+    spawnParticle('p-rich2', col, 4.5, amineBase * 1.1);
+  }, amineBase * .85));
+
+  // ── Lean amine (teal – regenerated)
+  spawnTimers.push(setInterval(() => {
+    spawnParticle('p-lean1', '#2dd4bf', 4, amineBase * .75);
+  }, amineBase * .8));
+  spawnTimers.push(setInterval(() => {
+    spawnParticle('p-lean2', '#2dd4bf', 4, amineBase * 1.1);
+  }, amineBase * .85));
+  spawnTimers.push(setInterval(() => {
+    spawnParticle('p-lean3', '#2dd4bf', 4, amineBase * .55);
+  }, amineBase * .65));
+
+  // ── Acid gas (orange – released from regen)
+  spawnTimers.push(setInterval(() => {
+    spawnParticle('p-acid', '#f97316', 3.5, gasBase * .55);
+  }, gasBase * .7));
+}
+
+// ═══════════════════════════════════════════════════
+//  SETUP & EVENTS
+// ═══════════════════════════════════════════════════
+function setAmine(type) {
+  currentAmine = type;
+  document.querySelectorAll('.amine-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.a === type));
+  document.getElementById('amine-info-box').textContent = AMINES[type].info;
+  debouncedUpdate();
+}
+
+let debTimer;
+function debouncedUpdate() {
+  clearTimeout(debTimer);
+  debTimer = setTimeout(() => {
+    const r = calc();
+    updateUI(r);
+    initParticles(r);
+  }, 120);
+}
+
+// Slider wiring
+const sliders = [
+  { id:'sl-h2s', vid:'v-h2s', fmt: v => `${(+v).toFixed(1)}%` },
+  { id:'sl-co2', vid:'v-co2', fmt: v => `${(+v).toFixed(1)}%` },
+  { id:'sl-qgas',vid:'v-qgas',fmt: v => `${v} MMSCFD` },
+  { id:'sl-ca',  vid:'v-ca', fmt: v => `${v}%` },
+  { id:'sl-qa',  vid:'v-qa', fmt: v => `${v} GPM` },
+  { id:'sl-T',   vid:'v-T',  fmt: v => `${v}°C` },
+  { id:'sl-P',   vid:'v-P',  fmt: v => `${v} bar` },
+];
+
+sliders.forEach(({ id, vid, fmt }) => {
+  const sl = document.getElementById(id);
+  const vd = document.getElementById(vid);
+  sl.addEventListener('input', () => {
+    vd.textContent = fmt(sl.value);
+    debouncedUpdate();
+  });
+});
+
+// ═══════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  setAmine('MDEA');
+  // Small delay to let SVG layout settle
+  setTimeout(() => {
+    const r = calc();
+    updateUI(r);
+    initParticles(r);
+  }, 200);
+});
+</script>
+</body>
+</html>
