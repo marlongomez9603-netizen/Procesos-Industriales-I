@@ -12,6 +12,7 @@
             --text:#e2e2ee;--muted:#8888aa;--border:rgba(255,255,255,.07);
             --radius:16px;--gap:24px;
             --c1:#e74c3c;--c2:#e67e22;--c3:#3498db;--c4:#2ecc71;--c5:#9b59b6;
+            --c6:#06b6d4;--c7:#f43f5e;--c8:#a3e635;
         }
         body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;padding:40px 20px}
         .page{max-width:900px;margin:0 auto}
@@ -40,7 +41,41 @@
         .c3 .num{background:rgba(52,152,219,.15);color:var(--c3);border:1px solid rgba(52,152,219,.3)}
         .c4 .num{background:rgba(46,204,113,.15);color:var(--c4);border:1px solid rgba(46,204,113,.3)}
         .c5 .num{background:rgba(155,89,182,.15);color:var(--c5);border:1px solid rgba(155,89,182,.3)}
+        .c6 .num{background:rgba(6,182,212,.15);color:var(--c6);border:1px solid rgba(6,182,212,.3)}
+        .c7 .num{background:rgba(244,63,94,.15);color:var(--c7);border:1px solid rgba(244,63,94,.3)}
+        .c8 .num{background:rgba(163,230,53,.15);color:var(--c8);border:1px solid rgba(163,230,53,.3)}
         .caso-num h2{font-size:1.25rem;font-weight:800}
+        /* Colores adicionales para casos individuales */
+        .caso.c6::before{background:var(--c6)} .caso.c7::before{background:var(--c7)} .caso.c8::before{background:var(--c8)}
+        .c6 .sintoma{background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.2)}
+        .c7 .sintoma{background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.2)}
+        .c8 .sintoma{background:rgba(163,230,53,.07);border:1px solid rgba(163,230,53,.2)}
+        /* Separador de sección individual */
+        .section-divider{
+            text-align:center;margin:50px 0 36px;
+            padding:28px 30px;
+            background:rgba(255,255,255,.025);
+            border:1px solid rgba(255,255,255,.07);
+            border-radius:var(--radius);
+        }
+        .section-divider .badge-ind{
+            display:inline-block;padding:6px 22px;border-radius:50px;
+            font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;
+            background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.35);
+            color:#06b6d4;margin-bottom:14px;
+        }
+        .section-divider h2{font-size:1.6rem;font-weight:900;margin-bottom:8px;
+            background:linear-gradient(135deg,#06b6d4,#a3e635);-webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;background-clip:text;}
+        .section-divider p{color:var(--muted);font-size:.9rem;max-width:600px;margin:0 auto 18px;}
+        .instrucciones-ind{
+            background:var(--card);border:1px solid rgba(6,182,212,.2);border-radius:12px;
+            padding:18px 22px;max-width:640px;margin:0 auto;
+        }
+        .instrucciones-ind h3{font-size:.88rem;font-weight:700;margin-bottom:10px;color:var(--text)}
+        .instrucciones-ind ul{list-style:none;padding:0}
+        .instrucciones-ind ul li{font-size:.84rem;color:var(--muted);padding:4px 0;display:flex;gap:8px}
+        .instrucciones-ind ul li::before{content:'›';color:#06b6d4;font-weight:700;flex-shrink:0}
         .sintoma{border-radius:12px;padding:18px 20px;margin-bottom:22px;font-size:.92rem;line-height:1.7}
         .c1 .sintoma{background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2)}
         .c2 .sintoma{background:rgba(230,126,34,.07);border:1px solid rgba(230,126,34,.2)}
@@ -249,9 +284,123 @@
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════════
+         SECCIÓN II — ACTIVIDAD INDIVIDUAL
+    ═══════════════════════════════════════════════════ -->
+    <div class="section-divider">
+        <span class="badge-ind">👤 Actividad Individual — Análisis Técnico</span>
+        <h2>Tú eres el ingeniero de turno</h2>
+        <p>Tres situaciones críticas, tres decisiones que tomar. Analiza el caso que te asignaron, diagnostica la falla y prepara tu sustentación.</p>
+        <div class="instrucciones-ind">
+            <h3>📋 Instrucciones — Trabajo Individual</h3>
+            <ul>
+                <li>Cada estudiante recibe <strong>un caso diferente</strong> asignado por el docente.</li>
+                <li>Lee con cuidado la situación y los datos del reporte de operación.</li>
+                <li>Responde las preguntas de forma <strong>individual y escrita</strong> en tu cuaderno o hoja.</li>
+                <li>Tiempo de análisis: <strong>20 minutos</strong>.</li>
+                <li>Exposición oral ante el grupo: <strong>8 minutos</strong> por estudiante.</li>
+                <li>Apóyate en los conceptos vistos en clase; no se requieren cálculos complejos.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 6 (Individual) ═══ -->
+    <div class="caso c6">
+        <div class="caso-num">
+            <div class="num">C6</div>
+            <h2>"La amina llegó al límite y nadie lo notó"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>Durante el turno nocturno de la Planta San Andrés, el analizador en línea del gasoducto disparó una <strong>alarma de H₂S a 9 ppm</strong>. El operador revisó los instrumentos locales del absorbedor y todo parecía normal. Sin embargo, al revisar los registros de las últimas 48 horas, se detectó que la <strong>carga de la amina rica venía subiendo de forma progresiva</strong>: de 0.38 mol/mol a 0.51 mol/mol, superando el límite de diseño de <strong>0.50 mol/mol</strong>.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Datos del sistema en ese momento</h4>
+            <div class="reporte-item">Flujo de gas crudo: <strong>sin cambios</strong>, mismo valor de los últimos 30 días.</div>
+            <div class="reporte-item">Flujo de amina MDEA al absorbedor: <strong>sin cambios</strong> registrados en los últimos 5 días.</div>
+            <div class="reporte-item">Temperatura del regenerador: <strong>110°C</strong> (el valor normal es 118-122°C).</div>
+            <div class="reporte-item">El operador del turno anterior anotó: <em>"Reboiler encendido con llama baja por sonido inusual en el quemador"</em>.</div>
+            <div class="reporte-item">El nivel del reboiler ha estado <strong>fluctuando</strong> según los gráficos de tendencia.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas individuales</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>¿Por qué una temperatura de regenerador más baja que la normal puede causar H₂S en el gas dulce? Explica la relación causa-efecto paso a paso.</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Por qué la carga de la amina rica subió si el flujo de gas y el flujo de amina no cambiaron?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>¿Qué debería haber hecho el operador del turno anterior al detectar la llama baja? ¿Qué error operativo cometió?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>¿Qué acciones inmediatas tomarías tú como ingeniero de turno para corregir la situación sin interrumpir la producción?</p></div>
+            <div class="pregunta"><div class="pnum">5</div><p>¿Qué indicador de proceso deberías monitorear en tiempo real para detectar este problema antes de que la alarma se active?</p></div>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 7 (Individual) ═══ -->
+    <div class="caso c7">
+        <div class="caso-num">
+            <div class="num">C7</div>
+            <h2>"El gasoducto corroyó por dentro"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>Durante la inspección de mantenimiento programada, el equipo de integridad detectó <strong>pérdida de espesor de pared de hasta 3.2 mm</strong> en dos secciones del gasoducto de 18 km que conecta la planta con la estación compresora. El gas que circula por este gasoducto <strong>cumple la especificación de H₂S ≤ 4 ppm</strong>, pero el informe de integridad advierte que la corrosión es de tipo <em>"bajo depósito"</em> y también se detectaron <strong>trazas de agua libre</strong> en los trampas de líquidos del gasoducto.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Datos del sistema</h4>
+            <div class="reporte-item">Unidad de endulzamiento: operación normal, H₂S &lt; 3 ppm en gas de salida.</div>
+            <div class="reporte-item">Unidad de deshidratación con TEG: <strong>punto de rocío de agua medido: −12°C</strong>. Especificación exige &lt; −20°C.</div>
+            <div class="reporte-item">El operador reporta que el <strong>absorbedor de TEG tuvo pérdidas de nivel</strong> frecuentes en los últimos 2 meses por obstrucción intermitente en la bomba de recirculación.</div>
+            <div class="reporte-item">La temperatura mínima nocturna en el recorrido del gasoducto es <strong>4°C</strong>.</div>
+            <div class="reporte-item">No se han detectado fugas en la línea.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas individuales</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>El gas cumple la especificación de H₂S pero el gasoducto está corroído. ¿Cómo es eso posible? ¿Qué mecanismo de corrosión explica este daño?</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Qué proceso de tratamiento está fallando y cuál es la consecuencia directa sobre el gasoducto?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>¿Por qué el punto de rocío de −12°C es problemático si la temperatura del gasoducto baja a 4°C?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>Propón dos acciones correctivas: una inmediata (esta semana) y una a largo plazo para evitar que vuelva a ocurrir.</p></div>
+            <div class="pregunta"><div class="pnum">5</div><p>¿Qué relación existe entre la corrosión interna del gasoducto y la seguridad de las personas y el medioambiente?</p></div>
+        </div>
+    </div>
+
+    <!-- ═══ CASO 8 (Individual) ═══ -->
+    <div class="caso c8">
+        <div class="caso-num">
+            <div class="num">C8</div>
+            <h2>"Cambiamos de amina y todo se desequilibró"</h2>
+        </div>
+
+        <div class="sintoma">
+            <h4>🚨 Situación</h4>
+            <p>La gerencia técnica decidió <strong>cambiar de MEA al 18% a MDEA al 45%</strong> en la planta de endulzamiento, con el objetivo de reducir el consumo energético del reboiler y disminuir la corrosión en equipos. El cambio se realizó en el turno del fin de semana. El lunes, el gas dulce tiene <strong>H₂S dentro de especificación (2.1 ppm)</strong>, pero el <strong>CO₂ subió de 1.8% a 7.3%</strong>, por encima del límite contractual de 2%.</p>
+        </div>
+
+        <div class="reportes">
+            <h4>📋 Datos del sistema tras el cambio</h4>
+            <div class="reporte-item">Gas crudo de entrada: <strong>5% H₂S y 14% CO₂</strong> — mismos valores que antes del cambio.</div>
+            <div class="reporte-item">Flujo de amina MDEA: <strong>igual al flujo que se usaba con MEA</strong> — no fue ajustado.</div>
+            <div class="reporte-item">Temperatura del absorbedor: <strong>42°C</strong>, dentro del rango operativo.</div>
+            <div class="reporte-item">Presión de operación: <strong>65 bar</strong>, valor normal.</div>
+            <div class="reporte-item">El supervisor anota: <em>"La amina rica sale con carga muy baja (0.15 mol/mol) comparado con lo histórico con MEA (0.32 mol/mol)"</em>.</div>
+            <div class="reporte-item">El cliente (red de distribución urbana) exige CO₂ ≤ 2% por contrato.</div>
+        </div>
+
+        <div class="preguntas">
+            <h4>💬 Preguntas individuales</h4>
+            <div class="pregunta"><div class="pnum">1</div><p>¿Por qué el H₂S cumple especificación pero el CO₂ no, si antes con MEA ambos cumplían? ¿Qué propiedad de la MDEA explica esto?</p></div>
+            <div class="pregunta"><div class="pnum">2</div><p>¿Por qué la carga de amina rica es tan baja (0.15 mol/mol) si el gas tiene 14% de CO₂? ¿Significa que la amina está funcionando bien?</p></div>
+            <div class="pregunta"><div class="pnum">3</div><p>El técnico propone "simplemente aumentar el flujo de MDEA para remover más CO₂". ¿Esto resolverá el problema? ¿Por qué sí o por qué no?</p></div>
+            <div class="pregunta"><div class="pnum">4</div><p>¿Qué amina o combinación de aminas sería la más adecuada para este gas con 5% H₂S y 14% CO₂ si se necesita cumplir ambas especificaciones? Justifica tu respuesta con los conceptos de selectividad vistos en clase.</p></div>
+            <div class="pregunta"><div class="pnum">5</div><p>¿Qué lección deja este caso sobre la importancia de conocer la composición del gas y las propiedades de las aminas antes de hacer cambios en planta?</p></div>
+        </div>
+    </div>
+
     <div class="footer-activity">
         <strong>UNIPAZ</strong> — Procesos Industriales 1 — UF3: Tratamiento del Gas Natural — 2026-1<br>
-        Actividad formativa: Diagnóstico de fallas operativas — Grupos de 3 estudiantes
+        Actividad formativa: Diagnóstico de fallas operativas — Grupos de 3 estudiantes · Actividad individual
     </div>
 
 </div>
