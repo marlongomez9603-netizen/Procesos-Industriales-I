@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UF3 — Fraccionamiento de LGN y Gas Natural Licuado (GNL)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --frac:#9b59b6;--frac-bg:rgba(155,89,182,.10);--frac-bd:rgba(155,89,182,.35);
+            --gnl:#3498db;--gnl-bg:rgba(52,152,219,.10);--gnl-bd:rgba(52,152,219,.35);
+            --glp:#e67e22;--glp-bg:rgba(230,126,34,.10);--glp-bd:rgba(230,126,34,.35);
+            --ok:#2ecc71;--ok-bg:rgba(46,204,113,.10);--ok-bd:rgba(46,204,113,.35);
+            --cold:#00bcd4;--cold-bg:rgba(0,188,212,.10);--cold-bd:rgba(0,188,212,.35);
+            --bg:#080810;--card:#111122;--card2:#161630;
+            --text:#e2e2ee;--muted:#8888aa;--border:rgba(255,255,255,.06);
+            --radius:16px;--gap:24px
+        }
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+        .slide{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;position:relative}
+        .section-header{text-align:center;margin-bottom:48px;max-width:750px}
+        .section-header .badge{display:inline-block;padding:6px 20px;border-radius:50px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+        .badge-frac{background:var(--frac-bg);border:1px solid var(--frac-bd);color:var(--frac)}
+        .badge-gnl{background:var(--gnl-bg);border:1px solid var(--gnl-bd);color:var(--gnl)}
+        .badge-glp{background:var(--glp-bg);border:1px solid var(--glp-bd);color:var(--glp)}
+        .badge-cold{background:var(--cold-bg);border:1px solid var(--cold-bd);color:var(--cold)}
+        .badge-ok{background:var(--ok-bg);border:1px solid var(--ok-bd);color:var(--ok)}
+        .badge-neutral{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted)}
+        .section-header h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;line-height:1.2;margin-bottom:12px}
+        .section-header p{font-size:1rem;color:var(--muted);max-width:600px;margin:0 auto}
+        .card-grid{display:grid;gap:var(--gap);width:100%;max-width:1200px}
+        .cols-2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+        .cols-3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+        .cols-4{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+        .cols-5{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;transition:transform .3s,border-color .3s,background .3s}
+        .card:hover{transform:translateY(-4px);background:var(--card2);border-color:rgba(255,255,255,.12)}
+        .card-icon{font-size:1.6rem;margin-bottom:14px;display:block}
+        .card h3{font-size:1.15rem;font-weight:700;margin-bottom:8px}
+        .card p,.card .desc{font-size:.88rem;color:var(--muted);line-height:1.65}
+        .card ul{list-style:none;padding:0;margin:0}
+        .card ul li{padding:8px 0;font-size:.88rem;color:var(--muted);border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:8px;cursor:pointer;transition:color .2s,padding-left .2s}
+        .card ul li:hover{color:var(--text);padding-left:6px}
+        .card ul li:last-child{border-bottom:none}
+        .card ul li::before{content:'›';font-weight:700;flex-shrink:0}
+        .card.frac-accent{border-left:3px solid var(--frac)} .card.frac-accent ul li::before{color:var(--frac)}
+        .card.gnl-accent{border-left:3px solid var(--gnl)} .card.gnl-accent ul li::before{color:var(--gnl)}
+        .card.glp-accent{border-left:3px solid var(--glp)} .card.glp-accent ul li::before{color:var(--glp)}
+        .hero-grad{width:100%;max-width:1200px;height:200px;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;margin-bottom:48px;position:relative;overflow:hidden}
+        .hero-grad::before{content:'';position:absolute;inset:0;opacity:.15;pointer-events:none}
+        .hero-grad.h-frac{background:linear-gradient(135deg,#0e0016 0%,#1a0030 30%,#9b59b6 200%)}
+        .hero-grad.h-frac::before{background:radial-gradient(circle at 70% 30%,var(--frac),transparent 60%)}
+        .hero-grad.h-gnl{background:linear-gradient(135deg,#000a1a 0%,#001630 30%,#3498db 200%)}
+        .hero-grad.h-gnl::before{background:radial-gradient(circle at 30% 70%,var(--gnl),transparent 60%)}
+        .hero-grad.h-cold{background:linear-gradient(135deg,#001a1a 0%,#003030 30%,#00bcd4 200%)}
+        .hero-grad.h-cold::before{background:radial-gradient(circle at 50% 50%,var(--cold),transparent 60%)}
+        .hero-grad h2{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;z-index:2;margin-bottom:6px}
+        .hero-grad .badge{z-index:2}
+        #title{background:linear-gradient(160deg,#080810 0%,#100a1e 40%,#0e1628 100%)}
+        .title-glow{position:absolute;width:500px;height:500px;border-radius:50%;filter:blur(120px);opacity:.12;pointer-events:none}
+        .title-glow.g1{background:var(--frac);top:-150px;right:-100px}
+        .title-glow.g2{background:var(--gnl);bottom:-150px;left:-100px}
+        .title-glow.g3{background:var(--cold);bottom:50px;right:30%}
+        .title-wrap{text-align:center;z-index:2;max-width:850px}
+        .title-wrap h1{font-size:clamp(2.2rem,5.5vw,3.8rem);font-weight:900;line-height:1.1;background:linear-gradient(135deg,#9b59b6 0%,#3498db 50%,#00bcd4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+        .title-wrap .sub{font-size:clamp(.95rem,2vw,1.25rem);color:var(--muted);font-weight:300;margin-bottom:40px}
+        .btn-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:50px;font-weight:600;font-size:.95rem;text-decoration:none;color:#fff;transition:transform .3s,box-shadow .3s}
+        .btn:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+        .btn-frac{background:linear-gradient(135deg,#8e44ad,#6c3483)}
+        .btn-gnl{background:linear-gradient(135deg,#2980b9,#1a5276)}
+        .btn-cold{background:linear-gradient(135deg,#00838f,#004d40)}
+        .scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:.78rem;color:rgba(255,255,255,.25);animation:float 2.5s ease-in-out infinite}
+        @keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-8px)}}
+        .flow-row{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:50px}
+        .flow-item{padding:14px 22px;border-radius:12px;font-weight:600;font-size:.85rem;text-align:center;white-space:nowrap}
+        .flow-item.f-frac{background:var(--frac-bg);border:1px solid var(--frac-bd);color:var(--frac)}
+        .flow-item.f-gnl{background:var(--gnl-bg);border:1px solid var(--gnl-bd);color:var(--gnl)}
+        .flow-item.f-glp{background:var(--glp-bg);border:1px solid var(--glp-bd);color:var(--glp)}
+        .flow-item.f-cold{background:var(--cold-bg);border:1px solid var(--cold-bd);color:var(--cold)}
+        .flow-item.f-ok{background:var(--ok-bg);border:1px solid var(--ok-bd);color:var(--ok)}
+        .flow-arrow{color:rgba(255,255,255,.2);font-size:1.2rem;font-weight:300}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--gap);width:100%;max-width:1000px}
+        .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 20px;text-align:center}
+        .stat-val{font-size:2.2rem;font-weight:900;line-height:1;margin-bottom:8px}
+        .stat-val.frac{background:linear-gradient(135deg,#9b59b6,#8e44ad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .stat-val.gnl{background:linear-gradient(135deg,#3498db,#2980b9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .stat-val.cold{background:linear-gradient(135deg,#00bcd4,#00838f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .stat-label{font-size:.82rem;color:var(--muted)}
+        /* Tower diagram */
+        .tower-diagram{display:flex;flex-direction:column;align-items:center;width:100%;max-width:260px;margin:0 auto}
+        .tower-stage{width:100%;padding:18px 16px;text-align:center;position:relative;border-left:3px solid;border-right:3px solid}
+        .tower-stage h4{font-size:.88rem;font-weight:700;margin-bottom:2px}
+        .tower-stage p{font-size:.75rem;margin-bottom:0}
+        .tower-stage .temp{font-size:.7rem;font-weight:700;position:absolute;right:-80px;top:50%;transform:translateY(-50%);white-space:nowrap}
+        .ts-1{background:rgba(52,152,219,.08);border-color:rgba(52,152,219,.3);color:#3498db;border-radius:var(--radius) var(--radius) 0 0}
+        .ts-2{background:rgba(46,204,113,.08);border-color:rgba(46,204,113,.3);color:#2ecc71}
+        .ts-3{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);color:#e67e22}
+        .ts-4{background:rgba(231,76,60,.08);border-color:rgba(231,76,60,.3);color:#e74c3c;border-radius:0 0 var(--radius) var(--radius)}
+        .tower-arrow{font-size:.8rem;color:var(--muted);padding:4px 0}
+        /* Process diagram */
+        .process-diagram{display:flex;align-items:stretch;gap:0;width:100%;max-width:1100px;margin-bottom:40px;flex-wrap:wrap;justify-content:center}
+        .process-stage{flex:1;min-width:180px;max-width:250px;text-align:center;padding:24px 16px;position:relative}
+        .process-stage .stage-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 14px;position:relative;z-index:2}
+        .process-stage .stage-icon.si-frac{background:var(--frac-bg);border:2px solid var(--frac-bd)}
+        .process-stage .stage-icon.si-gnl{background:var(--gnl-bg);border:2px solid var(--gnl-bd)}
+        .process-stage .stage-icon.si-cold{background:var(--cold-bg);border:2px solid var(--cold-bd)}
+        .process-stage .stage-icon.si-ok{background:var(--ok-bg);border:2px solid var(--ok-bd)}
+        .process-stage .stage-icon.si-glp{background:var(--glp-bg);border:2px solid var(--glp-bd)}
+        .process-stage h4{font-size:.92rem;font-weight:700;margin-bottom:6px}
+        .process-stage p{font-size:.78rem;color:var(--muted);line-height:1.5}
+        .process-stage::after{content:'→';position:absolute;right:-12px;top:50px;font-size:1.3rem;color:rgba(255,255,255,.15);z-index:1}
+        .process-stage:last-child::after{display:none}
+        /* Data table */
+        .data-table{width:100%;max-width:1100px;border-collapse:collapse;margin-bottom:30px}
+        .data-table th{background:rgba(255,255,255,.04);padding:14px 18px;text-align:left;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+        .data-table td{padding:14px 18px;font-size:.88rem;border-bottom:1px solid var(--border);color:var(--muted)}
+        .data-table tr:hover td{color:var(--text);background:rgba(255,255,255,.02)}
+        .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+        .pill-frac{background:var(--frac-bg);color:var(--frac);border:1px solid var(--frac-bd)}
+        .pill-gnl{background:var(--gnl-bg);color:var(--gnl);border:1px solid var(--gnl-bd)}
+        .pill-glp{background:var(--glp-bg);color:var(--glp);border:1px solid var(--glp-bd)}
+        .pill-cold{background:var(--cold-bg);color:var(--cold);border:1px solid var(--cold-bd)}
+        .section-divider{width:60px;height:3px;border-radius:3px;margin:0 auto 30px;opacity:.6}
+        .div-frac{background:var(--frac)} .div-gnl{background:var(--gnl)} .div-cold{background:var(--cold)}
+        .side-nav{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:6px}
+        .side-nav a{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15);display:block;transition:.3s}
+        .side-nav a.active,.side-nav a:hover{background:rgba(255,255,255,.7);transform:scale(1.3)}
+        .fade-in{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+        .fade-in.visible{opacity:1;transform:translateY(0)}
+        /* Modal */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+        .modal-overlay.open{opacity:1;visibility:visible}
+        .modal-body{background:#13132a;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:36px 32px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;transform:translateY(30px) scale(.95);transition:transform .35s;position:relative}
+        .modal-overlay.open .modal-body{transform:translateY(0) scale(1)}
+        .modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:var(--muted);font-size:1.6rem;cursor:pointer;transition:color .2s;line-height:1}
+        .modal-close:hover{color:#fff}
+        .modal-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}
+        .modal-title{font-size:1.4rem;font-weight:800;margin-bottom:14px;line-height:1.3}
+        .modal-text{font-size:.92rem;color:var(--muted);line-height:1.75}
+        .modal-text strong{color:var(--text)}
+        .click-hint{font-size:.7rem;color:rgba(255,255,255,.2);text-align:center;margin-top:8px;letter-spacing:1px}
+        #footer{min-height:40vh}
+        #footer h2{font-size:2.5rem;font-weight:900;margin-bottom:10px}
+        #footer p{color:var(--muted);font-size:.95rem}
+        #footer .credit{margin-top:10px;font-size:.8rem;opacity:.4}
+        @media(max-width:768px){.slide{padding:50px 20px}.hero-grad{height:160px}.cols-3,.cols-4,.cols-5{grid-template-columns:1fr}.flow-row{flex-direction:column}.flow-arrow{transform:rotate(90deg)}.side-nav{display:none}.btn-row{flex-direction:column;align-items:center}.process-diagram{flex-direction:column;align-items:center}.process-stage::after{content:'↓';right:auto;bottom:-10px;top:auto;left:50%}.tower-stage .temp{position:static;transform:none;display:block;margin-top:4px}}
+        /* ── Glossary Tooltip ── */
+        .gloss{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.4);color:#9b59b6;font-size:.65rem;font-weight:800;cursor:pointer;vertical-align:middle;margin-left:4px;transition:background .2s,transform .2s;line-height:1;position:relative;text-decoration:none;font-family:'Inter',system-ui,sans-serif;}
+        .gloss:hover{background:rgba(155,89,182,.3);transform:scale(1.15);}
+        .gloss-popup{position:fixed;background:#1a1a36;border:1px solid rgba(155,89,182,.35);border-radius:14px;padding:16px 20px;max-width:340px;width:90%;z-index:11000;box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s,transform .25s;transform:translateY(6px);pointer-events:none;}
+        .gloss-popup.show{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
+        .gloss-popup .gp-term{font-size:.78rem;font-weight:800;color:#9b59b6;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+        .gloss-popup .gp-def{font-size:.85rem;color:var(--muted);line-height:1.65;}
+        .gloss-popup .gp-def strong{color:var(--text);}
+        .gloss-popup .gp-close{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;line-height:1;}
+        .gloss-popup .gp-close:hover{color:#fff;}
+    </style>
+</head>
+<body>
+    <nav class="side-nav" id="sideNav"></nav>
+
+    <!-- ════════ TITLE ════════ -->
+    <section class="slide" id="title">
+        <div class="title-glow g1"></div><div class="title-glow g2"></div><div class="title-glow g3"></div>
+        <div class="title-wrap">
+            <h1>Fraccionamiento de LGN y Gas Natural Licuado</h1>
+            <p class="sub">De la mezcla de líquidos a productos comerciales — Fraccionamiento, GLP y la cadena de frío del GNL</p>
+            <div class="btn-row">
+                <a href="#frac-hero" class="btn btn-frac">🏭 Fraccionamiento</a>
+                <a href="#gnl-hero" class="btn btn-gnl">🧊 GNL</a>
+                <a href="#colombia" class="btn btn-cold">🇨🇴 Colombia</a>
+            </div>
+        </div>
+        <span class="scroll-hint">▼ Desplaza para explorar</span>
+    </section>
+
+    <!-- ════════ CONTEXT ════════ -->
+    <section class="slide" id="context">
+        <div class="section-header">
+            <span class="badge badge-neutral">Contexto</span>
+            <h2>De la Extracción al Producto Final</h2>
+            <p>Después de extraer los <strong>LGN<span class="gloss" data-gloss="lgn">?</span></strong> del gas natural (proceso <strong>criogénico<span class="gloss" data-gloss="criogenico">?</span></strong>), la mezcla debe separarse en productos individuales de alto valor.</p>
+        </div>
+        <div class="flow-row fade-in">
+            <span class="flow-item f-frac">Gas Natural Crudo</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-frac">Planta de Tratamiento</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-frac">Extracción Criogénica</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-glp">Mezcla LGN (C₂-C₅+)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-ok">Fraccionamiento</span>
+        </div>
+        <div class="card-grid cols-2 fade-in">
+            <div class="card" style="border-top:3px solid var(--frac)">
+                <span class="card-icon">🔬</span>
+                <h3>¿Qué es el fraccionamiento?</h3>
+                <p>Proceso de <strong>destilación fraccionada</strong> que separa la mezcla de <strong>LGN<span class="gloss" data-gloss="lgn">?</span></strong> en componentes individuales (etano, propano, butano, gasolina natural) aprovechando sus <strong>diferencias de punto de ebullición<span class="gloss" data-gloss="punto_ebullicion">?</span></strong>.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--glp)">
+                <span class="card-icon">💰</span>
+                <h3>¿Por qué fraccionar?</h3>
+                <p>Cada componente tiene un <strong>mercado y precio diferente</strong>. El propano y butano se venden como <strong>GLP<span class="gloss" data-gloss="glp">?</span></strong>. El etano es materia prima petroquímica. La gasolina natural se mezcla con gasolinas. Separados valen mucho más que mezclados.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════ FRACCIONAMIENTO ════════ -->
+    <section class="slide" id="frac-hero">
+        <div class="hero-grad h-frac">
+            <span class="badge badge-frac">Proceso Principal</span>
+            <h2>Tren de Fraccionamiento</h2>
+        </div>
+        <div class="section-header">
+            <h2>Torres de Fraccionamiento<span class="gloss" data-gloss="fraccionamiento">?</span> en Serie</h2>
+            <p>Cada torre separa un componente de la mezcla. Se ordenan del más liviano al más pesado.</p>
+        </div>
+
+        <div class="process-diagram fade-in">
+            <div class="process-stage">
+                <div class="stage-icon si-frac">🏭</div>
+                <h4>Deetanizadora<span class="gloss" data-gloss="deetanizadora">?</span></h4>
+                <p>Separa <strong>etano (C₂)</strong> por el tope. El fondo va a la siguiente torre.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-glp">🏭</div>
+                <h4>Despropanizadora<span class="gloss" data-gloss="despropanizadora">?</span></h4>
+                <p>Separa <strong>propano (C₃)</strong> por el tope. Fondo con C₄+ continúa.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-glp">🏭</div>
+                <h4>Desbutanizadora<span class="gloss" data-gloss="desbutanizadora">?</span></h4>
+                <p>Separa <strong>butano (C₄)</strong> por el tope. Fondo = gasolina natural<span class="gloss" data-gloss="gasolina_nat_g">?</span> (C₅+).</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-frac">🏭</div>
+                <h4>Separadora de Butanos</h4>
+                <p>Separa <strong>n-butano</strong> de <strong>isobutano</strong> (para alquilación).</p>
+            </div>
+        </div>
+
+        <div class="section-divider div-frac"></div>
+
+        <div class="section-header">
+            <h2>Productos del Fraccionamiento</h2>
+        </div>
+
+        <table class="data-table fade-in">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Fórmula</th>
+                    <th>P. Ebullición</th>
+                    <th>Torre</th>
+                    <th>Uso Principal</th>
+                    <th>Mercado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr onclick="openModal('etano')">
+                    <td><strong>Etano</strong></td>
+                    <td>C₂H₆</td>
+                    <td>-89°C</td>
+                    <td>Deetanizadora</td>
+                    <td>Cracking → etileno → plásticos</td>
+                    <td><span class="pill pill-frac">Petroquímica</span></td>
+                </tr>
+                <tr onclick="openModal('propano')">
+                    <td><strong>Propano</strong></td>
+                    <td>C₃H₈</td>
+                    <td>-42°C</td>
+                    <td>Despropanizadora</td>
+                    <td>GLP doméstico/industrial, propileno</td>
+                    <td><span class="pill pill-glp">GLP + Petroquímica</span></td>
+                </tr>
+                <tr onclick="openModal('nbutano')">
+                    <td><strong>n-Butano</strong></td>
+                    <td>n-C₄H₁₀</td>
+                    <td>-0.5°C</td>
+                    <td>Desbutanizadora</td>
+                    <td>GLP, blending gasolina</td>
+                    <td><span class="pill pill-glp">GLP + Refinería</span></td>
+                </tr>
+                <tr onclick="openModal('isobutano')">
+                    <td><strong>Isobutano</strong></td>
+                    <td>i-C₄H₁₀</td>
+                    <td>-12°C</td>
+                    <td>Separadora C₄</td>
+                    <td>Alquilación → gasolina alto octanaje</td>
+                    <td><span class="pill pill-frac">Refinería</span></td>
+                </tr>
+                <tr onclick="openModal('gasnat')">
+                    <td><strong>Gasolina natural</strong></td>
+                    <td>C₅H₁₂+</td>
+                    <td>36°C+</td>
+                    <td>Fondo desbutanizadora</td>
+                    <td>Diluyente crudo pesado, blending</td>
+                    <td><span class="pill pill-glp">Refinería</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="click-hint">▸ Clic en cada fila para más detalle</p>
+    </section>
+
+    <!-- ════════ GLP ════════ -->
+    <section class="slide" id="glp">
+        <div class="section-header">
+            <span class="badge badge-glp">Producto Clave</span>
+            <h2>GLP — Gas Licuado de Petróleo<span class="gloss" data-gloss="glp">?</span></h2>
+            <p>Mezcla de propano y butano que se licúa a presión moderada. Es el combustible doméstico más utilizado en Colombia y el mundo.</p>
+        </div>
+        <div class="stats-grid fade-in" style="margin-bottom:40px">
+            <div class="stat-card">
+                <div class="stat-val frac">70/30</div>
+                <div class="stat-label">Mezcla típica propano/butano</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val gnl">-42°C</div>
+                <div class="stat-label">P. ebullición del propano (a 1 atm)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val cold">200 psi</div>
+                <div class="stat-label">Presión de almacenamiento</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val frac">270×</div>
+                <div class="stat-label">Volumen reducido al licuarse</div>
+            </div>
+        </div>
+        <div class="card-grid cols-3 fade-in">
+            <div class="card" style="border-top:3px solid var(--glp)">
+                <span class="card-icon">🏠</span>
+                <h3>Sector Residencial</h3>
+                <p>Gas de cocina y calefacción en cilindros (pipetas). Es el principal combustible doméstico en zonas no conectadas a red de gas natural.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--glp)">
+                <span class="card-icon">🏭</span>
+                <h3>Sector Industrial</h3>
+                <p>Hornos, secadores, calderas. Generación de calor directo para procesos industriales como cerámica, vidrio, metalurgia.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--glp)">
+                <span class="card-icon">🚗</span>
+                <h3>Autogás</h3>
+                <p>GLP vehicular (autogas). Alternativa económica y menos contaminante que la gasolina. Amplio uso en taxis y flotas.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════ GNL ════════ -->
+    <section class="slide" id="gnl-hero">
+        <div class="hero-grad h-gnl">
+            <span class="badge badge-gnl">Tecnología Clave</span>
+            <h2>Gas Natural Licuado<span class="gloss" data-gloss="gnl">?</span> (GNL)</h2>
+        </div>
+        <div class="section-header">
+            <h2>Licuefacción<span class="gloss" data-gloss="licuefaccion_g">?</span> del Gas Natural</h2>
+            <p>El gas natural se enfría a <strong>-162°C</strong> hasta convertirse en líquido. Su volumen se reduce <strong>600 veces</strong>, permitiendo el transporte oceánico en buques. Requiere que el gas esté previamente <strong>deshidratado<span class="gloss" data-gloss="tamiz">?</span></strong> con &lt;1 <strong>ppm<span class="gloss" data-gloss="ppm">?</span></strong> de agua para evitar congelamiento.</p>
+        </div>
+
+        <div class="stats-grid fade-in" style="margin-bottom:50px">
+            <div class="stat-card">
+                <div class="stat-val cold">-162°C</div>
+                <div class="stat-label">Temperatura de licuefacción</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val gnl">1/600</div>
+                <div class="stat-label">Reducción de volumen</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val frac">≈0.45</div>
+                <div class="stat-label">Densidad del GNL (kg/L)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val cold">0 ppm</div>
+                <div class="stat-label">H₂O requerida antes de licuar</div>
+            </div>
+        </div>
+
+        <div class="section-divider div-gnl"></div>
+
+        <div class="section-header">
+            <h2>Cadena de Valor del GNL</h2>
+            <p>Desde la planta de licuefacción hasta el consumidor final.</p>
+        </div>
+
+        <div class="process-diagram fade-in">
+            <div class="process-stage">
+                <div class="stage-icon si-ok">✅</div>
+                <h4>Gas Tratado</h4>
+                <p>Gas seco, <strong>dulce<span class="gloss" data-gloss="sweet">?</span></strong>, deshidratado. Pasa por tamices moleculares<span class="gloss" data-gloss="tamiz">?</span> (&lt;1 ppm<span class="gloss" data-gloss="ppm">?</span> agua).</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-cold">❄️</div>
+                <h4>Licuefacción</h4>
+                <p>Enfriamiento progresivo a -162°C. Ciclos de refrigeración (propano + etileno + metano). Es el proceso criogénico<span class="gloss" data-gloss="criogenico">?</span> más extremo de la industria.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-gnl">🛳️</div>
+                <h4>Transporte</h4>
+                <p>Buques metaneros<span class="gloss" data-gloss="buque_metanero">?</span> con tanques criogénicos. Travesías de miles de kilómetros.</p>
+            </div>
+            <div class="process-stage">
+                <div class="stage-icon si-frac">🔥</div>
+                <h4>Regasificación</h4>
+                <p>En terminal de destino se calienta el GNL de vuelta a gas. Se inyecta en gasoductos locales. Proceso de <strong>regasificación<span class="gloss" data-gloss="regasificacion_g">?</span></strong>.</p>
+            </div>
+        </div>
+
+        <div class="card-grid cols-2 fade-in">
+            <div class="card gnl-accent">
+                <h3>❄️ Plantas de Licuefacción</h3>
+                <ul>
+                    <li onclick="openModal('licuefaccion')">Procesan gas tratado a -162°C con refrigerantes en cascada</li>
+                    <li onclick="openModal('licuefaccion')">Tecnologías: APCI C3MR, ConocoPhillips, Shell DMR</li>
+                    <li onclick="openModal('licuefaccion')">Capacidad: 1 a 8 MTPA por tren</li>
+                    <li onclick="openModal('licuefaccion')">Inversión: USD 5-15 mil millones por planta</li>
+                    <li onclick="openModal('licuefaccion')">Ubicadas en países exportadores: Qatar, Australia, EE.UU.</li>
+                </ul>
+            </div>
+            <div class="card gnl-accent">
+                <h3>🔥 Terminales de Regasificación</h3>
+                <ul>
+                    <li onclick="openModal('regasificacion')">Reciben GNL de buques metaneros</li>
+                    <li onclick="openModal('regasificacion')">Calientan el GNL para convertirlo de nuevo en gas</li>
+                    <li onclick="openModal('regasificacion')">Métodos: vaporizadores de agua de mar, aire, combustión</li>
+                    <li onclick="openModal('regasificacion')">Pueden ser en tierra (onshore) o flotantes (<strong>FSRU<span class="gloss" data-gloss="fsru">?</span></strong>)</li>
+                    <li onclick="openModal('regasificacion')">Colombia: Terminal SPEC LNG en Cartagena</li>
+                </ul>
+            </div>
+        </div>
+        <p class="click-hint" style="margin-top:14px">▸ Clic en cada ítem para más detalle</p>
+    </section>
+
+    <!-- ════════ BUQUES ════════ -->
+    <section class="slide" id="buques">
+        <div class="section-header">
+            <span class="badge badge-cold">Transporte</span>
+            <h2>Buques Metaneros</h2>
+            <p>Los <strong>buques metaneros<span class="gloss" data-gloss="buque_metanero">?</span></strong> son embarcaciones especializadas con tanques criogénicos que mantienen el gas a -162°C durante semanas de navegación.</p>
+        </div>
+        <div class="card-grid cols-3 fade-in">
+            <div class="card" style="border-top:3px solid var(--cold)">
+                <span class="card-icon">⛵</span>
+                <h3>Tanques Tipo Membrana</h3>
+                <p>Paredes del casco como soporte. Membrana de acero invar (36% Ni) con aislamiento de poliuretano. <strong>Más comunes</strong> — GTT Mark III, NO96. Capacidad: 170,000 m³.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--cold)">
+                <span class="card-icon">🏀</span>
+                <h3>Tanques Tipo Moss</h3>
+                <p>Esferas de aluminio independientes sobre el casco. Diseño de Moss Maritime. Más robustos pero mayor espacio muerto. Capacidad: 135,000 m³.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--cold)">
+                <span class="card-icon">📦</span>
+                <h3>FSRU<span class="gloss" data-gloss="fsru">?</span> (Unidades Flotantes)</h3>
+                <p>Buques que almacenan Y regasifican en el mar. Evitan la construcción de terminal en tierra. Solución rápida y flexible. <strong>Colombia usa FSRU</strong> en Cartagena.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════ COLOMBIA ════════ -->
+    <section class="slide" id="colombia" style="background:linear-gradient(160deg,#080810,#0a1a1a,#080810)">
+        <div class="section-header">
+            <span class="badge badge-cold">Contexto Nacional</span>
+            <h2>Gas Natural en Colombia</h2>
+            <p>Colombia produce y consume gas natural, y cuenta con infraestructura de importación de GNL. El gas debe cumplir especificaciones de <strong>poder calorífico<span class="gloss" data-gloss="poder_calorifico">?</span></strong> y <strong>punto de rocío<span class="gloss" data-gloss="punto_rocio">?</span></strong>.</p>
+        </div>
+        <div class="stats-grid fade-in" style="margin-bottom:40px">
+            <div class="stat-card">
+                <div class="stat-val gnl">1,100</div>
+                <div class="stat-label">MPCD producción (2024)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val cold">7.7</div>
+                <div class="stat-label">Años de reservas probadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val frac">SPEC LNG</div>
+                <div class="stat-label">Terminal de regasificación (Cartagena)</div>
+            </div>
+        </div>
+        <div class="card-grid cols-2 fade-in">
+            <div class="card" style="border-top:3px solid var(--gnl)">
+                <span class="card-icon">🏭</span>
+                <h3>Producción Nacional</h3>
+                <p>Principales campos: <strong>La Guajira</strong> (Chuchupa, Ballena), <strong>Llanos Orientales</strong> (Cusiana, Cupiagua), <strong>Valle del Magdalena</strong>. La producción ha venido declinando desde 2013, aumentando la dependencia de importaciones.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--cold)">
+                <span class="card-icon">🧊</span>
+                <h3>Importación de GNL</h3>
+                <p>Desde 2016, Colombia importa GNL a través del <strong>terminal SPEC LNG</strong> en Cartagena (FSRU). Capacidad: 400 MPCD. Opera durante épocas de baja producción (fenómeno de El Niño) para garantizar el suministro eléctrico.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════ RESUMEN ════════ -->
+    <section class="slide" id="resumen">
+        <div class="section-header">
+            <span class="badge badge-ok">Resumen</span>
+            <h2>La Cadena Completa del Gas Natural</h2>
+            <p>Desde el pozo hasta el hogar del consumidor.</p>
+        </div>
+        <div class="flow-row fade-in">
+            <span class="flow-item f-frac">Pozo</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-frac">Separación</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-frac">Endulzamiento</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-gnl">Deshidratación</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-cold">Extracción LGN</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-glp">Fraccionamiento</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item f-ok">Productos</span>
+        </div>
+        <div class="card-grid cols-3 fade-in" style="margin-top:30px">
+            <div class="card" style="border-top:3px solid var(--frac)">
+                <span class="card-icon">🏭</span>
+                <h3>Gas Seco (Metano)</h3>
+                <p><strong>Destino:</strong> Gasoductos → centrales eléctricas, industria, hogares.<br>
+                <strong>O bien:</strong> Licuefacción → GNL → Exportación/importación por buques metaneros.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--glp)">
+                <span class="card-icon">🔥</span>
+                <h3>GLP (Propano + Butano)</h3>
+                <p><strong>Destino:</strong> Cilindros para uso doméstico, industrial y vehicular.<br>
+                <strong>Valor:</strong> Combustible limpio y versátil, fácil de almacenar y transportar.</p>
+            </div>
+            <div class="card" style="border-top:3px solid var(--cold)">
+                <span class="card-icon">🧪</span>
+                <h3>Petroquímicos (Etano, C₅+)</h3>
+                <p><strong>Destino:</strong> Cracking del etano → etileno → plásticos.<br>
+                <strong>Gasolina natural:</strong> Diluyente de crudo pesado y blending de gasolinas.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════ FOOTER ════════ -->
+    <section class="slide" id="footer">
+        <h2>Fin de la Presentación</h2>
+        <p>UF3 — Fraccionamiento de LGN y GNL | Procesos Industriales 1</p>
+        <p class="credit">UNIPAZ — Escuela de Ingeniería de Producción — 2026-1</p>
+        <p class="credit">Esp. Marlon Gomez</p>
+    </section>
+
+    <!-- ════════ MODAL ════════ -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal-body" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <span class="modal-badge" id="modalBadge"></span>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-text" id="modalText"></div>
+        </div>
+    </div>
+
+<script>
+const MODALS={
+    etano:{badge:'Producto LGN',badgeClass:'badge-frac',title:'Etano (C₂H₆)',
+        text:`<strong>Punto de ebullición:</strong> -89°C<br><strong>Torre:</strong> Deetanizadora (primera del tren)<br><br>
+        El etano tiene <strong>poco valor como combustible</strong> pero es la materia prima más importante para la <strong>industria petroquímica</strong>.<br><br>
+        <strong>Cadena de valor:</strong><br>
+        Etano → <strong>Cracker de etileno</strong> (pirólisis a 850°C) → <strong>Etileno</strong> → Polietileno (bolsas, envases), PVC (tuberías), etilenglicol (anticongelante, fibras de poliéster), estireno (icopor).<br><br>
+        El etileno es considerado el <strong>"rey de los petroquímicos"</strong> por ser la base de la mayor parte de plásticos del mundo.`},
+    propano:{badge:'GLP',badgeClass:'badge-glp',title:'Propano (C₃H₈)',
+        text:`<strong>Punto de ebullición:</strong> -42°C<br><strong>Torre:</strong> Despropanizadora<br><br>
+        <strong>Usos principales:</strong><br>
+        • <strong>GLP doméstico:</strong> Gas de cocina en cilindros (70% propano, 30% butano típicamente).<br>
+        • <strong>GLP industrial:</strong> Hornos, secadores, calderas en industrias que no tienen red de gas.<br>
+        • <strong>Petroquímica:</strong> Deshidrogenación → propileno → polipropileno (empaques, fibras, piezas automotrices).<br>
+        • <strong>Refrigerante:</strong> R-290, refrigerante natural de bajo GWP.<br><br>
+        El propano se licúa fácilmente a <strong>~8 atm</strong> a temperatura ambiente, lo que permite almacenarlo en cilindros y tanques estacionarios.`},
+    nbutano:{badge:'GLP',badgeClass:'badge-glp',title:'n-Butano (n-C₄H₁₀)',
+        text:`<strong>Punto de ebullición:</strong> -0.5°C<br><strong>Torre:</strong> Desbutanizadora<br><br>
+        <strong>Usos principales:</strong><br>
+        • <strong>GLP:</strong> Se mezcla con propano para gas doméstico. Aporta mayor poder calorífico.<br>
+        • <strong>Blending gasolina:</strong> Se agrega directamente a la gasolina para ajustar la presión de vapor Reid (RVP). En invierno se agrega más butano.<br>
+        • <strong>Deshidrogenación:</strong> n-butano → butadieno → caucho sintético (SBR, polibutadieno).<br>
+        • <strong>Aerosoles y encendedores:</strong> Propelente de aerosoles y combustible de encendedores.`},
+    isobutano:{badge:'Refinería',badgeClass:'badge-frac',title:'Isobutano (i-C₄H₁₀)',
+        text:`<strong>Punto de ebullición:</strong> -12°C<br><strong>Torre:</strong> Separadora de butanos (deisobutanizadora)<br><br>
+        <strong>Uso principal — Alquilación:</strong><br>
+        El isobutano reacciona con olefinas ligeras (butileno) en presencia de ácido (HF o H₂SO₄) para producir <strong>alquilato</strong>: una gasolina de <strong>alto octanaje (95-98 RON)</strong>, libre de azufre, aromáticos y olefinas.<br><br>
+        <strong>¿Por qué es valioso?</strong><br>
+        El alquilato es el componente de gasolina más limpio y de mayor octanaje. Es esencial para producir gasolina premium que cumple normas ambientales estrictas. Compañías pagan una prima significativa por isobutano de buena calidad.`},
+    gasnat:{badge:'Producto LGN',badgeClass:'badge-glp',title:'Gasolina Natural (C₅+)',
+        text:`<strong>Composición:</strong> Pentanos (C₅), hexanos (C₆), heptanos (C₇) y superiores.<br>
+        <strong>Estado:</strong> Líquido a temperatura y presión ambiente.<br><br>
+        <strong>Usos:</strong><br>
+        • <strong>Diluyente de crudo pesado:</strong> Se mezcla con crudos extrapesados (como los del Orinoco o Rubiales) para reducir su viscosidad y permitir su transporte por oleoducto. Sin diluyente, estos crudos no fluyen.<br>
+        • <strong>Blending de gasolinas:</strong> Se agrega a gasolinas de refinería para aumentar volumen.<br>
+        • <strong>Solvente industrial:</strong> El hexano se usa en la extracción de aceites vegetales (soya, palma).<br>
+        • <strong>Petroquímica:</strong> Alimentación a reformadores para producir BTX (benceno, tolueno, xileno).`},
+    licuefaccion:{badge:'GNL',badgeClass:'badge-gnl',title:'Plantas de Licuefacción',
+        text:`La licuefacción del gas natural es uno de los procesos de ingeniería más complejos y costosos de la industria energética.<br><br>
+        <strong>Principio:</strong> Enfriar el gas desde ~30°C hasta <strong>-162°C</strong> (punto de ebullición del metano a 1 atm) mediante ciclos de refrigeración en cascada.<br><br>
+        <strong>Tecnologías principales:</strong><br>
+        • <strong>APCI C3MR:</strong> Propano pre-enfría + Mixed Refrigerant en intercambiador bobinado. La más usada (~70% de plantas).<br>
+        • <strong>ConocoPhillips Optimized Cascade:</strong> Tres circuitos puros (propano, etileno, metano) en secuencia.<br>
+        • <strong>Shell DMR:</strong> Dos ciclos de refrigerante mezclado. Usado en Prelude FLNG.<br><br>
+        <strong>Pre-requisito crítico:</strong> El gas debe tener <strong>< 1 ppm de agua y < 50 ppm de CO₂</strong>. A -162°C, cualquier traza de agua o CO₂ se congela y bloquea los intercambiadores de calor.`},
+    regasificacion:{badge:'GNL',badgeClass:'badge-cold',title:'Terminales de Regasificación',
+        text:`En el país importador, el GNL debe convertirse de vuelta a gas para inyectarse en la red de gasoductos.<br><br>
+        <strong>Proceso:</strong><br>
+        1. El buque metanero atraca al terminal y descarga GNL en tanques criogénicos.<br>
+        2. El GNL líquido se bombea a presión de gasoducto (~70 bar).<br>
+        3. Se calienta en vaporizadores hasta convertirse en gas.<br>
+        4. El gas se inyecta en el sistema nacional de gasoductos.<br><br>
+        <strong>Tipos de vaporizadores:</strong><br>
+        • <strong>ORV (Open Rack Vaporizer):</strong> Usa agua de mar como fuente de calor. El más común.<br>
+        • <strong>SCV (Submerged Combustion Vaporizer):</strong> Quema gas para calentar agua que vaporiza el GNL.<br>
+        • <strong>AAV (Ambient Air Vaporizer):</strong> Torres con aletas que usan calor del aire.<br><br>
+        <strong>En Colombia:</strong> El terminal <strong>SPEC LNG</strong> en Cartagena usa una <strong>FSRU</strong> (Floating Storage and Regasification Unit) — un buque anclado que almacena y regasifica sin necesidad de infraestructura en tierra.`}
+};
+
+function openModal(key){const d=MODALS[key];if(!d)return;const ov=document.getElementById('modalOverlay');document.getElementById('modalBadge').textContent=d.badge;document.getElementById('modalBadge').className='modal-badge '+d.badgeClass;document.getElementById('modalTitle').textContent=d.title;document.getElementById('modalText').innerHTML=d.text;ov.classList.add('open')}
+function closeModal(e){if(e&&e.target!==e.currentTarget&&!e.target.classList.contains('modal-close'))return;document.getElementById('modalOverlay').classList.remove('open')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:.15});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+const sections=document.querySelectorAll('.slide');const nav=document.getElementById('sideNav');
+sections.forEach(s=>{const a=document.createElement('a');a.href='#'+s.id;nav.appendChild(a)});
+const navDots=nav.querySelectorAll('a');
+const secObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){navDots.forEach(d=>d.classList.remove('active'));const dot=nav.querySelector(`a[href="#${e.target.id}"]`);if(dot)dot.classList.add('active')}})},{threshold:.4});
+sections.forEach(s=>secObs.observe(s));
+
+// ── Glossary System (Terminología Semana 5 + Semana 6) ──
+const GLOSSARY={
+    // ── Términos de Semana 5 (Tratamiento de Gas) ──
+    lgn:{term:'LGN — Líquidos del Gas Natural',def:'Hidrocarburos que se encuentran <strong>disueltos en el gas natural en el yacimiento</strong> (etano, propano, butano, pentanos). Se llaman "líquidos" porque se pueden condensar al enfriarlos o comprimirlos. Se extraen del gas y se venden como productos separados de alto valor. El fraccionamiento de esta semana separa cada componente del LGN.'},
+    glp:{term:'GLP — Gas Licuado de Petróleo',def:'Mezcla de <strong>propano y butano</strong> que se almacena como líquido a presión moderada (~8-10 atm). Es el gas de las "pipetas" de cocina. En Colombia se distribuye en cilindros de 40 y 100 libras. El propano se licúa a -42°C y el butano a -0.5°C. Se produce en la despropanizadora y desbutanizadora del tren de fraccionamiento.'},
+    criogenico:{term:'Proceso Criogénico',def:'Proceso que opera a <strong>temperaturas extremadamente bajas</strong> (típicamente -85°C a -100°C). En el tratamiento de gas (semana 5), se enfría el gas para que los hidrocarburos pesados (C₃+) se condensen y se separen del metano. El LGN que llega al fraccionamiento proviene de esta extracción criogénica. Para el GNL, el proceso llega hasta -162°C.'},
+    punto_ebullicion:{term:'Punto de Ebullición',def:'Temperatura a la cual una sustancia cambia de estado líquido a gaseoso a presión atmosférica. En el fraccionamiento, cada componente del LGN tiene un punto de ebullición diferente: etano (-89°C), propano (-42°C), butano (-0.5°C), pentanos (36°C+). Las torres de fraccionamiento aprovechan estas diferencias para separar los componentes.'},
+    ppm:{term:'ppm — Partes por millón',def:'Unidad de concentración. <strong>1 ppm = 1 parte en un millón</strong>. Ejemplo: 1 ppm de agua significa 1 molécula de agua por cada millón de moléculas de gas. Para el GNL, el gas debe tener menos de 1 ppm de agua. Es equivalente a 0.0001% en concentración — un nivel de pureza extremo.'},
+    tamiz:{term:'Tamices Moleculares',def:'Materiales sólidos (zeolitas sintéticas) con poros de tamaño controlado que <strong>atrapan moléculas de agua</strong>. Logran un punto de rocío de -70°C a -100°C con agua &lt;1 ppm. Son indispensables antes de licuar el gas (GNL), pues cualquier traza de agua se congela a -162°C y bloquea los intercambiadores de calor.'},
+    sweet:{term:'Gas Dulce (Sweet Gas)',def:'Gas que ha sido sometido a <strong>endulzamiento</strong> para eliminar H₂S y CO₂ hasta cumplir especificaciones comerciales (H₂S ≤ 4 ppm, CO₂ ≤ 2-3%). Es el resultado del tratamiento con aminas (MEA/DEA/MDEA) estudiado en semana 5. Sin este proceso, el gas no puede transportarse ni licuarse.'},
+    poder_calorifico:{term:'Poder Calorífico',def:'Cantidad de <strong>calor que libera un combustible al quemarse</strong> completamente. Para gas natural se mide en BTU/ft³ o MJ/m³. El gas comercial debe tener mínimo 950 BTU/ft³. Si tiene mucho CO₂ o N₂ (inertes), el poder calorífico baja. Después del fraccionamiento, el gas seco (metano) tiene poder calorífico más estable y predecible.'},
+    punto_rocio:{term:'Punto de Rocío',def:'Temperatura a la cual el <strong>vapor de agua (o hidrocarburo) comienza a condensarse</strong> en forma de gotitas. Los gasoductos exigen punto de rocío ≤ -20°C para evitar agua líquida (corrosión e hidratos). Para el GNL se requiere hasta -70°C. Se controla en semana 5 con TEG (absorbedor de agua) o tamices moleculares.'},
+    // ── Términos Propios de Semana 6 (Fraccionamiento y GNL) ──
+    fraccionamiento:{term:'Fraccionamiento de LGN',def:'Proceso de <strong>destilación fraccionada</strong> que separa la mezcla de Líquidos del Gas Natural (LGN) en sus componentes individuales: etano, propano, n-butano, isobutano y gasolina natural. Se realiza en torres en serie (tren de fraccionamiento), ordenadas del componente más liviano al más pesado. Cada componente sale puro y se comercializa por separado a mayor precio.'},
+    deetanizadora:{term:'Deetanizadora',def:'<strong>Primera torre del tren de fraccionamiento</strong>. Separa el etano (C₂H₆, punto de ebullición: -89°C) por el tope de la torre. El fondo, que contiene C₃+ (propano, butano, pentanos), pasa a la despropanizadora. El etano separado se envía a plantas petroquímicas para producir etileno → plásticos.'},
+    despropanizadora:{term:'Despropanizadora',def:'<strong>Segunda torre del tren de fraccionamiento</strong>. Separa el propano (C₃H₈, punto de ebullición: -42°C) por el tope. El propano se destina a GLP doméstico e industrial, y a petroquímica (propileno → polipropileno). El fondo (C₄+) pasa a la desbutanizadora.'},
+    desbutanizadora:{term:'Desbutanizadora',def:'<strong>Tercera torre del tren de fraccionamiento</strong>. Separa el butano (C₄H₁₀, n-butano: -0.5°C) por el tope. El fondo es gasolina natural (C₅+) en estado líquido. El butano se usa en GLP, blending de gasolina y aerosoles. Opcionalmente, una 4ª torre (separadora de butanos) divide n-butano de isobutano para alquilación.'},
+    gasolina_nat_g:{term:'Gasolina Natural (C₅+)',def:'Fracción más pesada del LGN. Compuesta por pentanos (C₅), hexanos (C₆) y superiores. <strong>Es líquida a temperatura y presión ambiente</strong>. Usos: diluyente de crudo pesado (reduce su viscosidad para transporte), blending de gasolinas de refinería, solvente industrial (extracción de aceites vegetales) y alimentación a reformadores catalíticos para producir aromáticos (BTX).'},
+    gnl:{term:'GNL — Gas Natural Licuado',def:'Gas natural <strong>enfriado a -162°C</strong> hasta convertirse en líquido, reduciendo su volumen <strong>600 veces</strong>. Permite el transporte oceánico en buques metaneros desde países productores (Qatar, EE.UU., Australia) a países consumidores. Requiere gas ultraseco (&lt;1 ppm de agua) y dulce (&lt;50 ppm CO₂) antes de licuar. En Colombia, el terminal SPEC LNG en Cartagena importa GNL mediante una FSRU desde 2016.'},
+    licuefaccion_g:{term:'Licuefacción del Gas Natural',def:'Proceso de <strong>enfriamiento progresivo hasta -162°C</strong> para convertir el gas natural en líquido. Utiliza ciclos de refrigeración en cascada con refrigerantes purós o mezclados (propano → etileno → metano). Tecnologías principales: APCI C3MR (la más usada, ~70% de plantas), ConocoPhillips Optimized Cascade, Shell DMR. Inversión: USD 5-15 mil millones por planta. Pre-requisito: gas con &lt;1 ppm H₂O y &lt;50 ppm CO₂.'},
+    regasificacion_g:{term:'Regasificación del GNL',def:'Proceso inverso a la licuefacción: <strong>calentar el GNL líquido (-162°C) hasta convertirlo de nuevo en gas</strong> a temperatura ambiente para inyectarlo en gasoductos. Se realiza en terminales de regasificación mediante vaporizadores: ORV (agua de mar), SCV (combustión) o AAV (aire). El GNL se presuriza a ~70 bar y luego se vaporiza. En Colombia: terminal SPEC LNG en Cartagena (FSRU).'},
+    fsru:{term:'FSRU — Floating Storage and Regasification Unit',def:'Buque especialmente equipado que <strong>almacena GNL Y lo regasifica en el mar</strong>, sin construcciones costosas en tierra. Es una solución más rápida y flexible que un terminal terrestre: puede estar operativo en 18-24 meses vs. 5-7 años de un terminal fijo. El <strong>terminal SPEC LNG de Cartagena</strong> (Colombia) opera con una FSRU desde 2016. Capacidad: 400 MPCD de regasificación.'},
+    buque_metanero:{term:'Buques Metaneros (LNG Carriers)',def:'Embarcaciones especializadas con <strong>tanques criogénicos que mantienen el GNL a -162°C</strong> durante semanas de navegación. Dos tipos: <strong>Tanques Moss</strong> (esferas de aluminio independientes, más robustos, 135.000 m³) y <strong>Tanques Membrana</strong> (los más comunes hoy, 170.000 m³, membrana de acero invar). Colombia recibe buques metaneros en el terminal SPEC LNG de Cartagena.'}
+};
+
+const glossPopup=document.createElement('div');
+glossPopup.className='gloss-popup';
+glossPopup.innerHTML='<button class="gp-close" onclick="hideGloss()">×</button><div class="gp-term" id="gpTerm"></div><div class="gp-def" id="gpDef"></div>';
+document.body.appendChild(glossPopup);
+
+document.addEventListener('click',function(e){
+    const g=e.target.closest('.gloss');
+    if(g){
+        e.stopPropagation();
+        const key=g.dataset.gloss;
+        const entry=GLOSSARY[key];
+        if(!entry)return;
+        document.getElementById('gpTerm').textContent=entry.term;
+        document.getElementById('gpDef').innerHTML=entry.def;
+        const rect=g.getBoundingClientRect();
+        let top=rect.bottom+10,left=rect.left-100;
+        if(left<10)left=10;
+        if(left+340>window.innerWidth)left=window.innerWidth-350;
+        if(top+200>window.innerHeight)top=rect.top-200;
+        glossPopup.style.top=top+'px';
+        glossPopup.style.left=left+'px';
+        glossPopup.classList.add('show');
+    }else if(!e.target.closest('.gloss-popup')){
+        hideGloss();
+    }
+});
+function hideGloss(){glossPopup.classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideGloss();});
+</script>
+</body>
+</html>

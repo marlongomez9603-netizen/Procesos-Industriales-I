@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Interactivo — Torre de Destilación de Gas Natural</title>
+    <meta name="description" content="Simulador interactivo de torre de destilación fraccionada de gas natural con partículas animadas. Ajusta composición, temperatura y reflujo.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#06060e;--card:#0d0d1a;--card2:#12122a;--card3:#181838;
+            --text:#e4e4f0;--muted:#7a7a9e;--border:rgba(255,255,255,.07);
+            --radius:18px;--gap:16px;
+            --methane:#00ccff;--ethane:#ff6b35;--propane:#ffd700;--butane:#c576f6;--pentane:#3ddc84;
+            --methane-bg:rgba(0,204,255,.08);--ethane-bg:rgba(255,107,53,.08);
+            --cold:#00e5ff;--hot:#ff4444;
+        }
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;overflow-x:hidden}
+
+        /* ── Header ── */
+        .header{text-align:center;padding:40px 20px 20px;position:relative}
+        .header::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80px;height:3px;background:linear-gradient(90deg,var(--methane),var(--ethane));border-radius:3px}
+        .header h1{font-size:clamp(1.4rem,3.5vw,2rem);font-weight:900;background:linear-gradient(135deg,var(--methane) 0%,var(--ethane) 50%,var(--propane) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+        .header p{color:var(--muted);font-size:clamp(.8rem,1.5vw,.95rem);max-width:700px;margin:0 auto}
+
+        /* ── Layout ── */
+        .app{display:grid;grid-template-columns:300px 1fr 280px;gap:var(--gap);padding:24px 16px;max-width:1500px;margin:0 auto}
+        @media(max-width:1200px){.app{grid-template-columns:280px 1fr}}
+        @media(max-width:800px){.app{grid-template-columns:1fr}}
+
+        /* ── Panels ── */
+        .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+        .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius) var(--radius) 0 0}
+        .panel.p-controls::before{background:linear-gradient(90deg,var(--methane),var(--ethane))}
+        .panel.p-tower::before{background:linear-gradient(90deg,var(--cold),var(--hot))}
+        .panel.p-results::before{background:linear-gradient(90deg,var(--propane),var(--pentane))}
+        .panel h2{font-size:.88rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;letter-spacing:.5px;text-transform:uppercase}
+        .panel h3{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
+        .panel h3:first-of-type{border-top:none;padding-top:0;margin-top:10px}
+
+        /* ── Sliders ── */
+        .field{margin-bottom:14px}
+        .field label{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--muted);margin-bottom:5px;font-weight:500}
+        .field .val{font-weight:800;font-size:.82rem;min-width:42px;text-align:right;font-variant-numeric:tabular-nums}
+        .val-methane{color:var(--methane)}.val-ethane{color:var(--ethane)}.val-propane{color:var(--propane)}.val-butane{color:var(--butane)}.val-pentane{color:var(--pentane)}
+        input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--card2);outline:none;cursor:pointer;transition:opacity .2s}
+        input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid rgba(255,255,255,.2);transition:transform .2s,box-shadow .2s}
+        input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);box-shadow:0 0 12px rgba(255,255,255,.2)}
+        .sl-methane::-webkit-slider-thumb{background:var(--methane)}.sl-ethane::-webkit-slider-thumb{background:var(--ethane)}
+        .sl-propane::-webkit-slider-thumb{background:var(--propane)}.sl-butane::-webkit-slider-thumb{background:var(--butane)}
+        .sl-pentane::-webkit-slider-thumb{background:var(--pentane)}.sl-temp::-webkit-slider-thumb{background:linear-gradient(135deg,var(--cold),var(--hot))}
+        .sl-reflux::-webkit-slider-thumb{background:linear-gradient(135deg,#8e44ad,#3498db)}
+
+        /* Total bar */
+        .total-bar{background:var(--card2);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:.82rem;font-weight:700;margin:8px 0 4px;border:1px solid var(--border)}
+        .total-bar.ok{border-color:rgba(61,220,132,.2)}.total-bar.ok .tb-val{color:var(--pentane)}
+        .total-bar.warn{border-color:rgba(255,68,68,.3)}.total-bar.warn .tb-val{color:var(--hot)}
+
+        /* ── Canvas tower ── */
+        .tower-container{display:flex;flex-direction:column;align-items:center;gap:12px}
+        #towerCanvas{border-radius:var(--radius);border:1px solid var(--border);width:100%;max-width:650px;background:var(--card)}
+        .legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:8px 0}
+        .legend-item{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);font-weight:600}
+        .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+
+        /* ── Results panel ── */
+        .result-card{background:var(--card2);border-radius:12px;padding:14px;margin-bottom:10px;border-left:3px solid;transition:transform .2s,background .2s}
+        .result-card:hover{background:var(--card3);transform:translateX(3px)}
+        .rc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+        .rc-name{font-size:.82rem;font-weight:700}
+        .rc-purity{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:6px}
+        .rc-bar{height:6px;border-radius:3px;background:var(--card);margin-bottom:6px;overflow:hidden}
+        .rc-fill{height:100%;border-radius:3px;transition:width .5s ease}
+        .rc-detail{font-size:.7rem;color:var(--muted);line-height:1.4}
+        .rc-methane{border-color:var(--methane)}.rc-ethane{border-color:var(--ethane)}
+        .rc-propane{border-color:var(--propane)}.rc-butane{border-color:var(--butane)}.rc-pentane{border-color:var(--pentane)}
+
+        /* Purity colors */
+        .pur-high{background:rgba(61,220,132,.15);color:#3ddc84}
+        .pur-mid{background:rgba(255,215,0,.15);color:#ffd700}
+        .pur-low{background:rgba(255,68,68,.15);color:#ff4444}
+
+        /* ── Gauge ── */
+        .gauge-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+        .gauge{background:var(--card2);border-radius:12px;padding:14px;text-align:center}
+        .gauge-val{font-size:1.4rem;font-weight:900;line-height:1.2}
+        .gauge-label{font-size:.68rem;color:var(--muted);margin-top:4px}
+
+        /* ── Info tooltip ── */
+        .info-tip{font-size:.72rem;color:var(--muted);background:var(--card2);border-radius:10px;padding:12px 14px;margin-top:10px;line-height:1.6;border:1px solid var(--border)}
+        .info-tip strong{color:var(--text)}
+        .info-tip .highlight{color:var(--propane);font-weight:700}
+
+        /* ── Footer ── */
+        .footer{text-align:center;padding:20px;font-size:.72rem;color:rgba(255,255,255,.15)}
+
+        /* ── Responsive ── */
+        @media(max-width:1200px){
+            .results-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--gap)}
+        }
+        @media(max-width:800px){
+            #towerCanvas{height:450px!important}
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🔬 Simulador — Torre de Destilación de Gas Natural</h1>
+    <p>Ajusta la composición del gas, la temperatura de la torre y la relación de reflujo. Observa en tiempo real cómo las partículas se separan por diferencia de punto de ebullición.</p>
+</div>
+
+<div class="app">
+    <!-- ═══ LEFT: Controls ═══ -->
+    <div class="panel p-controls">
+        <h2>⚙️ Controles</h2>
+
+        <h3>Composición del Gas (%)</h3>
+
+        <div class="field">
+            <label>Metano (C₁) · -161°C <span class="val val-methane" id="vMethane">50</span>%</label>
+            <input type="range" class="sl-methane" id="sMethane" min="0" max="80" value="50" step="1">
+        </div>
+        <div class="field">
+            <label>Etano (C₂) · -89°C <span class="val val-ethane" id="vEthane">25</span>%</label>
+            <input type="range" class="sl-ethane" id="sEthane" min="0" max="60" value="25" step="1">
+        </div>
+        <div class="field">
+            <label>Propano (C₃) · -42°C <span class="val val-propane" id="vPropane">15</span>%</label>
+            <input type="range" class="sl-propane" id="sPropane" min="0" max="50" value="15" step="1">
+        </div>
+        <div class="field">
+            <label>Butano (C₄) · -0.5°C <span class="val val-butane" id="vButane">7</span>%</label>
+            <input type="range" class="sl-butane" id="sButane" min="0" max="30" value="7" step="1">
+        </div>
+        <div class="field">
+            <label>Pentano+ (C₅) · 36°C <span class="val val-pentane" id="vPentane">3</span>%</label>
+            <input type="range" class="sl-pentane" id="sPentane" min="0" max="20" value="3" step="1">
+        </div>
+
+        <div class="total-bar ok" id="totalBar">
+            <span>Total</span>
+            <span class="tb-val" id="totalVal">100%</span>
+        </div>
+
+        <h3>Parámetros de operación</h3>
+
+        <div class="field">
+            <label>Temperatura Torre (°C) <span class="val" id="vTemp" style="color:var(--hot)">-30</span></label>
+            <input type="range" class="sl-temp" id="sTemp" min="-100" max="50" value="-30" step="1">
+        </div>
+        <div class="field">
+            <label>Relación de Reflujo <span class="val" id="vReflux" style="color:#8e44ad">2.5</span></label>
+            <input type="range" class="sl-reflux" id="sReflux" min="0.5" max="8" value="2.5" step="0.1">
+        </div>
+
+        <div class="info-tip">
+            <strong>💡 ¿Qué hacer?</strong><br>
+            Mueve los controles y observa cómo las <span class="highlight">partículas se redistribuyen</span> en la torre.
+            Los componentes más livianos suben al <strong>tope</strong> y los pesados caen al <strong>fondo</strong>.
+        </div>
+    </div>
+
+    <!-- ═══ CENTER: Tower Canvas ═══ -->
+    <div class="panel p-tower">
+        <h2>🏭 Torre de Destilación</h2>
+        <div class="tower-container">
+            <canvas id="towerCanvas" width="650" height="580"></canvas>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--methane)"></div>Metano C₁</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--ethane)"></div>Etano C₂</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--propane)"></div>Propano C₃</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--butane)"></div>Butano C₄</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--pentane)"></div>Pentano+ C₅</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ RIGHT: Results ═══ -->
+    <div class="panel p-results" id="resultsPanel">
+        <h2>📊 Productos</h2>
+
+        <div class="gauge-row">
+            <div class="gauge">
+                <div class="gauge-val" id="gTopPurity" style="color:var(--methane)">—</div>
+                <div class="gauge-label">Pureza tope (gas)</div>
+            </div>
+            <div class="gauge">
+                <div class="gauge-val" id="gBotPurity" style="color:var(--pentane)">—</div>
+                <div class="gauge-label">Pureza fondo (líq.)</div>
+            </div>
+        </div>
+
+        <h3>Salida por el Tope ↑</h3>
+        <div class="result-card rc-methane" id="rcTopMethane">
+            <div class="rc-header"><span class="rc-name">Metano</span><span class="rc-purity pur-high" id="rcTopMethaneP">—</span></div>
+            <div class="rc-bar"><div class="rc-fill" id="rcTopMethaneF" style="width:0;background:var(--methane)"></div></div>
+            <div class="rc-detail">Gas seco → gasoducto / licuefacción GNL</div>
+        </div>
+        <div class="result-card rc-ethane" id="rcTopEthane">
+            <div class="rc-header"><span class="rc-name">Etano</span><span class="rc-purity pur-mid" id="rcTopEthaneP">—</span></div>
+            <div class="rc-bar"><div class="rc-fill" id="rcTopEthaneF" style="width:0;background:var(--ethane)"></div></div>
+            <div class="rc-detail">Petroquímica → etileno → plásticos</div>
+        </div>
+
+        <h3>Salida por el Fondo ↓</h3>
+        <div class="result-card rc-propane" id="rcBotPropane">
+            <div class="rc-header"><span class="rc-name">Propano</span><span class="rc-purity pur-high" id="rcBotPropaneP">—</span></div>
+            <div class="rc-bar"><div class="rc-fill" id="rcBotPropaneF" style="width:0;background:var(--propane)"></div></div>
+            <div class="rc-detail">GLP doméstico e industrial</div>
+        </div>
+        <div class="result-card rc-butane" id="rcBotButane">
+            <div class="rc-header"><span class="rc-name">Butano</span><span class="rc-purity pur-mid" id="rcBotButaneP">—</span></div>
+            <div class="rc-bar"><div class="rc-fill" id="rcBotButaneF" style="width:0;background:var(--butane)"></div></div>
+            <div class="rc-detail">GLP + blending gasolina</div>
+        </div>
+        <div class="result-card rc-pentane" id="rcBotPentane">
+            <div class="rc-header"><span class="rc-name">Pentano+</span><span class="rc-purity pur-high" id="rcBotPentaneP">—</span></div>
+            <div class="rc-bar"><div class="rc-fill" id="rcBotPentaneF" style="width:0;background:var(--pentane)"></div></div>
+            <div class="rc-detail">Gasolina natural · diluyente crudo</div>
+        </div>
+
+        <div class="info-tip" id="dynamicTip" style="margin-top:14px">
+            <strong>ℹ️ Observación:</strong><br>
+            Mueve los controles para ver los resultados de separación.
+        </div>
+    </div>
+</div>
+
+<div class="footer">UNIPAZ — Procesos Industriales 1 — UF3 Semana 6 · Esp. Marlon Gómez · 2026</div>
+
+<script>
+// ════════════════════════════════════════════════
+// PARTICLE SIMULATION FOR DISTILLATION TOWER
+// ════════════════════════════════════════════════
+
+const canvas = document.getElementById('towerCanvas');
+const ctx = canvas.getContext('2d');
+
+// Responsive canvas
+function resizeCanvas() {
+    const parent = canvas.parentElement;
+    const w = Math.min(parent.clientWidth - 10, 650);
+    const h = Math.min(580, Math.max(400, window.innerHeight * 0.6));
+    canvas.width = w * window.devicePixelRatio;
+    canvas.height = h * window.devicePixelRatio;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// Component config
+const COMPONENTS = [
+    { id: 'methane',  name: 'Metano C₁',   bp: -161, color: '#00ccff', size: 3.5 },
+    { id: 'ethane',   name: 'Etano C₂',    bp: -89,  color: '#ff6b35', size: 4.5 },
+    { id: 'propane',  name: 'Propano C₃',   bp: -42,  color: '#ffd700', size: 5.5 },
+    { id: 'butane',   name: 'Butano C₄',    bp: -0.5, color: '#c576f6', size: 6.5 },
+    { id: 'pentane',  name: 'Pentano+ C₅',  bp: 36,   color: '#3ddc84', size: 7.5 },
+];
+
+// Particle class
+class Particle {
+    constructor(compIdx, x, y) {
+        this.comp = compIdx;
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 1.2;
+        this.vy = (Math.random() - 0.5) * 1.2;
+        this.targetY = y;
+        this.alpha = 0.7 + Math.random() * 0.3;
+        this.phase = Math.random() * Math.PI * 2;
+        this.wobbleSpeed = 0.5 + Math.random() * 1.5;
+        this.wobbleAmp = 0.3 + Math.random() * 0.7;
+    }
+}
+
+let particles = [];
+const MAX_PARTICLES = 500;
+let animFrame;
+let towerMetrics = {};
+
+// Tower geometry
+function getTower() {
+    const w = canvas.width / window.devicePixelRatio;
+    const h = canvas.height / window.devicePixelRatio;
+    const towerW = Math.min(180, w * 0.3);
+    const towerH = h * 0.78;
+    const towerX = (w - towerW) / 2;
+    const towerY = (h - towerH) / 2;
+    // Plate positions (7 plates)
+    const plates = [];
+    const numPlates = 7;
+    for (let i = 1; i <= numPlates; i++) {
+        plates.push(towerY + (towerH / (numPlates + 1)) * i);
+    }
+    return { x: towerX, y: towerY, w: towerW, h: towerH, plates, canvasW: w, canvasH: h };
+}
+
+// Slider bindings
+const sliders = {
+    methane: document.getElementById('sMethane'),
+    ethane: document.getElementById('sEthane'),
+    propane: document.getElementById('sPropane'),
+    butane: document.getElementById('sButane'),
+    pentane: document.getElementById('sPentane'),
+    temp: document.getElementById('sTemp'),
+    reflux: document.getElementById('sReflux')
+};
+const displays = {
+    methane: document.getElementById('vMethane'),
+    ethane: document.getElementById('vEthane'),
+    propane: document.getElementById('vPropane'),
+    butane: document.getElementById('vButane'),
+    pentane: document.getElementById('vPentane'),
+    temp: document.getElementById('vTemp'),
+    reflux: document.getElementById('vReflux')
+};
+
+function getValues() {
+    return {
+        methane: +sliders.methane.value,
+        ethane: +sliders.ethane.value,
+        propane: +sliders.propane.value,
+        butane: +sliders.butane.value,
+        pentane: +sliders.pentane.value,
+        temp: +sliders.temp.value,
+        reflux: +sliders.reflux.value
+    };
+}
+
+function updateDisplays() {
+    const v = getValues();
+    for (const key of ['methane','ethane','propane','butane','pentane']) {
+        displays[key].textContent = v[key];
+    }
+    displays.temp.textContent = v.temp;
+    displays.reflux.textContent = v.reflux.toFixed(1);
+    const total = v.methane + v.ethane + v.propane + v.butane + v.pentane;
+    document.getElementById('totalVal').textContent = total + '%';
+    const bar = document.getElementById('totalBar');
+    bar.className = 'total-bar ' + (total === 100 ? 'ok' : 'warn');
+}
+
+// Compute separation based on temperature and reflux
+function computeSeparation(v) {
+    const temp = v.temp;
+    const reflux = v.reflux;
+    const total = v.methane + v.ethane + v.propane + v.butane + v.pentane;
+    if (total === 0) return null;
+
+    const fracs = [v.methane/total, v.ethane/total, v.propane/total, v.butane/total, v.pentane/total];
+
+    // For each component, compute probability of going to top vs bottom
+    // Based on: if tower temp > component boiling point → component evaporates → goes to top
+    // Reflux improves separation sharpness
+    const topFracs = [];
+    const botFracs = [];
+    const sharpness = 0.02 + reflux * 0.015; // Higher reflux = sharper separation
+
+    for (let i = 0; i < 5; i++) {
+        const bp = COMPONENTS[i].bp;
+        const delta = temp - bp; // positive → component is gas, goes up
+        // Sigmoid function for separation probability
+        const probTop = 1 / (1 + Math.exp(-delta * sharpness));
+        topFracs.push(fracs[i] * probTop);
+        botFracs.push(fracs[i] * (1 - probTop));
+    }
+
+    // Normalize
+    const topSum = topFracs.reduce((a,b) => a+b, 0) || 0.001;
+    const botSum = botFracs.reduce((a,b) => a+b, 0) || 0.001;
+    const topNorm = topFracs.map(f => f / topSum);
+    const botNorm = botFracs.map(f => f / botSum);
+
+    // Overall top vs bottom split
+    const topPercent = topSum / (topSum + botSum);
+
+    return { topNorm, botNorm, topFracs, botFracs, topPercent, fracs, topSum, botSum };
+}
+
+// Compute target Y position for each particle based on its component and separation
+function computeTargetY(compIdx, v) {
+    const tw = getTower();
+    const temp = v.temp;
+    const reflux = v.reflux;
+    const bp = COMPONENTS[compIdx].bp;
+    const delta = temp - bp;
+    const sharpness = 0.02 + reflux * 0.015;
+    const probTop = 1 / (1 + Math.exp(-delta * sharpness));
+
+    // Map probTop to tower position: 1 = top, 0 = bottom
+    // Add some noise for natural distribution
+    const baseY = tw.y + tw.h * (1 - probTop);
+    const noise = (Math.random() - 0.5) * tw.h * 0.15 / (1 + reflux * 0.5);
+    return Math.max(tw.y + 10, Math.min(tw.y + tw.h - 10, baseY + noise));
+}
+
+// Spawn / update particles
+function syncParticles() {
+    const v = getValues();
+    const total = v.methane + v.ethane + v.propane + v.butane + v.pentane;
+    if (total === 0) { particles = []; return; }
+
+    const tw = getTower();
+    const counts = [v.methane, v.ethane, v.propane, v.butane, v.pentane];
+    const fracs = counts.map(c => c / total);
+    const targetCounts = fracs.map(f => Math.round(f * MAX_PARTICLES));
+
+    // Count current particles by type
+    const currentCounts = [0,0,0,0,0];
+    particles.forEach(p => currentCounts[p.comp]++);
+
+    // Add missing particles
+    for (let i = 0; i < 5; i++) {
+        while (currentCounts[i] < targetCounts[i]) {
+            const x = tw.x + 10 + Math.random() * (tw.w - 20);
+            const y = tw.y + Math.random() * tw.h;
+            particles.push(new Particle(i, x, y));
+            currentCounts[i]++;
+        }
+    }
+
+    // Remove excess particles (from end)
+    for (let i = 0; i < 5; i++) {
+        while (currentCounts[i] > targetCounts[i]) {
+            const idx = particles.findLastIndex(p => p.comp === i);
+            if (idx >= 0) { particles.splice(idx, 1); currentCounts[i]--; }
+            else break;
+        }
+    }
+
+    // Update targets
+    particles.forEach(p => {
+        p.targetY = computeTargetY(p.comp, v);
+    });
+}
+
+// Draw tower structure
+function drawTower() {
+    const tw = getTower();
+    const w = tw.canvasW;
+    const h = tw.canvasH;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Background gradient (heat zones)
+    const bgGrad = ctx.createLinearGradient(0, tw.y, 0, tw.y + tw.h);
+    bgGrad.addColorStop(0, 'rgba(0,204,255,0.03)');   // Cold top
+    bgGrad.addColorStop(1, 'rgba(255,68,68,0.05)');     // Hot bottom
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Tower body
+    const r = 14;
+    ctx.beginPath();
+    ctx.roundRect(tw.x, tw.y, tw.w, tw.h, r);
+    ctx.fillStyle = 'rgba(255,255,255,0.015)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Plates
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 4]);
+    tw.plates.forEach(py => {
+        ctx.beginPath();
+        ctx.moveTo(tw.x + 8, py);
+        ctx.lineTo(tw.x + tw.w - 8, py);
+        ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Temperature labels on left
+    const temps = ['-100°C', '-70°C', '-40°C', '-10°C', '20°C', '50°C'];
+    ctx.font = '600 10px Inter, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.textAlign = 'right';
+    for (let i = 0; i < temps.length; i++) {
+        const y = tw.y + (tw.h / (temps.length - 1)) * i;
+        ctx.fillText(temps[i], tw.x - 10, y + 4);
+        // Small tick
+        ctx.beginPath();
+        ctx.moveTo(tw.x - 5, y);
+        ctx.lineTo(tw.x, y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.stroke();
+    }
+
+    // Top outlet (arrow)
+    const topOutX = tw.x + tw.w + 20;
+    const topOutY = tw.y + 30;
+    ctx.beginPath();
+    ctx.moveTo(tw.x + tw.w, topOutY);
+    ctx.lineTo(topOutX + 40, topOutY);
+    ctx.strokeStyle = 'rgba(0,204,255,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Arrow head
+    ctx.beginPath();
+    ctx.moveTo(topOutX + 35, topOutY - 5);
+    ctx.lineTo(topOutX + 43, topOutY);
+    ctx.lineTo(topOutX + 35, topOutY + 5);
+    ctx.fillStyle = 'rgba(0,204,255,0.5)';
+    ctx.fill();
+    ctx.font = '700 11px Inter';
+    ctx.fillStyle = 'rgba(0,204,255,0.7)';
+    ctx.textAlign = 'left';
+    ctx.fillText('TOPE ↑', topOutX + 48, topOutY - 6);
+    ctx.font = '600 9px Inter';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillText('Gas liviano', topOutX + 48, topOutY + 8);
+
+    // Bottom outlet (arrow)
+    const botOutX = tw.x + tw.w + 20;
+    const botOutY = tw.y + tw.h - 30;
+    ctx.beginPath();
+    ctx.moveTo(tw.x + tw.w, botOutY);
+    ctx.lineTo(botOutX + 40, botOutY);
+    ctx.strokeStyle = 'rgba(61,220,132,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(botOutX + 35, botOutY - 5);
+    ctx.lineTo(botOutX + 43, botOutY);
+    ctx.lineTo(botOutX + 35, botOutY + 5);
+    ctx.fillStyle = 'rgba(61,220,132,0.5)';
+    ctx.fill();
+    ctx.font = '700 11px Inter';
+    ctx.fillStyle = 'rgba(61,220,132,0.7)';
+    ctx.textAlign = 'left';
+    ctx.fillText('FONDO ↓', botOutX + 48, botOutY - 6);
+    ctx.font = '600 9px Inter';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillText('Líquido pesado', botOutX + 48, botOutY + 8);
+
+    // Feed entry (left side, middle)
+    const feedY = tw.y + tw.h * 0.45;
+    ctx.beginPath();
+    ctx.moveTo(tw.x - 50, feedY);
+    ctx.lineTo(tw.x, feedY);
+    ctx.strokeStyle = 'rgba(255,215,0,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tw.x - 7, feedY - 5);
+    ctx.lineTo(tw.x, feedY);
+    ctx.lineTo(tw.x - 7, feedY + 5);
+    ctx.fillStyle = 'rgba(255,215,0,0.5)';
+    ctx.fill();
+    ctx.font = '700 10px Inter';
+    ctx.fillStyle = 'rgba(255,215,0,0.6)';
+    ctx.textAlign = 'right';
+    ctx.fillText('ALIMENTACIÓN', tw.x - 55, feedY - 4);
+    ctx.font = '600 9px Inter';
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillText('Mezcla de gas', tw.x - 55, feedY + 10);
+
+    // Reflux loop (top)
+    const v = getValues();
+    if (v.reflux > 1.5) {
+        const rx = tw.x + tw.w / 2;
+        const ry = tw.y - 8;
+        ctx.beginPath();
+        ctx.arc(rx, ry - 10, 15, 0, Math.PI, true);
+        ctx.strokeStyle = `rgba(142,68,173,${0.15 + v.reflux * 0.03})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.font = '600 8px Inter';
+        ctx.fillStyle = 'rgba(142,68,173,0.5)';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Reflujo: ${v.reflux.toFixed(1)}`, rx, ry - 28);
+    }
+
+    // Temperature line indicator on tower
+    const tempNorm = (v.temp - (-100)) / 150; // -100 to +50 range
+    const tempLineY = tw.y + tw.h * (1 - tempNorm);
+    ctx.beginPath();
+    ctx.moveTo(tw.x, tempLineY);
+    ctx.lineTo(tw.x + tw.w, tempLineY);
+    ctx.strokeStyle = 'rgba(255,68,68,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = '700 9px Inter';
+    ctx.fillStyle = 'rgba(255,68,68,0.7)';
+    ctx.textAlign = 'right';
+    ctx.fillText(`T = ${v.temp}°C`, tw.x - 10, tempLineY - 5);
+}
+
+// Draw particles
+function drawParticles(t) {
+    const tw = getTower();
+
+    particles.forEach(p => {
+        const comp = COMPONENTS[p.comp];
+
+        // Physics: move toward target Y with some inertia
+        const dy = p.targetY - p.y;
+        p.vy += dy * 0.003; // spring force
+        p.vy *= 0.96; // damping
+        p.y += p.vy;
+
+        // Horizontal wobble (Brownian motion)
+        p.phase += p.wobbleSpeed * 0.02;
+        p.vx += Math.sin(p.phase) * p.wobbleAmp * 0.15;
+        p.vx *= 0.93;
+        p.x += p.vx;
+
+        // Bounce off tower walls
+        if (p.x - comp.size < tw.x + 5) { p.x = tw.x + 5 + comp.size; p.vx = Math.abs(p.vx) * 0.5; }
+        if (p.x + comp.size > tw.x + tw.w - 5) { p.x = tw.x + tw.w - 5 - comp.size; p.vx = -Math.abs(p.vx) * 0.5; }
+        if (p.y - comp.size < tw.y + 3) { p.y = tw.y + 3 + comp.size; p.vy = Math.abs(p.vy) * 0.3; }
+        if (p.y + comp.size > tw.y + tw.h - 3) { p.y = tw.y + tw.h - 3 - comp.size; p.vy = -Math.abs(p.vy) * 0.3; }
+
+        // Draw particle with glow
+        const glow = 0.1 + Math.sin(t * 0.003 + p.phase) * 0.05;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, comp.size + 2, 0, Math.PI * 2);
+        ctx.fillStyle = comp.color.replace(')', `,${glow})`).replace('rgb', 'rgba').replace('#', '');
+        // Convert hex to rgba for glow
+        const r2 = parseInt(comp.color.slice(1,3),16);
+        const g2 = parseInt(comp.color.slice(3,5),16);
+        const b2 = parseInt(comp.color.slice(5,7),16);
+        ctx.fillStyle = `rgba(${r2},${g2},${b2},${glow})`;
+        ctx.fill();
+
+        // Core
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, comp.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r2},${g2},${b2},${p.alpha})`;
+        ctx.fill();
+
+        // Highlight
+        ctx.beginPath();
+        ctx.arc(p.x - comp.size * 0.25, p.y - comp.size * 0.25, comp.size * 0.35, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,0.25)`;
+        ctx.fill();
+    });
+}
+
+// Update results panel
+function updateResults() {
+    const v = getValues();
+    const sep = computeSeparation(v);
+    if (!sep) return;
+
+    const names = ['Methane','Ethane','Propane','Butane','Pentane'];
+
+    // Top products (Methane, Ethane)
+    const topMethaneP = (sep.topNorm[0] * 100).toFixed(1);
+    const topEthaneP = (sep.topNorm[1] * 100).toFixed(1);
+    document.getElementById('rcTopMethaneP').textContent = topMethaneP + '%';
+    document.getElementById('rcTopMethaneF').style.width = topMethaneP + '%';
+    document.getElementById('rcTopEthaneP').textContent = topEthaneP + '%';
+    document.getElementById('rcTopEthaneF').style.width = topEthaneP + '%';
+
+    // Purity class
+    setPurityClass('rcTopMethaneP', +topMethaneP);
+    setPurityClass('rcTopEthaneP', +topEthaneP);
+
+    // Bottom products
+    const botPropaneP = (sep.botNorm[2] * 100).toFixed(1);
+    const botButaneP = (sep.botNorm[3] * 100).toFixed(1);
+    const botPentaneP = (sep.botNorm[4] * 100).toFixed(1);
+    document.getElementById('rcBotPropaneP').textContent = botPropaneP + '%';
+    document.getElementById('rcBotPropaneF').style.width = botPropaneP + '%';
+    document.getElementById('rcBotButaneP').textContent = botButaneP + '%';
+    document.getElementById('rcBotButaneF').style.width = botButaneP + '%';
+    document.getElementById('rcBotPentaneP').textContent = botPentaneP + '%';
+    document.getElementById('rcBotPentaneF').style.width = botPentaneP + '%';
+
+    setPurityClass('rcBotPropaneP', +botPropaneP);
+    setPurityClass('rcBotButaneP', +botButaneP);
+    setPurityClass('rcBotPentaneP', +botPentaneP);
+
+    // Gauge - overall purity
+    // Top purity = how much of top is methane+ethane
+    const topPurity = ((sep.topNorm[0] + sep.topNorm[1]) * 100).toFixed(0);
+    const botPurity = ((sep.botNorm[2] + sep.botNorm[3] + sep.botNorm[4]) * 100).toFixed(0);
+    document.getElementById('gTopPurity').textContent = topPurity + '%';
+    document.getElementById('gBotPurity').textContent = botPurity + '%';
+
+    // Dynamic tip
+    const tip = document.getElementById('dynamicTip');
+    if (v.reflux < 1.5) {
+        tip.innerHTML = '<strong>⚠️ Reflujo bajo:</strong><br>La separación es pobre. Los componentes se mezclan entre tope y fondo. <strong>Suba el reflujo</strong> para mejorar la pureza.';
+    } else if (v.temp > 10) {
+        tip.innerHTML = '<strong>🔥 Temperatura alta:</strong><br>Casi todo sube al tope como gas, pero la <strong>pureza baja</strong>. Los componentes pesados se están evaporando cuando no deberían.';
+    } else if (v.temp < -80) {
+        tip.innerHTML = '<strong>❄️ Temperatura muy baja:</strong><br>Casi todo se condensa al fondo. Muy poco gas sale por arriba. Suba la temperatura para que los livianos se evaporen.';
+    } else if (+topPurity > 85) {
+        tip.innerHTML = '<strong>✅ Buena separación:</strong><br>Los livianos (metano + etano) salen puros por el tope. Los pesados se acumulan en el fondo. La torre está operando correctamente.';
+    } else {
+        tip.innerHTML = '<strong>ℹ️ Separación moderada:</strong><br>Ajusta temperatura y reflujo para mejorar. Recuerda: mayor reflujo = mejor separación pero mayor costo energético.';
+    }
+}
+
+function setPurityClass(id, val) {
+    const el = document.getElementById(id);
+    el.className = 'rc-purity ' + (val > 40 ? 'pur-high' : val > 15 ? 'pur-mid' : 'pur-low');
+}
+
+// Main animation loop
+let lastSync = 0;
+function animate(t) {
+    drawTower();
+    drawParticles(t);
+
+    // Sync particles every 200ms
+    if (t - lastSync > 200) {
+        syncParticles();
+        lastSync = t;
+    }
+
+    animFrame = requestAnimationFrame(animate);
+}
+
+// Event listeners for all sliders
+Object.values(sliders).forEach(s => {
+    s.addEventListener('input', () => {
+        updateDisplays();
+        syncParticles();
+        updateResults();
+    });
+});
+
+// Initialize
+updateDisplays();
+syncParticles();
+updateResults();
+animate(0);
+</script>
+</body>
+</html>
