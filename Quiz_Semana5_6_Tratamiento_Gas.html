@@ -141,11 +141,10 @@ const STUDENTS={
 };
 const WEBAPP_URL='https://script.google.com/macros/s/AKfycbwqz1nGQOIVHzRp02Qfe4G7mXyUhSOq1S21-eS0pZ3ngA5iN0U1zoU3eIsG-gJfliqg_w/exec';
 const mcResults=[];let enviado=false,mcCorrect=0,answeredMC=0;
-// ═══ ANTIFRAUDE ═══
+// ═══ ANTIFRAUDE (timestamp-based, no throttle) ═══
 const AF=(()=>{
-let activo=false,anulado=false,strikes=0,timerG=null,timerB=null,ced='';
-const MAX=2,GRACIA=2,K={p:'q56_pres',d:'q56_disp',a:'q56_anul',c:'q56_comp',s:'q56_str'};
-const esMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let activo=false,anulado=false,strikes=0,ced='',hiddenAt=0,blurAt=0;
+const MAX=2,GRACIA_MS=2000,K={p:'q56_pres',d:'q56_disp',a:'q56_anul',c:'q56_comp',s:'q56_str'};
 function init(){
 strikes=parseInt(localStorage.getItem(K.s)||'0');
 if(localStorage.getItem(K.c)){bloqueado('Ya presentaste este quiz.');return false;}
@@ -158,15 +157,27 @@ function yaPresento(c){const l=JSON.parse(localStorage.getItem(K.p)||'[]');retur
 function activar(c){
 ced=c;activo=true;
 localStorage.setItem(K.d,JSON.stringify({c,t:Date.now()}));
+// Visibilidad: medir tiempo al REGRESAR (no depende de setTimeout en background)
 document.addEventListener('visibilitychange',()=>{
 if(!activo||anulado)return;
-if(document.hidden){timerG=setTimeout(()=>{strikes++;localStorage.setItem(K.s,String(strikes));if(strikes>=MAX)registrarAnulado('Abandonaste la ventana 2 veces.');else warn('Saliste de la ventana. Advertencia '+strikes+'/'+MAX+'.');},GRACIA*1000);}
-else{if(timerG){clearTimeout(timerG);timerG=null;}}
-});
-if(!esMobile){
-window.addEventListener('blur',()=>{if(!activo||anulado||document.hidden)return;timerB=setTimeout(()=>{strikes++;localStorage.setItem(K.s,String(strikes));if(strikes>=MAX)registrarAnulado('Cambiaste de app 2 veces.');else warn('Cambiaste de ventana. Advertencia '+strikes+'/'+MAX+'.');},GRACIA*1000);});
-window.addEventListener('focus',()=>{if(timerB){clearTimeout(timerB);timerB=null;}});
+if(document.hidden){hiddenAt=Date.now();}
+else if(hiddenAt>0){
+const fuera=Date.now()-hiddenAt;hiddenAt=0;
+if(fuera>=GRACIA_MS){strikes++;localStorage.setItem(K.s,String(strikes));
+if(strikes>=MAX)registrarAnulado('Abandonaste la ventana del examen '+MAX+' veces ('+Math.round(fuera/1000)+'s fuera).');
+else warn('Saliste de la ventana por '+Math.round(fuera/1000)+' segundos. Advertencia '+strikes+'/'+MAX+'. La próxima vez el quiz será ANULADO.');}
 }
+});
+// Blur/Focus: misma lógica timestamp
+window.addEventListener('blur',()=>{if(!activo||anulado||document.hidden)return;blurAt=Date.now();});
+window.addEventListener('focus',()=>{
+if(!activo||anulado||!blurAt)return;
+const fuera=Date.now()-blurAt;blurAt=0;
+if(fuera>=GRACIA_MS){strikes++;localStorage.setItem(K.s,String(strikes));
+if(strikes>=MAX)registrarAnulado('Cambiaste de aplicación '+MAX+' veces ('+Math.round(fuera/1000)+'s fuera).');
+else warn('Cambiaste de ventana por '+Math.round(fuera/1000)+' segundos. Advertencia '+strikes+'/'+MAX+'. La próxima vez el quiz será ANULADO.');}
+});
+// Bloquear teclas
 document.addEventListener('keydown',e=>{if(!activo)return;const c=e.ctrlKey||e.metaKey,s=e.shiftKey,k=e.key;if([c&&k==='p',k==='F12',c&&s&&k==='I',c&&s&&k==='J',c&&s&&k==='C',c&&k==='u',c&&k==='s',c&&k==='c',c&&k==='a',k==='PrintScreen'].some(Boolean)){e.preventDefault();e.stopPropagation();}},true);
 document.addEventListener('contextmenu',e=>{if(activo)e.preventDefault();});
 }
