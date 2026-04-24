@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Quiz V2 — Tratamiento de Gas, Fraccionamiento y GNL</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080810;--card:#111122;--card2:#161630;--text:#e2e2ee;--muted:#8888aa;--border:rgba(255,255,255,.06);--ok:#2ecc71;--err:#e74c3c;--s5:#2ecc71;--s6:#9b59b6;--accent:#3498db;--radius:16px}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh;-webkit-user-select:none;user-select:none}
+.container{max-width:800px;margin:0 auto;padding:40px 24px}
+.hero{text-align:center;padding:60px 20px 40px;position:relative;overflow:hidden}
+.hero::before,.hero::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;filter:blur(120px);opacity:.1}
+.hero::before{top:-100px;right:-50px;background:var(--s5)}
+.hero::after{bottom:-100px;left:-50px;background:var(--s6)}
+.hero h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;background:linear-gradient(135deg,#2ecc71,#3498db,#9b59b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;position:relative;z-index:2}
+.hero p{color:var(--muted);font-size:1rem;max-width:550px;margin:0 auto;position:relative;z-index:2}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:40px 32px;max-width:480px;margin:0 auto;text-align:center}
+.login-box h2{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.login-box p{color:var(--muted);font-size:.88rem;margin-bottom:24px}
+.login-box input{width:100%;padding:16px 20px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);font-family:inherit;font-size:1.1rem;text-align:center;font-weight:700;letter-spacing:2px;transition:border-color .3s}
+.login-box input:focus{outline:none;border-color:rgba(52,152,219,.5)}
+.login-box input::placeholder{color:rgba(255,255,255,.15);font-weight:400;letter-spacing:0}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:50px;font-weight:600;font-size:.95rem;color:#fff;border:none;cursor:pointer;margin-top:20px;transition:transform .3s,box-shadow .3s;font-family:inherit;background:linear-gradient(135deg,var(--s5),var(--accent))}
+.btn:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.exam-tag{display:inline-block;padding:6px 20px;border-radius:50px;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:20px;background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);color:var(--accent)}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-bottom:20px;transition:border-color .3s}
+.q-num{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.q-num .wt{padding:2px 10px;border-radius:20px;font-size:.65rem}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:18px;line-height:1.5}
+.opts{display:flex;flex-direction:column;gap:10px}
+.ob{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px 18px;text-align:left;color:var(--muted);font-size:.9rem;cursor:pointer;transition:all .25s;font-family:inherit;line-height:1.5;display:flex;align-items:flex-start;gap:10px}
+.ob:hover:not(.dis){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:var(--text);transform:translateX(4px)}
+.ob .lt{font-weight:700;color:var(--accent);flex-shrink:0;min-width:20px}
+.ob.dis{cursor:default;opacity:.6}
+.sc-box{background:rgba(230,126,34,.05);border:1px solid rgba(230,126,34,.2);border-radius:12px;padding:20px;margin-bottom:16px;font-size:.9rem;line-height:1.7;color:var(--muted)}
+.sc-box strong{color:var(--text)}
+.sc-box .st{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#e67e22;margin-bottom:10px}
+.ota{width:100%;min-height:140px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:16px;color:var(--text);font-family:inherit;font-size:.9rem;line-height:1.6;resize:vertical;transition:border-color .3s}
+.ota:focus{outline:none;border-color:rgba(230,126,34,.5)}
+.ota::placeholder{color:rgba(255,255,255,.15)}
+.footer{text-align:center;padding:40px 20px;color:rgba(255,255,255,.2);font-size:.8rem}
+.hide{display:none!important}
+/* ANTI-SCREENSHOT WATERMARK */
+#watermark{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9000;overflow:hidden}
+.wm-text{position:absolute;font-size:1.1rem;font-weight:900;color:rgba(231,76,60,.06);white-space:nowrap;transform:rotate(-35deg);font-family:'Inter',sans-serif;letter-spacing:2px}
+/* BLACKOUT OVERLAY on focus loss */
+#blackout{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:99998;display:none;align-items:center;justify-content:center;flex-direction:column}
+#blackout.active{display:flex}
+#blackout h2{color:#e74c3c;font-size:2rem;margin-bottom:12px}
+#blackout p{color:#888;font-size:1rem;max-width:400px;text-align:center}
+@media(max-width:600px){.container{padding:20px 16px}.q-card{padding:20px 16px}.login-box{padding:28px 20px}}
+</style>
+</head>
+<body>
+<div id="watermark"></div>
+<div id="blackout"><h2>⚫ PANTALLA BLOQUEADA</h2><p id="blackoutMsg">Vuelva al examen inmediatamente</p></div>
+<div class="hero">
+<span style="display:inline-block;padding:4px 16px;border-radius:50px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.3);color:var(--s5)">UF3 — Semanas 5 y 6 — V2</span>
+<h1>Quiz: Tratamiento de Gas, Fraccionamiento y GNL</h1>
+<p>5 preguntas de selección múltiple (0.5 c/u) + 1 escenario de toma de decisiones (2.5) = <strong>5.0</strong></p>
+</div>
+<div class="container">
+<div id="loginArea">
+<div class="login-box">
+<h2>🔐 Identificación</h2>
+<p>Digite su número de cédula para recibir su examen</p>
+<input type="text" id="cedula" placeholder="Ej: 1098765432" maxlength="12" inputmode="numeric">
+<p id="loginMsg" style="font-size:.82rem;margin-top:12px;min-height:20px"></p>
+<button class="btn" id="btnStart" disabled onclick="startExam()">▶ Iniciar Examen</button>
+</div>
+</div>
+<div id="examArea" class="hide"></div>
+<div id="warningOverlay" class="hide" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center"><div style="background:var(--card);border:2px solid #e74c3c;border-radius:var(--radius);padding:40px;max-width:500px;text-align:center"><h2 id="warnTitle" style="color:#e74c3c;margin-bottom:12px">⚠️</h2><p id="warnMsg" style="color:var(--muted);margin-bottom:20px"></p><button class="btn" onclick="document.getElementById('warningOverlay').classList.add('hide')" style="background:#e74c3c">Entendido</button></div></div>
+<div id="anuladoScreen" class="hide" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#080810;z-index:99999;display:flex;align-items:center;justify-content:center"><div style="text-align:center;max-width:500px;padding:40px"><h1 style="color:#e74c3c;font-size:2.5rem;margin-bottom:16px">🚫 EXAMEN ANULADO</h1><p id="anuladoMotivo" style="color:var(--muted);font-size:1.1rem;margin-bottom:20px"></p><p style="color:rgba(255,255,255,.3);font-size:.8rem">Contacte al docente.</p></div></div>
+</div>
+<div class="footer">UNIPAZ — Ingeniería de Producción — Procesos Industriales 1 — 2026-1<br>Esp. Marlon Gomez</div>
+<script>
+const EXAMS=[
+{mc:[
+{week:5,q:"¿Qué tipo de amina se recomienda cuando se necesita remover H₂S sin absorber CO₂?",opts:["MEA (monoetanolamina)","Amina terciaria MDEA","DEA (dietanolamina)","Ninguna amina es selectiva"],ans:1,exp:"MDEA es terciaria y selectiva: absorbe H₂S preferentemente sobre CO₂."},
+{week:5,q:"¿Qué sucede si el gas natural no se deshidrata antes del transporte por gasoducto?",opts:["Se evapora el metano","Aumenta el poder calorífico","Se forman hidratos sólidos que taponan la tubería","Se licúa espontáneamente"],ans:2,exp:"Los hidratos (agua+gas) cristalizan y bloquean tuberías a alta presión y baja temperatura."},
+{week:6,q:"¿Cuál es la función de la despropanizadora en el tren de fraccionamiento?",opts:["Separar metano del etano","Separar propano del flujo C₃+, dejando C₄+ en el fondo","Licuar gas natural","Eliminar agua del GLP"],ans:1,exp:"La despropanizadora saca propano por el tope y deja butanos+pesados en el fondo."},
+{week:6,q:"¿Por qué el propano se almacena en esferas presurizadas y no en tanques abiertos?",opts:["Porque es tóxico","Porque su punto de ebullición es -42°C: a temperatura ambiente es gas","Porque es más denso que el agua","Por razones estéticas"],ans:1,exp:"El propano hierve a -42°C. Para mantenerlo líquido a ambiente se necesita ~8 atm de presión."},
+{week:6,q:"¿Qué producto del fraccionamiento se usa como diluyente de crudos pesados en Colombia?",opts:["Etano","Propano","Gasolina natural (C₅+)","Metano"],ans:2,exp:"La gasolina natural (pentanos+) reduce la viscosidad de crudos pesados para transporte."}
+],scenario:{title:"🔧 Contaminación de Amina en Planta de Endulzamiento",text:"Usted es <strong>ingeniero de proceso</strong> en una planta de gas en Apiay. La MDEA presenta <strong>degradación severa</strong>: la solución cambió de color (café oscuro) y hay <strong>espuma excesiva</strong> en el absorbedor.<br><br><strong>Datos:</strong><br>• Producción: 60 MPCD | H₂S entrada: 4% | CO₂: 8%<br>• H₂S en salida: 12 ppm (límite: 4 ppm)<br>• La amina tiene 18 meses sin filtración<br>• Inventario de MDEA fresca: 50 m³ (capacidad total: 200 m³)<br>• Costo MDEA nueva: USD 3.500/m³<br>• Costo parada: USD 280.000/día<br><br><strong>¿Qué plan ejecuta para restaurar la calidad del gas sin parar la planta? Detalle las acciones inmediatas y de mediano plazo.</strong>"}},
+{mc:[
+{week:5,q:"¿Cuál es la función del regenerador en un sistema de endulzamiento con aminas?",opts:["Enfriar el gas dulce","Calentar la amina rica (~120°C) para liberar H₂S y CO₂ y reutilizarla","Comprimir el gas ácido","Filtrar partículas sólidas"],ans:1,exp:"El regenerador calienta la amina rica para liberar los gases ácidos. La amina pobre vuelve al absorbedor."},
+{week:5,q:"¿Qué propiedad del TEG lo hace ideal para deshidratación de gas?",opts:["Es inflamable","Tiene alta afinidad por el agua (higroscópico) y punto de ebullición alto","Es más barato que el metanol","No requiere regeneración"],ans:1,exp:"El TEG es muy higroscópico (absorbe agua) y su alto punto de ebullición permite regenerarlo sin perderlo."},
+{week:6,q:"¿Cuál es la cadena de conversión del etano hasta llegar a plástico?",opts:["Etano → GLP → plástico","Etano → pirólisis 850°C → etileno → polimerización → polietileno","Etano → destilación → polímero","Etano → combustión → CO₂ → plástico biodegradable"],ans:1,exp:"El etano se craquea térmicamente a 850°C produciendo etileno, que se polimeriza en polietileno."},
+{week:6,q:"¿Cuánto se reduce el volumen del gas natural al convertirlo en GNL?",opts:["100 veces","10 veces","600 veces","50 veces"],ans:2,exp:"Al enfriar a -162°C, el volumen se reduce ~600 veces, haciendo viable el transporte marítimo."},
+{week:5,q:"¿Qué concentración de H₂S causa la muerte en minutos?",opts:["4 ppm","25 ppm","500-1000 ppm","10.000 ppm"],ans:2,exp:"A 500-1000 ppm el H₂S causa colapso y muerte. A 100 ppm causa pérdida del olfato."}
+],scenario:{title:"🚢 Decisión de Inversión: GNL vs Gasoducto",text:"Colombia descubrió <strong>gas costa afuera</strong> en el Caribe (campo Uchuva): reservas de 6 TCF, 200 km de la costa.<br><br><strong>Opciones:</strong><br>• <strong>Opción A:</strong> Gasoducto submarino a Cartagena — USD 1.800M, 4 años construcción, capacidad 500 MPCD<br>• <strong>Opción B:</strong> FLNG (licuefacción flotante) — USD 3.200M, 3 años, capacidad 350 MPCD, exportación directa<br><br><strong>Contexto:</strong><br>• Demanda interna: déficit proyectado 400 MPCD para 2030<br>• Precio gas doméstico: USD 5/MMBTU<br>• Precio GNL exportación: USD 12-15/MMBTU<br>• Vida útil del campo: 20 años<br><br><strong>¿Qué opción recomienda y por qué? Considere seguridad energética, rentabilidad y riesgo.</strong>"}},
+{mc:[
+{week:5,q:"¿Por qué se dice que la absorción con aminas es un proceso 'regenerativo'?",opts:["Porque la amina se desecha después de un uso","Porque la amina se regenera térmicamente y se reutiliza en ciclo continuo","Porque genera energía eléctrica","Porque regenera el gas contaminado"],ans:1,exp:"La amina absorbe gases ácidos, se regenera a ~120°C liberándolos, y vuelve al absorbedor. Ciclo continuo."},
+{week:5,q:"¿Qué diferencia hay entre adsorción y absorción en tratamiento de gas?",opts:["Son el mismo proceso","Adsorción usa sólido (tamiz molecular); absorción usa líquido (amina, TEG)","Absorción es más rápida siempre","Adsorción solo funciona con CO₂"],ans:1,exp:"Absorción = líquido atrapa gas en su volumen. Adsorción = sólido atrapa gas en su superficie."},
+{week:6,q:"¿Qué es SPEC LNG y cuál es su función estratégica en Colombia?",opts:["Planta de exportación de GNL en Buenaventura","Terminal FSRU en Cartagena que importa y regasifica GNL para seguridad energética","Gasoducto submarino a Venezuela","Planta de fraccionamiento en Cusiana"],ans:1,exp:"SPEC LNG es una FSRU (buque de regasificación) en Cartagena. Importa GNL durante El Niño."},
+{week:6,q:"¿Cuál es la composición típica del GLP comercial en Colombia?",opts:["100% metano","Propano (~70%) + butano (~30%)","50% etano + 50% propano","100% propano"],ans:1,exp:"El GLP doméstico es mezcla de propano y butano (~70/30). Se licúa a ~8-10 atm."},
+{week:6,q:"¿Por qué la deetanizadora es la PRIMERA torre del fraccionamiento?",opts:["Porque el etano es el más caro","Porque el etano tiene el punto de ebullición más bajo (-89°C) y sale primero","Porque es la torre más pequeña","Por regulación ambiental"],ans:1,exp:"Se separa del más liviano al más pesado: etano (-89°C), propano (-42°C), butano (-1°C)."}
+],scenario:{title:"⚡ Explosión en Tren de Fraccionamiento",text:"Usted es <strong>jefe de planta</strong> de fraccionamiento. A las 2:00 AM ocurre una <strong>fuga de propano</strong> en la brida de la despropanizadora.<br><br><strong>Situación:</strong><br>• Nube de propano detectada por sensores (LEL al 40%)<br>• Viento: 15 km/h dirección a sala de control<br>• Personal en turno: 12 operadores<br>• Despropanizadora: 8.000 BPD de propano a 18 atm<br>• Antorcha operativa | Sistema de diluvio operativo<br>• Planta de etano adyacente a 200m con 15.000 BPD<br><br><strong>Diseñe el plan de emergencia paso a paso: ¿qué hace en los primeros 15 minutos? Priorice seguridad.</strong>"}},
+{mc:[
+{week:5,q:"¿Cuál es el límite máximo de H₂S permitido en gas natural comercial?",opts:["100 ppm","25 ppm","4 ppm","50 ppm"],ans:2,exp:"El estándar internacional es ≤4 ppm de H₂S en gas comercial."},
+{week:5,q:"¿Qué ventaja tienen los tamices moleculares sobre el TEG para deshidratación?",opts:["Son más baratos","Logran punto de rocío <-60°C (<1 ppm agua), necesario para GNL","No necesitan regeneración","Funcionan solo con gas ácido"],ans:1,exp:"Los tamices logran <1 ppm de agua (rocío -60°C), indispensable antes de licuefacción criogénica."},
+{week:6,q:"¿Qué ventaja tiene un FSRU sobre un terminal de regasificación en tierra?",opts:["Mayor capacidad de almacenamiento","Se instala en 18-24 meses vs 5-7 años y es reubicable","Produce más energía","No necesita buques metaneros"],ans:1,exp:"FSRU: rápido de instalar, flexible y reubicable. Ideal para emergencias energéticas."},
+{week:6,q:"¿Para qué se usa el isobutano separado en la deisobutanizadora?",opts:["Como diluyente de crudos","Como refrigerante doméstico exclusivamente","Para producir alquilato (gasolina premium RON ~95) en refinería","Solo se exporta"],ans:2,exp:"El isobutano + olefinas del FCC producen alquilato: gasolina limpia de alto octanaje."},
+{week:5,q:"¿Por qué se llama 'gas ácido' al gas con H₂S y CO₂?",opts:["Porque tiene pH bajo al disolverse en agua formando ácidos","Porque huele a vinagre","Porque corroe solo metales ácidos","Porque contiene ácido sulfúrico"],ans:0,exp:"H₂S + agua = ácido sulfhídrico. CO₂ + agua = ácido carbónico. Por eso 'gas ácido' (sour gas)."}
+],scenario:{title:"🌊 Huracán Categoría 4 Amenaza Terminal GNL",text:"Usted es <strong>director de operaciones</strong> del terminal SPEC LNG en Cartagena. Un <strong>huracán categoría 4</strong> se acerca (impacto en 72h).<br><br><strong>Situación:</strong><br>• FSRU tiene 80.000 m³ de GNL (50% capacidad)<br>• Buque metanero en descarga (faltan 12h para terminar)<br>• Colombia en <strong>alerta naranja</strong> por El Niño: termoeléctricas al 90%<br>• Demanda de gas: 1.300 MPCD (sin SPEC = déficit de 350 MPCD)<br>• Protocolo: desconectar FSRU con vientos >50 nudos (previsto en 48h)<br>• Puerto de refugio: Curazao (18h de navegación)<br><br><strong>¿Qué decisiones toma en las próximas 72h? Priorice seguridad del personal, integridad del equipo y continuidad del suministro.</strong>"}}
+];
+const STUDENTS={
+'1096801924':{v:0,n:'ESMERAL VILLANUEVA, YOSI ESTEBAN'},
+'1097490674':{v:0,n:'ESPINDOLA ARCHILA, PAULA ANDREA'},
+'1005240981':{v:1,n:'LUNA FLOREZ, ANDRÉS FELIPE'},
+'1002379411':{v:1,n:'NIETO PUPO, LUIS EDUARDO'},
+'1096190532':{v:2,n:'QUINTERO CASTRO, MONICA JULIETH'},
+'1097183346':{v:2,n:'RINCON NIEVES, GLORIA AMPARO'},
+'1031540500':{v:3,n:'TAVERA FUENTES, XIOMARA JAIDY'},
+'1096801810':{v:3,n:'TRUJILLO BADILLO, PEDRO LUIS'}
+};
+const WEBAPP_URL='https://script.google.com/macros/s/AKfycbwqz1nGQOIVHzRp02Qfe4G7mXyUhSOq1S21-eS0pZ3ngA5iN0U1zoU3eIsG-gJfliqg_w/exec';
+const mcResults=[];let enviado=false,mcCorrect=0,answeredMC=0;
+// ═══ MARCA DE AGUA DINÁMICA ═══
+function crearWatermark(nombre){const wm=document.getElementById('watermark');wm.innerHTML='';const txt=nombre+' • '+new Date().toLocaleDateString();for(let i=0;i<30;i++){const s=document.createElement('span');s.className='wm-text';s.textContent=txt;s.style.top=(Math.random()*120-10)+'%';s.style.left=(Math.random()*120-10)+'%';s.style.fontSize=(0.8+Math.random()*0.6)+'rem';wm.appendChild(s);}}
+// ═══ ANTIFRAUDE V2 (timestamp + blackout + screenshot) ═══
+const AF=(()=>{
+let activo=false,anulado=false,strikes=0,ced='',hiddenAt=0,blurAt=0;
+const MAX=2,GRACIA_MS=3000,ANULA_MS=10000,K={p:'q56v2_pres',d:'q56v2_disp',a:'q56v2_anul',c:'q56v2_comp',s:'q56v2_str'};
+const bo=document.getElementById('blackout');
+function init(){
+strikes=parseInt(localStorage.getItem(K.s)||'0');
+if(localStorage.getItem(K.c)){bloqueado('Ya presentaste este quiz.');return false;}
+if(localStorage.getItem(K.a)){const d=JSON.parse(localStorage.getItem(K.a));anular(d.motivo);return false;}
+if(localStorage.getItem(K.d)){bloqueado('Este dispositivo ya fue usado.');return false;}
+return true;
+}
+function bloqueado(msg){document.getElementById('loginArea').innerHTML='<div class="login-box"><h2 style="color:#e74c3c">🔒 Acceso Bloqueado</h2><p style="color:var(--muted)">'+msg+'</p></div>';}
+function yaPresento(c){const l=JSON.parse(localStorage.getItem(K.p)||'[]');return l.some(e=>e.c===c);}
+function activar(c){
+ced=c;activo=true;
+localStorage.setItem(K.d,JSON.stringify({c,t:Date.now()}));
+// Blackout + timestamp en visibilitychange
+document.addEventListener('visibilitychange',()=>{
+if(!activo||anulado)return;
+if(document.hidden){hiddenAt=Date.now();bo.classList.add('active');document.getElementById('blackoutMsg').textContent='Vuelva al examen. Strike '+(strikes+1)+'/'+MAX;}
+else{bo.classList.remove('active');if(hiddenAt>0){const fuera=Date.now()-hiddenAt;hiddenAt=0;
+if(fuera>=ANULA_MS){registrarAnulado('Abandonaste la ventana por '+Math.round(fuera/1000)+' segundos (máx 10s).');}
+else if(fuera>=GRACIA_MS){strikes++;localStorage.setItem(K.s,String(strikes));
+if(strikes>=MAX)registrarAnulado('Abandonaste la ventana '+MAX+' veces ('+Math.round(fuera/1000)+'s fuera).');
+else warn('Saliste por '+Math.round(fuera/1000)+'s. Advertencia '+strikes+'/'+MAX+'. La próxima vez se ANULA.');}}}
+});
+// Blur/focus
+window.addEventListener('blur',()=>{if(!activo||anulado||document.hidden)return;blurAt=Date.now();bo.classList.add('active');document.getElementById('blackoutMsg').textContent='Vuelva al examen. Strike '+(strikes+1)+'/'+MAX;});
+window.addEventListener('focus',()=>{
+if(!activo||anulado)return;bo.classList.remove('active');
+if(!blurAt)return;const fuera=Date.now()-blurAt;blurAt=0;
+if(fuera>=ANULA_MS){registrarAnulado('Cambiaste de app por '+Math.round(fuera/1000)+' segundos (máx 10s).');}
+else if(fuera>=GRACIA_MS){strikes++;localStorage.setItem(K.s,String(strikes));
+if(strikes>=MAX)registrarAnulado('Cambiaste de app '+MAX+' veces ('+Math.round(fuera/1000)+'s fuera).');
+else warn('Cambiaste de ventana '+Math.round(fuera/1000)+'s. Advertencia '+strikes+'/'+MAX+'.');}
+});
+// Bloquear teclas
+document.addEventListener('keydown',e=>{if(!activo)return;const c=e.ctrlKey||e.metaKey,s=e.shiftKey,k=e.key;if([c&&k==='p',k==='F12',c&&s&&k==='I',c&&s&&k==='J',c&&s&&k==='C',c&&k==='u',c&&k==='s',c&&k==='c',c&&k==='a',k==='PrintScreen'].some(Boolean)){e.preventDefault();e.stopPropagation();}},true);
+document.addEventListener('contextmenu',e=>{if(activo)e.preventDefault();});
+}
+function warn(msg){document.getElementById('warnTitle').textContent='⚠️ Advertencia de Seguridad';document.getElementById('warnMsg').textContent=msg;document.getElementById('warningOverlay').classList.remove('hide');}
+function registrarAnulado(motivo){if(anulado)return;anulado=true;activo=false;localStorage.setItem(K.a,JSON.stringify({motivo,c:ced,t:new Date().toISOString()}));anular(motivo);
+fetch(WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({timestamp:new Date().toISOString(),cedula:ced,nombre:(STUDENTS[ced]||{}).n||'',examen:'ANULADO-V2',p1:'',p2:'',p3:'',p4:'',p5:'',notaMC:'0',escenario:'ANULADO',respuesta:motivo,estado:'ANULADO - '+motivo})}).catch(()=>{});}
+function anular(motivo){document.getElementById('anuladoMotivo').textContent=motivo;document.getElementById('anuladoScreen').classList.remove('hide');}
+function completar(){localStorage.setItem(K.c,JSON.stringify({c:ced,t:Date.now()}));const l=JSON.parse(localStorage.getItem(K.p)||'[]');l.push({c:ced,t:Date.now()});localStorage.setItem(K.p,JSON.stringify(l));activo=false;}
+function resetear(){Object.values(K).forEach(k=>localStorage.removeItem(k));location.reload();}
+return{init,yaPresento,activar,completar,resetear};
+})();
+// ═══ LOGIN ═══
+if(!AF.init()){}
+document.getElementById('cedula').addEventListener('input',function(){
+this.value=this.value.replace(/\D/g,'');const v=this.value;
+document.getElementById('btnStart').disabled=!(v in STUDENTS);
+document.getElementById('loginMsg').textContent=v.length>=6?(v in STUDENTS?'✅ '+STUDENTS[v].n:'⚠️ Cédula no registrada'):'';
+document.getElementById('loginMsg').style.color=v in STUDENTS?'#2ecc71':'#e74c3c';
+});
+function startExam(){
+const ced=document.getElementById('cedula').value;
+if(!(ced in STUDENTS))return;
+if(AF.yaPresento(ced)){document.getElementById('loginMsg').textContent='⚠️ Ya presentaste este quiz.';document.getElementById('loginMsg').style.color='#e74c3c';return;}
+const st=STUDENTS[ced];AF.activar(ced);crearWatermark(st.n);
+document.getElementById('loginArea').classList.add('hide');
+const area=document.getElementById('examArea');area.classList.remove('hide');
+const exam=EXAMS[st.v];const pool=[...exam.mc];
+for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+exam._shuffled=pool;
+let html='<div style="text-align:center"><span class="exam-tag">Examen '+['F','G','H','I'][st.v]+' — '+st.n+'</span></div>';
+html+='<p style="text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:30px">5 preguntas × 0.5 pts + 1 escenario × 2.5 pts = <strong style="color:var(--text)">5.0 pts</strong></p>';
+const L=['A','B','C','D'];
+pool.forEach((q,i)=>{
+const wc=q.week===5?'background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.3);color:#2ecc71':'background:rgba(155,89,182,.08);border:1px solid rgba(155,89,182,.3);color:#9b59b6';
+const wl=q.week===5?'S5 — Tratamiento':'S6 — Fraccionamiento/GNL';
+html+='<div class="q-card" id="q'+i+'"><div class="q-num"><span>Pregunta '+(i+1)+' — 0.5 pts</span><span class="wt" style="'+wc+'">'+wl+'</span></div><div class="q-text">'+q.q+'</div><div class="opts" id="o'+i+'">';
+q.opts.forEach((o,j)=>{html+='<button class="ob" onclick="pick('+i+','+j+')"><span class="lt">'+L[j]+'.</span><span>'+o+'</span></button>';});
+html+='</div></div>';
+});
+const sc=exam.scenario;
+html+='<div style="margin-top:50px;padding-top:40px;border-top:1px solid var(--border)"><h2 style="font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,#e67e22,#e74c3c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🎯 Escenario de Decisión — 2.5 pts</h2><p style="text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:30px">Lea el escenario y escriba su decisión con justificación técnica.</p>';
+html+='<div class="q-card"><div class="q-num"><span>Escenario</span></div><div class="sc-box"><div class="st">'+sc.title+'</div>'+sc.text+'</div>';
+html+='<textarea class="ota" id="resp" placeholder="Escriba su decisión y justificación técnica aquí (mínimo 50 caracteres)..." oninput="checkResp()"></textarea>';
+html+='<button class="btn" id="btnSend" disabled onclick="enviarResultados()" style="margin-top:16px;background:linear-gradient(135deg,#e67e22,#d35400)">📤 Enviar Quiz</button>';
+html+='<p id="sendMsg" style="font-size:.82rem;margin-top:10px;min-height:20px"></p></div></div>';
+area.innerHTML=html;
+}
+function pick(qi,oi){
+const ced=document.getElementById('cedula').value;
+const exam=EXAMS[STUDENTS[ced].v];
+const q=exam._shuffled[qi];if(!q)return;
+const btns=document.querySelectorAll('#o'+qi+' .ob');
+if(btns[0].classList.contains('dis'))return;
+btns.forEach((b,i)=>{b.classList.add('dis');if(i===oi)b.style.background='rgba(52,152,219,.15)';b.style.borderColor='rgba(52,152,219,.3)';});
+mcResults[qi]=oi===q.ans?'✓':'✗';
+if(oi===q.ans)mcCorrect++;
+answeredMC++;checkResp();
+}
+function checkResp(){const t=document.getElementById('resp');if(t)document.getElementById('btnSend').disabled=t.value.trim().length<50||answeredMC<5;}
+async function enviarResultados(){
+if(enviado)return;
+const ced=document.getElementById('cedula').value;const st=STUDENTS[ced];const exam=EXAMS[st.v];
+const resp=document.getElementById('resp').value.trim();
+if(resp.length<50){alert('Escriba al menos 50 caracteres.');return;}
+if(answeredMC<5){alert('Responda todas las preguntas primero.');return;}
+const payload={timestamp:new Date().toISOString(),cedula:ced,nombre:st.n,examen:['F','G','H','I'][st.v]+' (V2)',p1:mcResults[0]||'',p2:mcResults[1]||'',p3:mcResults[2]||'',p4:mcResults[3]||'',p5:mcResults[4]||'',notaMC:(mcCorrect*0.5).toFixed(1),escenario:exam.scenario.title.replace(/[🔧🚢⚡🌊]/g,'').trim(),respuesta:resp,estado:'COMPLETADO-V2'};
+const msg=document.getElementById('sendMsg');msg.textContent='📤 Enviando...';msg.style.color='#f39c12';
+try{
+await fetch(WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+enviado=true;AF.completar();
+msg.textContent='✅ Quiz enviado correctamente. Puede cerrar esta página.';msg.style.color='#2ecc71';
+document.getElementById('btnSend').disabled=true;document.getElementById('btnSend').textContent='✅ Enviado';
+document.getElementById('resp').setAttribute('readonly','true');document.getElementById('resp').style.opacity='.6';
+localStorage.setItem('quiz_v2_'+ced,JSON.stringify(payload));
+}catch(err){msg.textContent='⚠️ Error. Se guardó localmente.';msg.style.color='#e74c3c';localStorage.setItem('quiz_v2_'+ced,JSON.stringify(payload));}
+}
+</script>
+</body>
+</html>
