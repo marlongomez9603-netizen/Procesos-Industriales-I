@@ -43,19 +43,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .ota::placeholder{color:rgba(255,255,255,.15)}
 .footer{text-align:center;padding:40px 20px;color:rgba(255,255,255,.2);font-size:.8rem}
 .hide{display:none!important}
-/* ANTI-SCREENSHOT WATERMARK */
-#watermark{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9000;overflow:hidden}
-.wm-text{position:absolute;font-size:1.1rem;font-weight:900;color:rgba(231,76,60,.06);white-space:nowrap;transform:rotate(-35deg);font-family:'Inter',sans-serif;letter-spacing:2px}
 /* BLACKOUT OVERLAY on focus loss */
 #blackout{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:99998;display:none;align-items:center;justify-content:center;flex-direction:column}
 #blackout.active{display:flex}
 #blackout h2{color:#e74c3c;font-size:2rem;margin-bottom:12px}
 #blackout p{color:#888;font-size:1rem;max-width:400px;text-align:center}
 @media(max-width:600px){.container{padding:20px 16px}.q-card{padding:20px 16px}.login-box{padding:28px 20px}}
+/* DEFENSA 3: Imprimir = página en blanco */
+@media print{body *{display:none!important}body::after{content:'🚫 IMPRESIÓN BLOQUEADA — Este examen no se puede imprimir.';display:block!important;font-size:2rem;text-align:center;padding:100px 40px;color:#e74c3c;font-family:Inter,sans-serif}}
+/* ALERTA PASTE */
+.paste-alert{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#e74c3c;color:#fff;padding:14px 28px;border-radius:12px;font-weight:700;font-size:.95rem;z-index:99997;animation:fu .3s ease;box-shadow:0 8px 30px rgba(231,76,60,.4)}
 </style>
 </head>
 <body>
-<div id="watermark"></div>
+
 <div id="blackout"><h2>⚫ PANTALLA BLOQUEADA</h2><p id="blackoutMsg">Vuelva al examen inmediatamente</p></div>
 <div class="hero">
 <span style="display:inline-block;padding:4px 16px;border-radius:50px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.3);color:var(--s5)">UF3 — Semanas 5 y 6 — V2</span>
@@ -121,7 +122,7 @@ const STUDENTS={
 const WEBAPP_URL='https://script.google.com/macros/s/AKfycbwqz1nGQOIVHzRp02Qfe4G7mXyUhSOq1S21-eS0pZ3ngA5iN0U1zoU3eIsG-gJfliqg_w/exec';
 const mcResults=[];let enviado=false,mcCorrect=0,answeredMC=0;
 // ═══ MARCA DE AGUA DINÁMICA ═══
-function crearWatermark(nombre){const wm=document.getElementById('watermark');wm.innerHTML='';const txt=nombre+' • '+new Date().toLocaleDateString();for(let i=0;i<30;i++){const s=document.createElement('span');s.className='wm-text';s.textContent=txt;s.style.top=(Math.random()*120-10)+'%';s.style.left=(Math.random()*120-10)+'%';s.style.fontSize=(0.8+Math.random()*0.6)+'rem';wm.appendChild(s);}}
+
 // ═══ ANTIFRAUDE V2 (timestamp + blackout + screenshot) ═══
 const AF=(()=>{
 let activo=false,anulado=false,strikes=0,ced='',hiddenAt=0,blurAt=0;
@@ -162,6 +163,19 @@ else warn('Cambiaste de ventana '+Math.round(fuera/1000)+'s. Advertencia '+strik
 // Bloquear teclas
 document.addEventListener('keydown',e=>{if(!activo)return;const c=e.ctrlKey||e.metaKey,s=e.shiftKey,k=e.key;if([c&&k==='p',k==='F12',c&&s&&k==='I',c&&s&&k==='J',c&&s&&k==='C',c&&k==='u',c&&k==='s',c&&k==='c',c&&k==='a',k==='PrintScreen'].some(Boolean)){e.preventDefault();e.stopPropagation();}},true);
 document.addEventListener('contextmenu',e=>{if(activo)e.preventDefault();});
+// DEFENSA 1: Anti-paste en textarea
+document.addEventListener('paste',e=>{if(!activo)return;const t=e.target;if(t&&(t.tagName==='TEXTAREA'||t.tagName==='INPUT')){e.preventDefault();strikes++;localStorage.setItem(K.s,String(strikes));const pa=document.createElement('div');pa.className='paste-alert';pa.textContent='⚠️ PEGAR BLOQUEADO — Strike '+strikes+'/'+MAX;document.body.appendChild(pa);setTimeout(()=>pa.remove(),3000);if(strikes>=MAX)registrarAnulado('Intentó pegar texto '+MAX+' veces (posible uso de IA).');
+else warn('Se detectó intento de PEGAR texto. Advertencia '+strikes+'/'+MAX+'. Escriba su respuesta manualmente.');}},true);
+// DEFENSA 2: Velocidad de escritura sospechosa
+let _lastLen=0,_lastTime=Date.now(),_fastBursts=0;
+document.addEventListener('input',e=>{if(!activo)return;const t=e.target;if(t&&t.id==='resp'){const now=Date.now(),diff=now-_lastTime,added=t.value.length-_lastLen;if(diff>0&&diff<2000&&added>30){_fastBursts++;if(_fastBursts>=2){const pa=document.createElement('div');pa.className='paste-alert';pa.textContent='⚠️ Escritura sospechosamente rápida detectada';document.body.appendChild(pa);setTimeout(()=>pa.remove(),3000);}}_lastLen=t.value.length;_lastTime=now;}});
+// DEFENSA 4: Detección DevTools (cambio de viewport)
+let _w=window.outerWidth,_h=window.outerHeight;
+setInterval(()=>{if(!activo)return;const dw=Math.abs(window.outerWidth-window.innerWidth),dh=Math.abs(window.outerHeight-window.innerHeight);if(dw>200||dh>200){warn('Se detectó una herramienta de desarrollo abierta. Ciérrela para continuar.');}},3000);
+// DEFENSA 5: Advertencia al cerrar
+window.addEventListener('beforeunload',e=>{if(!activo)return;e.preventDefault();e.returnValue='';});
+// DEFENSA 6: Pantalla dividida
+window.addEventListener('resize',()=>{if(!activo)return;const ratio=window.innerWidth/screen.width;if(ratio<0.7&&screen.width>600){warn('Se detectó ventana reducida (posible pantalla dividida). Use la ventana en tamaño completo.');}});
 }
 function warn(msg){document.getElementById('warnTitle').textContent='⚠️ Advertencia de Seguridad';document.getElementById('warnMsg').textContent=msg;document.getElementById('warningOverlay').classList.remove('hide');}
 function registrarAnulado(motivo){if(anulado)return;anulado=true;activo=false;localStorage.setItem(K.a,JSON.stringify({motivo,c:ced,t:new Date().toISOString()}));anular(motivo);
@@ -183,7 +197,7 @@ function startExam(){
 const ced=document.getElementById('cedula').value;
 if(!(ced in STUDENTS))return;
 if(AF.yaPresento(ced)){document.getElementById('loginMsg').textContent='⚠️ Ya presentaste este quiz.';document.getElementById('loginMsg').style.color='#e74c3c';return;}
-const st=STUDENTS[ced];AF.activar(ced);crearWatermark(st.n);
+const st=STUDENTS[ced];AF.activar(ced);
 document.getElementById('loginArea').classList.add('hide');
 const area=document.getElementById('examArea');area.classList.remove('hide');
 const exam=EXAMS[st.v];const pool=[...exam.mc];
@@ -212,11 +226,16 @@ const ced=document.getElementById('cedula').value;
 const exam=EXAMS[STUDENTS[ced].v];
 const q=exam._shuffled[qi];if(!q)return;
 const btns=document.querySelectorAll('#o'+qi+' .ob');
-if(btns[0].classList.contains('dis'))return;
-btns.forEach((b,i)=>{b.classList.add('dis');if(i===oi)b.style.background='rgba(52,152,219,.15)';b.style.borderColor='rgba(52,152,219,.3)';});
+// Reset all buttons in this question
+btns.forEach(b=>{b.style.background='rgba(255,255,255,.03)';b.style.borderColor='rgba(255,255,255,.06)';b.classList.remove('sel');});
+// Highlight selected
+btns[oi].style.background='rgba(52,152,219,.15)';btns[oi].style.borderColor='rgba(52,152,219,.4)';btns[oi].classList.add('sel');
+// Track answer (overwrite if changed)
+const wasAnswered=mcResults[qi]!==undefined;
 mcResults[qi]=oi===q.ans?'✓':'✗';
-if(oi===q.ans)mcCorrect++;
-answeredMC++;checkResp();
+if(!wasAnswered){answeredMC++;mcCorrect+=(oi===q.ans?1:0);}
+else{mcCorrect=0;exam._shuffled.forEach((qq,idx)=>{if(mcResults[idx]==='✓')mcCorrect++;});}
+checkResp();
 }
 function checkResp(){const t=document.getElementById('resp');if(t)document.getElementById('btnSend').disabled=t.value.trim().length<50||answeredMC<5;}
 async function enviarResultados(){
