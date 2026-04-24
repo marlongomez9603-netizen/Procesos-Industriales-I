@@ -169,9 +169,7 @@ else warn('Se detectó intento de PEGAR texto. Advertencia '+strikes+'/'+MAX+'. 
 // DEFENSA 2: Velocidad de escritura sospechosa
 let _lastLen=0,_lastTime=Date.now(),_fastBursts=0;
 document.addEventListener('input',e=>{if(!activo)return;const t=e.target;if(t&&t.id==='resp'){const now=Date.now(),diff=now-_lastTime,added=t.value.length-_lastLen;if(diff>0&&diff<2000&&added>30){_fastBursts++;if(_fastBursts>=2){const pa=document.createElement('div');pa.className='paste-alert';pa.textContent='⚠️ Escritura sospechosamente rápida detectada';document.body.appendChild(pa);setTimeout(()=>pa.remove(),3000);}}_lastLen=t.value.length;_lastTime=now;}});
-// DEFENSA 4: Detección DevTools (cambio de viewport)
-let _w=window.outerWidth,_h=window.outerHeight;
-setInterval(()=>{if(!activo)return;const dw=Math.abs(window.outerWidth-window.innerWidth),dh=Math.abs(window.outerHeight-window.innerHeight);if(dw>200||dh>200){warn('Se detectó una herramienta de desarrollo abierta. Ciérrela para continuar.');}},3000);
+// (DevTools detection removed — false positives with browser UI)
 // DEFENSA 5: Advertencia al cerrar
 window.addEventListener('beforeunload',e=>{if(!activo)return;e.preventDefault();e.returnValue='';});
 // DEFENSA 6: Pantalla dividida
