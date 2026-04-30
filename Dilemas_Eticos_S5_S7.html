@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8 Dilemas Éticos en Ingeniería | Procesos Industriales</title>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS para utilidades rápidas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'] },
+                    colors: { 
+                        dark: '#080810', panel: '#111122', primary: '#f39c12', accent: '#06b6d4' 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React, ReactDOM y Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Librerías de Animación: GSAP y Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <style>
+        body { background-color: #080810; color: #e2e2ee; overflow-x: hidden; }
+        .glass-panel {
+            background: rgba(17, 17, 34, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(243, 156, 18, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(243, 156, 18, 0.2);
+        }
+        /* Partículas AnimeJS */
+        #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .particle { position: absolute; border-radius: 50%; opacity: 0; }
+        
+        /* Ocultar barra de scroll para estética limpia */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #080810; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f39c12; }
+    </style>
+</head>
+<body>
+    <div id="particles"></div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const dilemasData = [
+            {
+                id: 1,
+                tag: "Ética y Seguridad",
+                theme: "Semana 5 | Endulzamiento",
+                title: "«El jefe dice que no paren la planta»",
+                context: "Eres ingeniero de proceso en una planta de endulzamiento. Detectas que el H₂S en el gas de salida ha subido a 8 ppm (el límite es 4 ppm). El regenerador tiene una fuga térmica y necesita mantenimiento que requiere parar la planta 48 horas. El gerente de producción te dice: 'No podemos parar, estamos en cierre de mes y debemos cumplir la meta de producción. El gasoducto está a 150 km, para cuando llegue ya se diluye.'",
+                questions: [
+                    "¿Qué riesgos concretos hay si se sigue operando con 8 ppm de H₂S? (Salud, corrosión, contratos)",
+                    "¿Es técnicamente cierto que 'se diluye en el gasoducto'? ¿Qué pasa si se condensa agua?",
+                    "¿Cuál es tu responsabilidad como ingeniero? ¿A quién escalarías el problema?",
+                    "Si hay un accidente 6 meses después, ¿quién asume la responsabilidad legal y ética?"
+                ]
+            },
+            {
+                id: 2,
+                tag: "Medio Ambiente",
+                theme: "Semana 5 | Subproductos",
+                title: "«El río o los empleos»",
+                context: "Por el cierre temporal de un comprador, el azufre residual (proceso Claus) se ha acumulado por 3 meses. El supervisor propone 'disponer temporalmente el exceso en un terreno baldío cerca del río' para no tener que parar la planta. El pueblo cercano de 2,000 habitantes depende del río. Si la planta para, 120 operarios quedan sin trabajo.",
+                questions: [
+                    "¿Qué contaminantes se generarían si el azufre se lava con la lluvia hacia el río?",
+                    "¿Cómo ponderas 'empleo local' vs 'salud pública'? ¿Es válido el argumento numérico?",
+                    "¿Qué alternativas logísticas existen para no parar la planta sin violar la norma ambiental?",
+                    "Si firmas el permiso de disposición, ¿a qué sanciones te expones según la ley colombiana?"
+                ]
+            },
+            {
+                id: 3,
+                tag: "Integridad Comercial",
+                theme: "Semana 6 | Destilación (LPG)",
+                title: "«La pureza oculta»",
+                context: "La torre saca gas propano (LPG) al 92% de pureza en lugar del 95% estipulado en el contrato. Ajustar la torre al 95% requiere quemar 30% más de fuel gas en el rehervidor. El gerente ordena dejarlo en 92% argumentando: 'El cliente no tiene cromatógrafo y las estufas encienden igual, así ahorramos energía y dinero'.",
+                questions: [
+                    "Éticamente, ¿ahorrar energía y dinero justifica engañar al cliente en las especificaciones?",
+                    "Si los hidrocarburos pesados dañan los quemadores del cliente final, ¿quién es responsable?",
+                    "¿Cómo plantearías una solución 'ganar-ganar' con el distribuidor sin recurrir al engaño?"
+                ]
+            },
+            {
+                id: 4,
+                tag: "Protocolos y Riesgo",
+                theme: "Semana 7 | Refinación Atmosférica",
+                title: "«El Bypass de la Madrugada»",
+                context: "Son las 3:00 a.m. La Torre Atmosférica sufre alta presión y su válvula de alivio está atascada. Un operador veterano propone hacer un 'bypass' manual no documentado hacia la tea para evitar que la torre se apague automáticamente (lo que costaría miles de millones en pérdidas y días de arranque). La maniobra viola los protocolos de seguridad.",
+                questions: [
+                    "¿Confías en la experiencia empírica del veterano o dejas que actúe la parada de emergencia?",
+                    "Si el 'bypass' sale mal y ocurre una explosión, ¿cuál será tu argumento legal?",
+                    "¿Cómo equilibras la presión de 'no detener la producción' con la cultura de seguridad?"
+                ]
+            },
+            {
+                id: 5,
+                tag: "Gestión Económica",
+                theme: "Semana 7 | Corrientes y Catalizadores",
+                title: "«El crudo barato sale caro»",
+                context: "Compras adquirió un lote de crudo súper pesado y muy azufrado porque estaba 'en descuento' para mejorar las métricas del trimestre. Como ingeniero sabes que esto saturará las torres y acortará a la mitad la vida útil del catalizador de la planta FCC, forzando un mantenimiento millonario para el próximo semestre. Te exigen procesarlo ya.",
+                questions: [
+                    "¿Cómo justificas técnica y económicamente a gerencia que ese ahorro hoy será pérdida mañana?",
+                    "¿Deberían las decisiones de materias primas ser tomadas por el área financiera sin aval técnico?",
+                    "Si te obligan a procesarlo, ¿qué ajustes operativos drásticos tendrías que hacer?"
+                ]
+            },
+            {
+                id: 6,
+                tag: "Ética Ambiental",
+                theme: "Semanas 5-7 | Mantenimiento",
+                title: "«La micro-fuga tolerable»",
+                context: "Un intercambiador tiene una micro-fuga pasando amina al agua de enfriamiento que va al río. La cantidad es tan pequeña que al promediarse, se mantiene 'por debajo del límite legal'. Reemplazar el equipo toma 4 meses. Puedes parar la planta (afectando la ciudad) o seguir contaminando de forma 'legalmente aceptable' 4 meses más.",
+                questions: [
+                    "¿Es ético seguir operando si el nivel de contaminación es 'legal' pero moralmente cuestionable?",
+                    "Entre parar la planta (afectar suministro nacional) o micro-contaminar, ¿cuál es el mal menor?",
+                    "¿Existe la 'contaminación aceptable' en la ingeniería moderna?"
+                ]
+            },
+            {
+                id: 7,
+                tag: "Poder y Prestigio",
+                theme: "Semana 6 | Termodinámica",
+                title: "«El error del maestro»",
+                context: "Eres el ingeniero junior. Descubres que el diseño térmico del rehervidor, hecho hace años por tu Ingeniero Jefe (quien te contrató), tiene un error que hace gastar a la empresa 15 millones extra al mes. Se lo cuentas en privado y él te dice: 'La planta funciona y el cliente paga. Si lo reportas, me destruyes ante gerencia. Déjalo así'.",
+                questions: [
+                    "¿A quién le debes lealtad: a tu mentor/jefe o a la eficiencia económica de la empresa?",
+                    "Si dejas pasar el error y una auditoría externa lo descubre luego, ¿tienes culpabilidad por omisión?",
+                    "¿Cómo manejarías la comunicación para corregir el error sin destruir su reputación?"
+                ]
+            },
+            {
+                id: 8,
+                tag: "Responsabilidad Social",
+                theme: "Semana 7 | Economía de Refinación",
+                title: "«La Cosecha vs. La Rentabilidad»",
+                context: "Hay escasez nacional de Diésel, amenazando la cosecha agrícola. Puedes modificar la torre para producir más Diésel, pero esto reduciría drásticamente tu producción de Gasolina Extra (de donde viene la gran ganancia de la refinería). El Gobierno pide apoyo urgente, pero tu Junta Directiva te exige maximizar las utilidades financieras del trimestre.",
+                questions: [
+                    "¿Tiene una refinería la obligación social de garantizar seguridad alimentaria a costa de sus ganancias?",
+                    "Técnicamente, si fuerzas la torre para sacar más diésel, ¿qué pasa con los demás cortes y calidades?",
+                    "Si fueras el gerente, ¿cómo justificarías ante los accionistas una caída voluntaria en utilidades?"
+                ]
+            }
+        ];
+
+        // Componente Tarjeta Dilema
+        const DilemaCard = ({ dilema, index }) => {
+            const cardRef = useRef(null);
+
+            useEffect(() => {
+                // Entrada animada con ScrollTrigger (GSAP)
+                gsap.fromTo(cardRef.current, 
+                    { y: 100, opacity: 0, scale: 0.95 },
+                    { 
+                        y: 0, opacity: 1, scale: 1, 
+                        duration: 0.8, 
+                        ease: "power3.out",
+                        scrollTrigger: {
+                            trigger: cardRef.current,
+                            start: "top 85%",
+                            toggleActions: "play none none reverse"
+                        }
+                    }
+                );
+            }, []);
+
+            return (
+                <div ref={cardRef} className="glass-panel p-8 rounded-2xl relative overflow-hidden group">
+                    {/* Elemento decorativo */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full group-hover:opacity-20 transition-opacity duration-500"></div>
+                    
+                    <div className="flex items-center gap-3 mb-6">
+                        <span className="bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+                            {dilema.tag}
+                        </span>
+                    </div>
+
+                    <div className="flex items-start gap-4 mb-6">
+                        <div className="flex-shrink-0 w-12 h-12 bg-gray-800 border border-gray-700 rounded-xl flex items-center justify-center font-display font-black text-2xl text-accent">
+                            {dilema.id}
+                        </div>
+                        <h2 className="font-display font-bold text-2xl leading-tight text-white group-hover:text-primary transition-colors">
+                            {dilema.title}
+                        </h2>
+                    </div>
+
+                    <div className="bg-black/30 p-5 rounded-xl border border-white/5 mb-6">
+                        <p className="text-gray-300 leading-relaxed text-sm md:text-base">
+                            {dilema.context}
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            Preguntas Críticas
+                        </h4>
+                        <ul className="space-y-3">
+                            {dilema.questions.map((q, i) => (
+                                <li key={i} className="flex items-start gap-3 text-sm text-gray-400">
+                                    <span className="text-accent font-bold mt-0.5">•</span>
+                                    <span>{q}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const headerRef = useRef(null);
+
+            useEffect(() => {
+                // Registrar ScrollTrigger
+                gsap.registerPlugin(ScrollTrigger);
+
+                // Animación de Hero (GSAP)
+                gsap.from(headerRef.current, {
+                    y: -50,
+                    opacity: 0,
+                    duration: 1.2,
+                    ease: "power4.out"
+                });
+
+                // Crear partículas de fondo flotantes (AnimeJS)
+                const particleContainer = document.getElementById('particles');
+                const fragment = document.createDocumentFragment();
+                const colors = ['#f39c12', '#06b6d4', '#e74c3c', '#9b59b6'];
+
+                for (let i = 0; i < 40; i++) {
+                    const el = document.createElement('div');
+                    el.classList.add('particle');
+                    const size = Math.random() * 8 + 2;
+                    el.style.width = `${size}px`;
+                    el.style.height = `${size}px`;
+                    el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    el.style.left = `${Math.random() * 100}vw`;
+                    el.style.top = `${Math.random() * 100}vh`;
+                    fragment.appendChild(el);
+                }
+                particleContainer.appendChild(fragment);
+
+                anime({
+                    targets: '.particle',
+                    translateY: () => [0, anime.random(-200, 200)],
+                    translateX: () => [0, anime.random(-200, 200)],
+                    scale: () => [0, Math.random() * 1.5 + 0.5],
+                    opacity: () => [0, Math.random() * 0.4 + 0.1, 0],
+                    duration: () => anime.random(4000, 10000),
+                    easing: 'linear',
+                    loop: true,
+                    delay: anime.stagger(200)
+                });
+            }, []);
+
+            return (
+                <div className="min-h-screen pb-20">
+                    <header ref={headerRef} className="pt-24 pb-16 px-6 text-center max-w-4xl mx-auto">
+                        <div className="inline-block border border-primary/30 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase mb-6">
+                            Pensamiento Sistémico
+                        </div>
+                        <h1 className="font-display text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-yellow-200 to-accent mb-6 leading-tight">
+                            8 Dilemas Éticos y Profesionales
+                        </h1>
+                        <p className="text-gray-400 text-lg md:text-xl font-light">
+                            Situaciones reales de la industria del gas y refinación donde la decisión técnica choca con la ética, la seguridad y el dinero. <strong className="text-white">No hay respuesta única.</strong>
+                        </p>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {dilemasData.map((dilema, idx) => (
+                            <DilemaCard key={dilema.id} dilema={dilema} index={idx} />
+                        ))}
+                    </main>
+
+                    <footer className="mt-24 text-center text-gray-600 text-sm border-t border-white/5 pt-8">
+                        Procesos Industriales 1 • UNIPAZ • Elaborado por Esp. Marlon Gomez
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

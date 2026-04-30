@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Respuestas Docente | 8 Dilemas Éticos</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'] },
+                    colors: { 
+                        dark: '#080810', panel: '#111122', primary: '#f39c12', accent: '#06b6d4', success: '#2ecc71', danger: '#e74c3c'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        body { background-color: #080810; color: #e2e2ee; overflow-x: hidden; }
+        .glass-panel {
+            background: rgba(17, 17, 34, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover { border-color: rgba(6, 182, 212, 0.4); box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.2); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #080810; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useEffect, useRef } = React;
+
+        const respuestasData = [
+            {
+                id: 1,
+                title: "«El jefe dice que no paren la planta»",
+                technical: "Operar a 8 ppm de H₂S excede el límite de seguridad (típicamente 4 ppm). Provoca la formación de condensados ácidos en el gasoducto que generan corrosión acelerada por estrés (SCC).",
+                ethical: "La orden del jefe es ilegal e irresponsable. Un ingeniero no puede justificar riesgos a la salud y medioambiente por metas mensuales de producción.",
+                solution: "Buscar alternativas operativas inmediatas: bajar el flujo de gas crudo (turndown) para darle tiempo al regenerador de recuperar la amina, mezclar el gas tratado con otra línea (blending) si existe, o en última instancia, documentar la negativa a operar fuera de norma escalando a la gerencia de seguridad (HSE)."
+            },
+            {
+                id: 2,
+                title: "«El río o los empleos»",
+                technical: "El azufre al aire libre, combinado con la humedad del río y el oxígeno, reacciona y forma ácido sulfúrico (H₂SO₄), alterando catastróficamente el pH del cuerpo de agua y matando la fauna acuática.",
+                ethical: "Falso dilema moral. Un crimen ambiental que afecte la salud de 2,000 personas no se justifica para 'salvar' 120 empleos temporales. La responsabilidad social debe prevalecer.",
+                solution: "Evaluar opciones de almacenamiento alternativo: alquilar silos temporales, usar técnica de solidificación en bloques (que evita el lixiviado), o vender el azufre a pérdida a otra industria para descongestionar inventario."
+            },
+            {
+                id: 3,
+                title: "«La pureza oculta»",
+                technical: "Un LPG al 92% contiene mayor fracción de butanos/pentanos. Esto aumenta su punto de rocío y genera combustión incompleta en los quemadores finales, produciendo hollín y fallas en los equipos del usuario.",
+                ethical: "Entregar especificaciones falsas es fraude comercial y viola la ética profesional de honestidad e integridad. El ahorro energético de la planta no puede basarse en engañar al cliente.",
+                solution: "Ajustar las variables de forma óptima (ej. modificar ligeramente la presión de la torre para facilitar separación a menor temperatura del rehervidor). Si es imposible por equipos, negociar un descuento temporal con el cliente informándole la pureza real."
+            },
+            {
+                id: 4,
+                title: "«El Bypass de la Madrugada»",
+                technical: "Las válvulas de alivio son la última capa de protección (LOPA). Hacer un bypass directo hacia la tea puede sobrepasar la capacidad de diseño del flare, causando 'lluvia de crudo' incendiada o una explosión.",
+                ethical: "Viola absolutamente todos los estándares de seguridad industrial (OSHA, API). La complacencia ante un riesgo crítico por evitar detener la planta es negligencia criminal.",
+                solution: "Rechazar tajantemente la maniobra manual. Iniciar de inmediato la Parada de Emergencia (ESD) o parada controlada. Las pérdidas económicas nunca justificarán la pérdida de vidas y de las instalaciones completas."
+            },
+            {
+                id: 5,
+                title: "«El crudo barato sale caro»",
+                technical: "El crudo extrapesado contiene altos metales (Níquel, Vanadio) y asfaltenos que envenenan la zeolita del catalizador del FCC (Cracking) de forma irreversible, aumentando el coque y reduciendo la producción de gasolina.",
+                ethical: "Decisiones con visión a corto plazo impuestas por áreas no técnicas que perjudican la sostenibilidad a largo plazo. Falta de comunicación transversal.",
+                solution: "Demostrar financieramente con los costos de parada y reemplazo de catalizador que el crudo no es rentable puro. Plantear como solución operativa el 'Blending' (mezcla): dosificar este crudo al 10-15% con el crudo habitual para diluir el daño de los metales."
+            },
+            {
+                id: 6,
+                title: "«La micro-fuga tolerable»",
+                technical: "La amina en el agua incrementa drásticamente la DBO y DQO (Demanda Bioquímica y Química de Oxígeno), matando bacterias en las plantas de tratamiento de aguas residuales y asfixiando ríos.",
+                ethical: "Jugar 'al borde' de la legalidad por la estadística del promedio diluido es una falta de integridad ambiental y viola el Principio de Precaución.",
+                solution: "Implementar medidas de mitigación: aislar ese intercambiador parcialmente (si hay varios en paralelo), operar la torre a una presión ligeramente más baja para que el diferencial reduzca la fuga, o instalar un filtro temporal de carbón activado en el efluente."
+            },
+            {
+                id: 7,
+                title: "«El error del maestro»",
+                technical: "Un reflujo excesivo inunda inútilmente los platos y obliga al rehervidor a gastar muchos más BTU, sin aportar ninguna mejora real a la pureza del destilado.",
+                ethical: "Conflicto entre lealtad personal/política de oficina y lealtad profesional a la optimización e integridad del proyecto.",
+                solution: "Diplomacia técnica: Acercarse al jefe proponiendo un 'Proyecto de Optimización Energética'. De este modo, no se expone el diseño original como un error garrafal, sino que se vende la corrección como una mejora continua impulsada por ambos, ahorrando el dinero a la empresa sin destruir famas."
+            },
+            {
+                id: 8,
+                title: "«La Cosecha vs. La Rentabilidad»",
+                technical: "Para sacar más diésel, se baja el corte de temperatura, absorbiendo nafta pesada. Esto reduce drásticamente el punto de inflamación del diésel (haciéndolo peligroso) y le quita las moléculas de mayor octanaje a la gasolina extra.",
+                ethical: "Responsabilidad Social Empresarial ante un estado de emergencia vs el deber fiduciario hacia los inversionistas.",
+                solution: "La refinería no debe operar el diésel fuera de especificación de seguridad (Flash Point). La solución es elevar la carga total de la torre al máximo seguro (ej. 105% del diseño operativo) y, paralelamente, solicitar a gerencia buscar subsidios/compensación gubernamental para mitigar el golpe en los márgenes de utilidad."
+            }
+        ];
+
+        const RespuestasCard = ({ resp, index }) => {
+            const cardRef = useRef(null);
+
+            useEffect(() => {
+                gsap.fromTo(cardRef.current, 
+                    { y: 50, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.6, ease: "power2.out",
+                      scrollTrigger: { trigger: cardRef.current, start: "top 90%" }
+                    }
+                );
+            }, []);
+
+            return (
+                <div ref={cardRef} className="glass-panel p-6 md:p-8 rounded-2xl relative mb-8">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-accent rounded-l-2xl"></div>
+                    
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-10 h-10 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-display font-black text-xl border border-accent/40">
+                            {resp.id}
+                        </div>
+                        <h2 className="font-display font-bold text-xl md:text-2xl text-white">
+                            {resp.title}
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-dark/50 p-5 rounded-xl border border-white/5">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Enfoque Técnico</h4>
+                            <p className="text-sm text-gray-300 leading-relaxed">{resp.technical}</p>
+                        </div>
+                        <div className="bg-dark/50 p-5 rounded-xl border border-white/5">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-danger mb-3">Análisis Ético/Legal</h4>
+                            <p className="text-sm text-gray-300 leading-relaxed">{resp.ethical}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-success/10 p-5 rounded-xl border border-success/20">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-success mb-2 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Solución / Expectativa Docente
+                        </h4>
+                        <p className="text-sm text-gray-200">{resp.solution}</p>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            useEffect(() => {
+                gsap.registerPlugin(ScrollTrigger);
+                gsap.from("header", { y: -30, opacity: 0, duration: 1 });
+            }, []);
+
+            return (
+                <div className="min-h-screen py-16 px-4 md:px-8 max-w-5xl mx-auto">
+                    <header className="text-center mb-16">
+                        <div className="inline-block border border-accent/30 bg-accent/10 text-accent px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
+                            Exclusivo para Docente
+                        </div>
+                        <h1 className="font-display text-4xl md:text-5xl font-black text-white mb-4">Guía de Respuestas y Rúbrica</h1>
+                        <p className="text-gray-400 text-lg">Soluciones técnicas, posturas éticas y orientación esperada para calificar los 8 dilemas en clase.</p>
+                    </header>
+
+                    <main>
+                        {respuestasData.map((resp, i) => (
+                            <RespuestasCard key={resp.id} resp={resp} index={i} />
+                        ))}
+                    </main>
+
+                    <footer className="mt-20 text-center text-gray-500 text-sm">
+                        Procesos Industriales 1 • UNIPAZ • Elaborado por Esp. Marlon Gomez
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
