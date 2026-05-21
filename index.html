@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Procesos Industriales — Visor 3D</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <aside id="sidebar">
+    <header class="sidebar-header">
+      <div>
+        <h1>Procesos Industriales</h1>
+        <p class="subtitle">Visor 3D interactivo</p>
+      </div>
+      <button id="theme-toggle" class="icon-btn" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </header>
+
+    <section class="panel">
+      <h2>Modelos</h2>
+      <select id="model-select"></select>
+      <p id="model-description" class="muted"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Vista</h2>
+      <label class="switch">
+        <input type="checkbox" id="toggle-colors" />
+        <span class="slider"></span>
+        <span class="switch-label">Resaltar componentes por color</span>
+      </label>
+      <ul id="legend" class="legend"></ul>
+    </section>
+
+    <section class="panel">
+      <h2>Mover modelo</h2>
+      <div class="btn-row">
+        <button id="btn-translate" class="btn">Trasladar</button>
+        <button id="btn-rotate" class="btn">Rotar</button>
+        <button id="btn-off" class="btn active">Desactivar</button>
+      </div>
+      <div class="btn-row">
+        <button id="btn-default" class="btn full">Posición por defecto</button>
+      </div>
+      <div class="coords">
+        <span>X: <b id="coord-x">0.00</b></span>
+        <span>Y: <b id="coord-y">0.00</b></span>
+        <span>Z: <b id="coord-z">0.00</b></span>
+      </div>
+      <p class="muted" style="margin-top:6px;font-size:11px;">Atajos: <b>G</b> trasladar &middot; <b>R</b> rotar &middot; <b>Esc</b> desactivar</p>
+    </section>
+
+    <section class="panel">
+      <h2>Componentes</h2>
+      <ul id="parts-list"></ul>
+    </section>
+
+    <footer>
+      <p class="hint">Clic izquierdo: rotar &middot; Rueda: zoom &middot; Clic derecho: desplazar</p>
+    </footer>
+  </aside>
+
+  <button id="menu-toggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line class="menu-line top" x1="3" y1="6" x2="21" y2="6"/>
+      <line class="menu-line mid" x1="3" y1="12" x2="21" y2="12"/>
+      <line class="menu-line bot" x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <main id="canvas-container">
+    <div id="loading">Cargando escena…</div>
+
+    <div id="info-modal" class="info-modal" hidden>
+      <header class="info-modal__header">
+        <h2>Parte seleccionada</h2>
+        <button id="info-close" class="info-modal__close" aria-label="Cerrar">&times;</button>
+      </header>
+      <div id="info" class="info-modal__body"></div>
+    </div>
+  </main>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
