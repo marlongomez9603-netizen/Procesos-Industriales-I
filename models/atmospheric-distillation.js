@@ -48,6 +48,13 @@ function pipeSegment(a, b, mat, radius = 0.08) {
   return pipe;
 }
 
+function addPipes(parent, pts, mat, r = 0.08) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const s = pipeSegment(pts[i], pts[i + 1], mat, r);
+    if (s) parent.add(s);
+  }
+}
+
 function flange(R, y, mat, x = 0, z = 0) {
   const ring = new THREE.Mesh(new THREE.TorusGeometry(R * 1.04, 0.055, 12, 40), mat);
   ring.rotation.x = Math.PI / 2;
@@ -343,11 +350,27 @@ function buildPlatforms() {
   g.add(ringPlatform(1.5, 7.7, matFrame()));
   g.add(ringPlatform(1.7, 10.1, matFrame()));
   g.add(ringPlatform(1.7, 12.9, matFrame()));
-  // escalera (caja inclinada simplificada)
-  const stair = new THREE.Mesh(new THREE.BoxGeometry(0.7, 13, 0.1), matFrame());
-  stair.position.set(2.6, 6.8, 0);
-  stair.rotation.z = 0.18;
-  g.add(stair);
+
+  // Escalera de gato con jaula de seguridad, vertical y adosada a la columna.
+  const ladX = -1.95, ladZ = 0.6, yTop = 12.9;
+  [-0.2, 0.2].forEach((dz) => {
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, yTop - 0.6, 8), matFrame());
+    rail.position.set(ladX, 0.6 + (yTop - 0.6) / 2, ladZ + dz);
+    g.add(rail);
+  });
+  for (let y = 1.0; y <= yTop - 0.2; y += 0.4) {
+    const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4, 6), matFrame());
+    rung.rotation.x = Math.PI / 2; rung.position.set(ladX, y, ladZ); g.add(rung);
+  }
+  for (let y = 2.0; y <= yTop - 0.4; y += 0.8) {
+    const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.02, 6, 18), matFrame());
+    hoop.rotation.x = Math.PI / 2; hoop.position.set(ladX - 0.22, y, ladZ); g.add(hoop);
+  }
+  [5.0, 7.7, 10.1, 12.9].forEach((y) => {
+    const br = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.08), matFrame());
+    br.position.set(ladX + 0.3, y, ladZ); g.add(br);
+  });
+
   return tagGroup(g, {
     id: 'cdu-platforms',
     title: 'Plataformas y escaleras',
@@ -423,12 +446,30 @@ function buildSideStrippers() {
 function buildOverheadSystem() {
   const g = new THREE.Group();
   const cx = 4.5, cz = -4.0;
-  // estructura
+  // Estructura de soporte: postes que llegan hasta el air-cooler (y=12.5),
+  // con vigas horizontales a la altura del tambor y del cooler + arriostramiento.
+  const postTop = 13.0;
   for (const dz of [-1.0, 1.0]) for (const dx of [-1.9, 1.9]) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.14, 11.0, 0.14), matFrame());
-    post.position.set(cx + dx, 5.5, cz + dz);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, postTop, 0.16), matFrame());
+    post.position.set(cx + dx, postTop / 2, cz + dz);
     g.add(post);
   }
+  // Vigas horizontales (a nivel de tambor y de cooler) que soportan los equipos
+  [10.3, 12.5].forEach((y) => {
+    [-1.0, 1.0].forEach((dz) => {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.12, 0.12), matFrame());
+      beam.position.set(cx, y, cz + dz); g.add(beam);
+    });
+    [-1.9, 1.9].forEach((dx) => {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 2.2), matFrame());
+      beam.position.set(cx + dx, y, cz); g.add(beam);
+    });
+  });
+  // Arriostramiento diagonal en los costados
+  [-1.9, 1.9].forEach((dx) => {
+    const br = new THREE.Mesh(new THREE.BoxGeometry(0.08, 5.0, 0.08), matFrame());
+    br.position.set(cx + dx, 7.5, cz - 1.0); br.rotation.x = 0.35; g.add(br);
+  });
   // air cooler
   const cooler = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.45, 1.8), matSteelDark());
   cooler.position.set(cx, 12.5, cz);
@@ -524,20 +565,52 @@ function buildPumparoundPumps() {
 function buildPiping() {
   const g = new THREE.Group();
   const m = matPipe();
-  [
-    pipeSegment([-7.5, 5.2, -2.0], [-7.5, 6.0, -2.0], m, 0.24),
-    pipeSegment([-7.5, 6.0, -2.0], [-7.5, 6.0, 0], m, 0.24),
-    pipeSegment([-7.5, 6.0, 0], [-1.6, 6.0, 0], m, 0.24),
-    pipeSegment([1.5, 13.6, 0], [1.5, 13.6, -4.0], m, 0.3),
-    pipeSegment([1.5, 13.6, -4.0], [3.0, 13.6, -4.0], m, 0.3),
-    pipeSegment([0, 1.4, 0], [0, 0.5, 0], m, 0.13),
-    pipeSegment([0, 0.5, 0], [9.0, 0.5, 0], m, 0.13),
-  ].forEach((p) => p && g.add(p));
+
+  // Transferencia horno -> zona de flasheo de la columna
+  addPipes(g, [[-7.5, 5.2, -2.0], [-7.5, 6.0, -2.0], [-7.5, 6.0, 0], [-1.6, 6.0, 0]], m, 0.24);
+  // Vapores de cabeza -> air cooler (entra al cooler en x=4.5)
+  addPipes(g, [[1.5, 14.0, 0], [1.5, 14.0, -4.0], [4.5, 14.0, -4.0], [4.5, 13.0, -4.0]], m, 0.3);
+  // Reflujo: tambor de cabeza -> tope de la columna
+  addPipes(g, [[3.0, 10.3, -4.0], [-1.9, 10.3, -4.0], [-1.9, 11.6, 0]], m, 0.1);
+  // Residuo atmosférico (fondo) -> hacia la VDU
+  addPipes(g, [[0, 1.4, 0], [0, 0.5, 0], [9.0, 0.5, 0]], m, 0.13);
+
+  // --- Side strippers (Kero / LGO / HGO): extracción de la columna, retorno de
+  //     vapor y producto hacia las bombas. Strippers en x=4.6/6.1/7.6, z=2.0 ---
+  const strX = [4.6, 6.1, 7.6];
+  const cutY = [11.0, 9.0, 7.0];    // alturas de extracción en la columna (top/mid/flash)
+  strX.forEach((sx, i) => {
+    const colR = 1.7;               // radio aproximado del lado +x de la columna
+    // Extracción de líquido columna -> tope del stripper
+    addPipes(g, [[colR, cutY[i], 0], [sx, cutY[i], 0], [sx, cutY[i], 2.0], [sx, 5.3, 2.0]], m, 0.08);
+    // Retorno de vapor stripper -> columna (un poco por encima de la extracción)
+    addPipes(g, [[sx - 0.3, 5.0, 2.0], [sx - 0.3, cutY[i] + 0.5, 2.0], [colR, cutY[i] + 0.5, 0]], m, 0.07);
+    // Producto: fondo del stripper -> bomba de producto (z=4.5)
+    addPipes(g, [[sx + 0.55, 1.5, 2.0], [sx + 0.55, 1.5, 3.5], [sx, 0.82, 4.5]], m, 0.07);
+    // Salida de producto bombeado
+    addPipes(g, [[sx + 0.24, 0.82, 4.5], [sx + 0.24, 0.82, 6.0]], m, 0.06);
+    // Vapor de stripping al fondo del stripper
+    addPipes(g, [[sx - 0.55, 1.4, 2.0], [sx - 0.55, 0.9, 2.0]], m, 0.05);
+  });
+
+  // --- Pumparounds (top/medio/fondo): extracción del lado -x de la columna ->
+  //     bomba (x=-2.4/-3.5/-4.6, z=4.5) -> retorno a la columna ---
+  const paX = [-2.4, -3.5, -4.6];
+  const paDrawY = [10.8, 8.2, 5.6];
+  const paRetY = [11.4, 8.9, 6.3];
+  paX.forEach((px, i) => {
+    const colR = -1.6;
+    // Extracción columna -> bomba
+    addPipes(g, [[colR, paDrawY[i], 0], [px, paDrawY[i], 0], [px, paDrawY[i], 3.5], [px - 0.3, 1.05, 4.5]], m, 0.08);
+    // Bomba -> retorno a la columna (más arriba que la extracción)
+    addPipes(g, [[px + 0.26, 1.05, 4.5], [px + 0.6, 1.05, 2.0], [px + 0.6, paRetY[i], 0], [colR, paRetY[i], 0]], m, 0.07);
+  });
+
   return tagGroup(g, {
     id: 'cdu-piping',
     title: 'Tubería de proceso',
     category: 'Tubería',
-    description: 'Líneas que conectan los equipos: transferencia horno-columna, vapores de cabeza al condensador, reflujo, productos y residuo atmosférico hacia las unidades aguas abajo.',
+    description: 'Líneas que conectan los equipos: transferencia horno-columna, vapores de cabeza al condensador, reflujo, extracciones laterales y retornos de los side strippers, lazos de pumparound, productos y residuo atmosférico hacia las unidades aguas abajo.',
     specs: 'Aislamiento térmico en líneas calientes · Materiales según servicio'
   });
 }
