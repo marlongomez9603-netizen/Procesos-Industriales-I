@@ -51,6 +51,13 @@ function pipeSegment(a, b, mat, radius = 0.08) {
   return pipe;
 }
 
+function addPipes(parent, pts, mat, r = 0.08) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const s = pipeSegment(pts[i], pts[i + 1], mat, r);
+    if (s) parent.add(s);
+  }
+}
+
 function flange(R, y, mat, x = 0, z = 0) {
   const ring = new THREE.Mesh(new THREE.TorusGeometry(R * 1.04, 0.06, 12, 40), mat);
   ring.rotation.x = Math.PI / 2;
@@ -292,9 +299,28 @@ function buildPlatforms() {
   g.add(ringPlatform(1.4, 4.6, matFrame()));
   g.add(ringPlatform(2.0, 7.2, matFrame()));
   g.add(ringPlatform(2.0, 9.8, matFrame()));
-  const stair = new THREE.Mesh(new THREE.BoxGeometry(0.7, 10, 0.1), matFrame());
-  stair.position.set(2.9, 5.5, 0); stair.rotation.z = 0.2;
-  g.add(stair);
+
+  // Escalera de gato con jaula de seguridad, vertical y adosada a la torre.
+  const ladX = -2.15, ladZ = 0.6, yTop = 9.8;
+  [-0.2, 0.2].forEach((dz) => {
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, yTop - 0.6, 8), matFrame());
+    rail.position.set(ladX, 0.6 + (yTop - 0.6) / 2, ladZ + dz);
+    g.add(rail);
+  });
+  for (let y = 1.0; y <= yTop - 0.2; y += 0.4) {
+    const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4, 6), matFrame());
+    rung.rotation.x = Math.PI / 2; rung.position.set(ladX, y, ladZ); g.add(rung);
+  }
+  for (let y = 2.0; y <= yTop - 0.4; y += 0.8) {
+    const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.02, 6, 18), matFrame());
+    hoop.rotation.x = Math.PI / 2; hoop.position.set(ladX - 0.22, y, ladZ); g.add(hoop);
+  }
+  // Brackets que unen la escalera con la torre a la altura de cada plataforma.
+  [4.6, 7.2, 9.8].forEach((y) => {
+    const br = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.08), matFrame());
+    br.position.set(ladX + 0.3, y, ladZ); g.add(br);
+  });
+
   return tagGroup(g, {
     id: 'vdu-platforms',
     title: 'Plataformas y escaleras',
@@ -396,6 +422,12 @@ function buildIntercondensers() {
     const cw = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 12), matCW());
     cw.position.set(ex, y + 0.45, ez + 0.3);
     g.add(cw);
+    // Patas de soporte hasta el suelo (antes flotaban)
+    [-0.45, 0.45].forEach((dx) => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, y - 0.3, 0.1), matFrame());
+      leg.position.set(ex + dx, (y - 0.3) / 2, ez);
+      g.add(leg);
+    });
   });
   return tagGroup(g, {
     id: 'vdu-intercondensers',
@@ -461,13 +493,16 @@ function buildPumparoundCoolers() {
 
 function buildPumparoundPumps() {
   const g = new THREE.Group();
-  [[4.5, 5.5], [6.0, 5.5], [7.5, 5.5]].forEach(([x, z]) => {
+  // Dos bombas alineadas con sus enfriadores (LVGO en z=4, HVGO en z=2).
+  [[6.5, 4.0], [6.5, 2.0]].forEach(([x, z]) => {
     const ped = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.25, 0.6), matConcrete());
     ped.position.set(x, 0.55, z);
     g.add(ped);
     const pump = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.42, 18), matSteel());
     pump.rotation.z = Math.PI / 2; pump.position.set(x - 0.3, 0.82, z);
     g.add(pump);
+    const vol = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), matSteel());
+    vol.position.set(x - 0.5, 0.82, z); vol.scale.set(1, 1, 0.85); g.add(vol);
     const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.58, 18), matMotor());
     motor.rotation.z = Math.PI / 2; motor.position.set(x + 0.25, 0.82, z);
     g.add(motor);
@@ -502,6 +537,21 @@ function buildPiping() {
     pipeSegment([-0.8, 3.0, -4.5], [-0.8, 1.5, -6.5], matPipe(), 0.07),
   ];
   segs.forEach((p) => p && g.add(p));
+
+  // --- Lazos de pumparound (antes las bombas/enfriadores estaban aislados) ---
+  // LVGO (enfriador y bomba en z=4): extracción de la torre -> enfriador -> bomba -> retorno a la torre
+  addPipes(g, [[2.2, 8.2, 0], [3.6, 8.2, 0], [3.6, 8.2, 4.0], [4.5, 8.2, 4.0], [4.5, 2.5, 4.0]], m, 0.08);
+  addPipes(g, [[5.0, 1.8, 4.0], [6.5, 1.8, 4.0], [6.5, 1.1, 4.0]], m, 0.07);
+  addPipes(g, [[6.9, 0.82, 4.0], [6.9, 9.2, 4.0], [6.9, 9.2, 0], [2.2, 9.2, 0]], m, 0.07);
+  // HVGO (enfriador y bomba en z=2): extracción -> enfriador -> bomba -> retorno
+  addPipes(g, [[1.5, 6.0, 0], [3.6, 6.0, 0], [3.6, 6.0, 2.0], [4.5, 6.0, 2.0], [4.5, 2.5, 2.0]], m, 0.08);
+  addPipes(g, [[5.0, 1.8, 2.0], [6.5, 1.8, 2.0], [6.5, 1.1, 2.0]], m, 0.07);
+  addPipes(g, [[6.9, 0.82, 2.0], [6.9, 6.6, 2.0], [6.9, 6.6, 0], [1.5, 6.6, 0]], m, 0.07);
+
+  // Venteo de no condensables (salida del último eyector hacia fuel gas/antorcha)
+  addPipes(g, [[-0.8, 6.8, -4.5], [-0.8, 8.5, -4.5], [-0.8, 8.5, -6.0]], matPipe(), 0.07);
+  // Vapor motor a los eyectores
+  addPipes(g, [[-5.0, 7.0, -4.5], [-3.6, 7.0, -4.5], [-3.6, 6.4, -4.5]], matSteam(), 0.06);
   return tagGroup(g, {
     id: 'vdu-piping',
     title: 'Tubería de proceso',
