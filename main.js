@@ -112,12 +112,22 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 container.appendChild(renderer.domElement);
 
-// Environment map (IBL) — proporciona reflejos PBR realistas en materiales
-// metálicos y mejora drásticamente cómo se ven las superficies. Usamos
-// RoomEnvironment (estudio procedural), que no requiere descargar HDRIs.
-const pmrem = new THREE.PMREMGenerator(renderer);
-const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
-scene.environment = envRT.texture;
+// Detección de dispositivos móviles / de gama baja. En iOS Safari el pipeline
+// de post-procesado (render targets HalfFloat, múltiples passes) suele fallar
+// en silencio y dejar el canvas en negro, así que ahí renderizamos directo.
+const isMobileDevice =
+  /Android|iPhone|iPad|iPod|Mobile|Silk/i.test(navigator.userAgent) ||
+  (navigator.maxTouchPoints > 1 && window.matchMedia('(max-width: 1024px)').matches);
+
+// Environment map (IBL) — reflejos PBR realistas. Protegido: si PMREM falla
+// (algunos GPUs móviles), la escena sigue iluminada por las luces.
+try {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+  scene.environment = envRT.texture;
+} catch (err) {
+  console.warn('[render] Environment map no disponible, se usa solo iluminación directa:', err);
+}
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -188,6 +198,12 @@ composer.addPass(bloomPass);
 
 // OutputPass — aplica tone mapping y conversión a sRGB al final del pipeline.
 composer.addPass(new OutputPass());
+
+// En móvil renderizamos directo (renderer.render) para evitar el canvas en
+// negro que provoca el post-procesado en algunos navegadores móviles. El tone
+// mapping y el environment map siguen activos; solo se pierden el contorno y
+// el bloom (cosméticos). El resaltado emissive de selección sigue funcionando.
+let usePostFX = !isMobileDevice;
 // ----------------------------------------------------------------------------
 
 // Interaction state — used to skip picking and downscale during orbit/drag.
@@ -805,6 +821,16 @@ resize();
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
-  composer.render();
+  if (usePostFX) {
+    try {
+      composer.render();
+    } catch (err) {
+      console.warn('[render] Post-procesado falló; cambiando a render directo:', err);
+      usePostFX = false;
+      renderer.render(scene, camera);
+    }
+  } else {
+    renderer.render(scene, camera);
+  }
 }
 animate();

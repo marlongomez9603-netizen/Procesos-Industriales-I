@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(curl -s -m 20 \"https://majogoar13.github.io/refinery/models/index.js\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 20 \"https://majogoar13.github.io/refinery/\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -m 20 \"https://majogoar13.github.io/\")",
+      "Bash(curl -s -m 20 \"https://majogoar13.github.io/models/index.js\")",
+      "Bash(curl -s -I -m 20 \"https://majogoar13.github.io/refinery/\")"
+    ]
+  }
+}
