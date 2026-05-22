@@ -45,6 +45,9 @@ html, body {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   overflow: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
+  /* Evita el "pull-to-refresh" y el rebote elástico al gesticular sobre el visor en móvil */
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 * {
@@ -410,6 +413,9 @@ select:focus { outline: 1px solid var(--accent); }
   width: 100%;
   margin: 0;
   padding: 0;
+  /* Cede todos los gestos táctiles a OrbitControls (rotar/zoom/pan) en vez de
+     dejar que el navegador haga scroll o zoom de página. Clave en móvil. */
+  touch-action: none;
 }
 
 #canvas-container canvas {
@@ -419,6 +425,7 @@ select:focus { outline: 1px solid var(--accent); }
   left: 0;
   width: 100% !important;
   height: 100% !important;
+  touch-action: none;
 }
 
 #loading {
@@ -485,7 +492,11 @@ select:focus { outline: 1px solid var(--accent); }
     grid-row: 1;
   }
 
-  .menu-toggle { display: inline-flex; }
+  .menu-toggle {
+    display: inline-flex;
+    top: calc(12px + env(safe-area-inset-top));
+    right: calc(12px + env(safe-area-inset-right));
+  }
 
   #sidebar {
     position: fixed;
@@ -499,7 +510,9 @@ select:focus { outline: 1px solid var(--accent); }
     box-shadow: -8px 0 28px rgba(0, 0, 0, 0.35);
     transform: translateX(100%);
     transition: transform 0.25s ease;
-    padding-top: 64px;
+    padding-top: calc(64px + env(safe-area-inset-top));
+    padding-right: calc(18px + env(safe-area-inset-right));
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
   }
 
   #sidebar.open { transform: translateX(0); }
@@ -516,7 +529,7 @@ select:focus { outline: 1px solid var(--accent); }
   .info-modal {
     width: calc(100% - 24px);
     right: 12px;
-    bottom: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
     max-height: 55vh;
     overflow-y: auto;
   }

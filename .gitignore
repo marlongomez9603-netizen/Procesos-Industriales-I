@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Modelos 3D binarios pesados (se sirven aparte, no se versionan)
+*.glb
+*.gltf
+*.fbx
+*.obj
