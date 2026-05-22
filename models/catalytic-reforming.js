@@ -203,15 +203,31 @@ function buildStabilizer() {
 function buildPiping() {
   const g = new THREE.Group();
   const m = matPipe();
-  // efluente reactores -> CFE
-  addPipes(g, [[3, 1.4, 0], [3, 6.5, 0], [0.5, 6.5, -0.5], [0.5, 5.5, -0.5]], matHot(), 0.12);
-  // CFE -> hornos
-  addPipes(g, [[0.5, 0.5, -0.5], [0.5, 0.7, -4], [-3.1, 0.7, -4]], m, 0.1);
-  // hornos -> reactores (cada salida)
-  for (let i = 0; i < 4; i++) { const x = -5 + i * 1.9; addPipes(g, [[x, 3.4, -4], [x, 7.5 + i, -2], [3, 7.5 + i, 0]], matHot(), 0.08); }
-  // H2 de reciclo: separador -> compresor -> hornos
-  addPipes(g, [[-3.5, 3.1, 0], [-3.5, 3.1, 3.5], [-4.2, 1.1, 3.5]], matH2(), 0.08);
-  addPipes(g, [[-2.8, 1.1, 3.5], [-2.8, 0.7, -4]], matH2(), 0.08);
+  const rx = 2.0;                              // superficie del reactor (cx=3, R=1.0)
+  const heaterX = [-5, -3.1, -1.2, 0.7];       // posición de cada horno (z=-4)
+  const levels = [3.6, 7.1, 10.6, 14.0];       // alturas de conexión a cada sección del reactor
+
+  // Carga de nafta -> CFE (lado frío). Entra por abajo, a la izquierda.
+  addPipes(g, [[-11, 0.6, -0.5], [0.5, 0.6, -0.5], [0.5, 1.0, -0.5]], m, 0.1);
+
+  // Manifold de salida del CFE hacia el tren de hornos.
+  addPipes(g, [[0.5, 0.5, -0.5], [0.5, 0.5, -4], [0.7, 0.5, -4], [0.7, 3.4, -4]], m, 0.1);
+
+  // Salida de cada horno -> su sección del reactor (ruteo ortogonal: sube,
+  // cruza en z hasta el plano del reactor, y entra horizontalmente).
+  heaterX.forEach((hx, i) => {
+    const y = levels[i];
+    addPipes(g, [[hx, 3.4, -4], [hx, y, -4], [hx, y, 0], [rx, y, 0]], matHot(), 0.085);
+  });
+
+  // Efluente caliente del tope del reactor -> CFE (lado caliente).
+  addPipes(g, [[rx, 14.6, 0], [0.5, 14.6, -0.5], [0.5, 5.5, -0.5]], matHot(), 0.12);
+
+  // Lazo de H2 de reciclo: separador (tope) -> succión del compresor.
+  addPipes(g, [[-3.5, 2.3, 0], [-3.5, 3.0, 0], [-3.5, 3.0, 3.5], [-4.2, 1.6, 3.5]], matH2(), 0.08);
+  // Descarga del compresor -> entrada del primer horno (mezclado con la carga).
+  addPipes(g, [[-2.8, 1.6, 3.5], [-2.0, 1.6, 3.5], [-2.0, 1.6, -4], [-5, 1.6, -4], [-5, 3.4, -4]], matH2(), 0.08);
+
   return tagGroup(g, {
     id: 'ref-piping', title: 'Tubería de proceso', category: 'Tubería',
     description: 'Líneas que conectan reactores, hornos, intercambiador, separador y estabilizador, incluyendo el lazo de gas de reciclo de hidrógeno (en color distinto).',
