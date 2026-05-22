@@ -28,9 +28,28 @@ const SK = {
   colors: 'colorByCategory',
   transformMode: 'transformMode',
   pose: (id) => `pose:${id}`,
-  camera: 'camera',
+  camera: (id) => `camera:${id}`,
   explode: 'explode',
+  schema: 'schema',
 };
+
+// Versión del esquema de almacenamiento. Si cambia, se borran todos los datos
+// `pi:` antiguos para evitar que valores obsoletos (cámaras, poses, modelos que
+// ya no existen) dejen la escena fuera de cuadro o en negro. Súbela cuando
+// cambien de forma incompatible las claves o la escala/posición de los modelos.
+const SCHEMA_VERSION = 3;
+(function migrateStorage() {
+  try {
+    if (store.get(SK.schema, null) === SCHEMA_VERSION) return;
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(STORAGE_PREFIX)) toRemove.push(k);
+    }
+    toRemove.forEach((k) => localStorage.removeItem(k));
+    store.set(SK.schema, SCHEMA_VERSION);
+  } catch { /* localStorage no disponible: se ignora */ }
+})();
 // --------------------------------------------------------------------------
 
 const container = document.getElementById('canvas-container');
@@ -297,10 +316,12 @@ btnDefault.addEventListener('click', () => {
   frameCameraToModel();
   updateCoords();
   savePose();
-  store.set(SK.camera, {
-    pos: camera.position.toArray(),
-    target: controls.target.toArray(),
-  });
+  if (currentModelId) {
+    store.set(SK.camera(currentModelId), {
+      pos: camera.position.toArray(),
+      target: controls.target.toArray(),
+    });
+  }
 });
 
 window.addEventListener('keydown', (e) => {
@@ -666,9 +687,16 @@ async function loadModel(modelDef) {
   captureExplodeBases();
   setExplodeFactor(explodeFactor, { persist: false });
 
-  // Frame the camera to model bounds (only if no camera saved)
-  const savedCam = store.get(SK.camera);
-  if (!savedCam) frameCameraToModel();
+  // Cámara por-modelo: si hay una guardada para ESTE modelo la aplicamos;
+  // si no, encuadramos el modelo. Nunca aplicamos la cámara de otro modelo.
+  const savedCam = currentModelId ? store.get(SK.camera(currentModelId)) : null;
+  if (savedCam && savedCam.pos && savedCam.target) {
+    camera.position.fromArray(savedCam.pos);
+    controls.target.fromArray(savedCam.target);
+    controls.update();
+  } else {
+    frameCameraToModel();
+  }
 }
 
 function frameCameraToModel() {
@@ -706,20 +734,14 @@ const initialModel = models.find((m) => m.id === savedModelId) || models[0];
 modelSelect.value = initialModel.id;
 loadModel(initialModel);
 
-// Apply saved camera (after loadModel, which only frames if none saved)
-const savedCamera = store.get(SK.camera);
-if (savedCamera && savedCamera.pos && savedCamera.target) {
-  camera.position.fromArray(savedCamera.pos);
-  controls.target.fromArray(savedCamera.target);
-  controls.update();
-}
-
+// Guarda la cámara por-modelo con debounce mientras el usuario orbita.
 let cameraSaveTimer = null;
 controls.addEventListener('change', () => {
-  if (cameraSaveTimer) return;
+  if (cameraSaveTimer || !currentModelId) return;
   cameraSaveTimer = setTimeout(() => {
     cameraSaveTimer = null;
-    store.set(SK.camera, {
+    if (!currentModelId) return;
+    store.set(SK.camera(currentModelId), {
       pos: camera.position.toArray(),
       target: controls.target.toArray(),
     });
