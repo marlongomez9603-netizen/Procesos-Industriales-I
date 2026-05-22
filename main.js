@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { models } from './models/index.js';
 
 // Persistent settings ------------------------------------------------------
@@ -23,6 +29,7 @@ const SK = {
   transformMode: 'transformMode',
   pose: (id) => `pose:${id}`,
   camera: 'camera',
+  explode: 'explode',
 };
 // --------------------------------------------------------------------------
 
@@ -39,7 +46,6 @@ container.appendChild(tooltip);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0f1419);
-scene.fog = new THREE.Fog(0x0f1419, 30, 90);
 
 function cssColor(varName, fallback) {
   const v = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
@@ -101,7 +107,17 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
 container.appendChild(renderer.domElement);
+
+// Environment map (IBL) — proporciona reflejos PBR realistas en materiales
+// metálicos y mejora drásticamente cómo se ven las superficies. Usamos
+// RoomEnvironment (estudio procedural), que no requiere descargar HDRIs.
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+scene.environment = envRT.texture;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -143,12 +159,64 @@ scene.add(grid);
 
 syncSceneToTheme();
 
+// --- Post-processing pipeline -----------------------------------------------
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+// OutlinePass — contorno estilo CAD sobre el componente seleccionado.
+const outlinePass = new OutlinePass(
+  new THREE.Vector2(container.clientWidth, container.clientHeight),
+  scene,
+  camera
+);
+outlinePass.edgeStrength = 4.5;
+outlinePass.edgeGlow = 0.4;
+outlinePass.edgeThickness = 1.6;
+outlinePass.pulsePeriod = 0;
+outlinePass.visibleEdgeColor.set(0xff7a45);
+outlinePass.hiddenEdgeColor.set(0xff7a45);
+composer.addPass(outlinePass);
+
+// Bloom sutil — solo halo en zonas brillantes (emissive de selección, etc.)
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(container.clientWidth, container.clientHeight),
+  0.30, // strength
+  0.55, // radius
+  0.85  // threshold (alto → solo áreas muy brillantes producen bloom)
+);
+composer.addPass(bloomPass);
+
+// OutputPass — aplica tone mapping y conversión a sRGB al final del pipeline.
+composer.addPass(new OutputPass());
+// ----------------------------------------------------------------------------
+
+// Interaction state — used to skip picking and downscale during orbit/drag.
+const FULL_PIXEL_RATIO = Math.min(window.devicePixelRatio, 2);
+const INTERACTION_PIXEL_RATIO = 1;
+let isInteracting = false;
+
+function setInteracting(value) {
+  if (isInteracting === value) return;
+  isInteracting = value;
+  const ratio = value ? INTERACTION_PIXEL_RATIO : FULL_PIXEL_RATIO;
+  renderer.setPixelRatio(ratio);
+  composer.setPixelRatio(ratio);
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  renderer.setSize(w, h, true);
+  composer.setSize(w, h);
+}
+
+controls.addEventListener('start', () => setInteracting(true));
+controls.addEventListener('end', () => setInteracting(false));
+
 // Transform controls (for moving/rotating the loaded model)
 const transformControls = new TransformControls(camera, renderer.domElement);
 transformControls.size = 0.8;
 transformControls.setSpace('world');
 transformControls.addEventListener('dragging-changed', (e) => {
   controls.enabled = !e.value;
+  setInteracting(e.value);
 });
 transformControls.addEventListener('objectChange', () => {
   updateCoords();
@@ -259,6 +327,7 @@ function clearModel() {
   selectableParts = [];
   selected = null;
   hovered = null;
+  outlinePass.selectedObjects = [];
 }
 
 // Palette per category (used by the color toggle)
@@ -301,13 +370,27 @@ function collectSelectableParts(root) {
 }
 
 function setEmissive(mesh, color, intensity) {
-  if (!mesh.material || !mesh.material.emissive) return;
+  if (!mesh.material) return;
+  // Para hit-volumes (cajas invisibles del modo híbrido), usamos opacidad +
+  // color base en lugar de emissive, ya que opacity=0 anula cualquier emissive.
+  if (mesh.userData.__isHitVolume) {
+    mesh.material.color.copy(color);
+    mesh.material.opacity = intensity > 0.4 ? 0.22 : 0.12;
+    mesh.material.transparent = true;
+    return;
+  }
+  if (!mesh.material.emissive) return;
   mesh.material.emissive.copy(color);
   mesh.material.emissiveIntensity = intensity;
 }
 
 function restoreEmissive(mesh) {
-  if (!mesh.material || !mesh.material.emissive) return;
+  if (!mesh.material) return;
+  if (mesh.userData.__isHitVolume) {
+    mesh.material.opacity = 0;
+    return;
+  }
+  if (!mesh.material.emissive) return;
   const base = mesh.userData._baseEmissive || mesh.userData._origEmissive || new THREE.Color(0x000000);
   mesh.material.emissive.copy(base);
   mesh.material.emissiveIntensity = mesh.userData._baseEmissiveIntensity ?? mesh.userData._origEmissiveIntensity ?? 1;
@@ -357,6 +440,51 @@ function refreshLegend() {
   legendEl.classList.add('visible');
 }
 
+// --- Vista explosionada -----------------------------------------------------
+// Cada componente que tenga `userData._explodeOffset` (THREE.Vector3) se
+// desplaza desde su posición base hacia ese offset en función del factor del
+// slider [0..1]. Si un modelo no tiene offsets, el slider simplemente no hace
+// nada en él.
+let explodeFactor = store.get(SK.explode, 0);
+if (typeof explodeFactor !== 'number' || !isFinite(explodeFactor)) explodeFactor = 0;
+
+function captureExplodeBases() {
+  if (!currentModelGroup) return;
+  currentModelGroup.traverse((o) => {
+    if (o.userData && o.userData._explodeOffset && !o.userData._explodeBase) {
+      o.userData._explodeBase = o.position.clone();
+    }
+  });
+}
+
+function applyExplode(factor) {
+  if (!currentModelGroup) return;
+  const tmp = new THREE.Vector3();
+  currentModelGroup.traverse((o) => {
+    const ud = o.userData;
+    if (!ud || !ud._explodeOffset || !ud._explodeBase) return;
+    tmp.copy(ud._explodeOffset).multiplyScalar(factor);
+    o.position.copy(ud._explodeBase).add(tmp);
+  });
+}
+
+const explodeSlider = document.getElementById('explode-slider');
+const explodeValueLbl = document.getElementById('explode-value');
+const explodeResetBtn = document.getElementById('explode-reset');
+
+function setExplodeFactor(factor, { persist = true } = {}) {
+  explodeFactor = Math.max(0, Math.min(1, factor));
+  explodeSlider.value = Math.round(explodeFactor * 100);
+  explodeValueLbl.textContent = `${Math.round(explodeFactor * 100)}%`;
+  applyExplode(explodeFactor);
+  if (persist) store.set(SK.explode, explodeFactor);
+}
+
+explodeSlider.addEventListener('input', (e) => {
+  setExplodeFactor(parseInt(e.target.value, 10) / 100);
+});
+explodeResetBtn.addEventListener('click', () => setExplodeFactor(0));
+
 const toggleColors = document.getElementById('toggle-colors');
 toggleColors.checked = colorByCategoryOn;
 toggleColors.addEventListener('change', (e) => {
@@ -366,17 +494,45 @@ toggleColors.addEventListener('change', (e) => {
   refreshLegend();
 });
 
+function forEachSibling(id, fn) {
+  if (!id) return;
+  for (const m of selectableParts) {
+    if (m.userData.id === id) fn(m);
+  }
+}
+
+function updateOutlineSelection() {
+  // OutlinePass dibuja un contorno tipo CAD; sólo lo aplicamos a mallas con
+  // geometría real, no a las hit-boxes invisibles (para ésas usamos el halo
+  // translúcido que ya gestiona setEmissive).
+  if (!selected) {
+    outlinePass.selectedObjects = [];
+    return;
+  }
+  if (selected.userData.__isHitVolume) {
+    outlinePass.selectedObjects = [];
+    return;
+  }
+  const id = selected.userData.id;
+  outlinePass.selectedObjects = selectableParts.filter(
+    (m) => m.userData.id === id && !m.userData.__isHitVolume
+  );
+}
+
 function selectPart(mesh) {
-  if (selected && selected !== mesh) restoreEmissive(selected);
+  const prevId = selected ? selected.userData.id : null;
+  const newId = mesh ? mesh.userData.id : null;
+  if (prevId && prevId !== newId) forEachSibling(prevId, restoreEmissive);
   selected = mesh;
   if (mesh) {
-    setEmissive(mesh, HIGHLIGHT_COLOR, 0.55);
+    forEachSibling(newId, (m) => setEmissive(m, HIGHLIGHT_COLOR, 0.55));
     showInfo(mesh.userData);
-    highlightInList(mesh.userData.id);
+    highlightInList(newId);
   } else {
     showInfo(null);
     highlightInList(null);
   }
+  updateOutlineSelection();
 }
 
 const infoModal = document.getElementById('info-modal');
@@ -440,9 +596,30 @@ function focusCameraOn(mesh) {
   controls.target.lerp(center, 0.6);
 }
 
-function loadModel(modelDef) {
+let loadingToken = 0;
+
+async function loadModel(modelDef) {
+  const myToken = ++loadingToken;
   clearModel();
-  currentModelGroup = modelDef.build();
+  loadingEl.style.display = '';
+  loadingEl.textContent = 'Cargando modelo…';
+
+  let built;
+  try {
+    built = await Promise.resolve(modelDef.build());
+  } catch (err) {
+    console.error('Error cargando modelo', err);
+    loadingEl.textContent = 'Error al cargar el modelo';
+    return;
+  }
+
+  // If the user switched models while this one was loading, discard the result.
+  if (myToken !== loadingToken) {
+    return;
+  }
+  loadingEl.style.display = 'none';
+
+  currentModelGroup = built;
   currentModelId = modelDef.id;
   scene.add(currentModelGroup);
   selectableParts = collectSelectableParts(currentModelGroup);
@@ -468,6 +645,10 @@ function loadModel(modelDef) {
   // Re-apply category colors if the toggle is on for the new model
   applyCategoryColors();
   refreshLegend();
+
+  // Captura posiciones base y aplica el factor de explosión guardado.
+  captureExplodeBases();
+  setExplodeFactor(explodeFactor, { persist: false });
 
   // Frame the camera to model bounds (only if no camera saved)
   const savedCam = store.get(SK.camera);
@@ -529,8 +710,6 @@ controls.addEventListener('change', () => {
   }, 250);
 });
 
-loadingEl.style.display = 'none';
-
 // Picking
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -562,28 +741,45 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   else selectPart(null);
 });
 
+let lastPickAt = 0;
+const PICK_THROTTLE_MS = 40; // ~25 picks/s max
 renderer.domElement.addEventListener('pointermove', (e) => {
   updatePointer(e);
+
+  // Skip picking entirely while the user is orbiting or dragging the gizmo;
+  // throttle otherwise so heavy models stay smooth.
+  if (isInteracting) return;
+  const now = performance.now();
+  if (now - lastPickAt < PICK_THROTTLE_MS) return;
+  lastPickAt = now;
+
   const obj = pick();
-  if (hovered && hovered !== obj && hovered !== selected) {
-    restoreEmissive(hovered);
+  const oldId = hovered ? hovered.userData.id : null;
+  const newId = obj ? obj.userData.id : null;
+  const selId = selected ? selected.userData.id : null;
+
+  if (oldId !== newId) {
+    if (oldId && oldId !== selId) forEachSibling(oldId, restoreEmissive);
+    if (newId && newId !== selId) forEachSibling(newId, (m) => setEmissive(m, HOVER_COLOR, 0.35));
   }
-  if (obj && obj !== selected) {
-    setEmissive(obj, HOVER_COLOR, 0.35);
+  hovered = obj;
+
+  if (obj) {
     tooltip.style.display = 'block';
     tooltip.style.left = (e.clientX - container.getBoundingClientRect().left) + 'px';
     tooltip.style.top = (e.clientY - container.getBoundingClientRect().top) + 'px';
     tooltip.textContent = obj.userData.title;
     container.style.cursor = 'pointer';
-  } else if (!obj) {
+  } else {
     tooltip.style.display = 'none';
     container.style.cursor = 'default';
   }
-  hovered = obj;
 });
 
 renderer.domElement.addEventListener('pointerleave', () => {
-  if (hovered && hovered !== selected) restoreEmissive(hovered);
+  const hovId = hovered ? hovered.userData.id : null;
+  const selId = selected ? selected.userData.id : null;
+  if (hovId && hovId !== selId) forEachSibling(hovId, restoreEmissive);
   hovered = null;
   tooltip.style.display = 'none';
 });
@@ -594,6 +790,9 @@ function resize() {
   const h = container.clientHeight;
   if (w === 0 || h === 0) return;
   renderer.setSize(w, h, true);
+  composer.setSize(w, h);
+  outlinePass.setSize(w, h);
+  bloomPass.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
@@ -606,6 +805,6 @@ resize();
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
-  renderer.render(scene, camera);
+  composer.render();
 }
 animate();
