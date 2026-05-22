@@ -19,3 +19,6 @@ Thumbs.db
 *.gltf
 *.fbx
 *.obj
+
+# Claude Code local
+.claude/
