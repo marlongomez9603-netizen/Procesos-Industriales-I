@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Taller Interactivo — Integración de Procesos de Refinación | UNIPAZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600;700;800;900&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* === Paleta Editorial Vibrante === */
+    --paper:        #FFF6E9;
+    --paper-soft:   #FBEAD0;
+    --card:         #FFFFFF;
+    --ink:          #2A1A0E;
+    --ink-soft:     #5B4332;
+    --muted:        #8C7361;
+    --line:         #EFD9B5;
+    --line-strong:  #D9BC8C;
+
+    /* Acentos */
+    --coral:    #FF5C39;
+    --coral-d:  #E03E1F;
+    --berry:    #C81D7A;
+    --plum:     #6B2D8E;
+    --teal:     #0FB5BA;
+    --mint:     #2BAE66;
+    --golden:   #F5B700;
+    --sky:      #2D9CDB;
+
+    --success:  #2BAE66;
+    --danger:   #D62828;
+
+    /* Colores temáticos de unidades — vibrantes y distinguibles */
+    --c-des: #0FB5BA;
+    --c-cdu: #FF8C42;
+    --c-vdu: #9B5DE5;
+    --c-fcc: #F15BB5;
+    --c-hck: #2D9CDB;
+    --c-ref: #00C49A;
+    --c-alk: #F4845F;
+    --c-iso: #A05195;
+    --c-cok: #6B2D8E;
+    --c-hds: #2BAE66;
+    --c-cla: #F5B700;
+
+    --r: 18px;
+    --r-sm: 12px;
+    --shadow-sm: 0 2px 8px rgba(42, 26, 14, 0.06);
+    --shadow:    0 8px 24px rgba(42, 26, 14, 0.08);
+    --shadow-lg: 0 18px 40px rgba(42, 26, 14, 0.10);
+
+    --font-display: 'Fraunces', 'Georgia', serif;
+    --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
+    --font-hand: 'Caveat', cursive;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding-bottom: 80px;
+    overflow-x: hidden;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(255, 92, 57, 0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, rgba(200, 29, 122, 0.07), transparent 60%),
+      radial-gradient(700px 500px at 50% 110%, rgba(15, 181, 186, 0.07), transparent 60%),
+      var(--paper);
+    background-attachment: fixed;
+  }
+
+  /* Subtle grain — adds tactile paper feel */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    z-index: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.45  0 0 0 0 0.3  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+
+  /* ========== TOP PROGRESS BAR (sin nota visible) ========== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(14px) saturate(140%);
+    background: rgba(255, 246, 233, 0.85);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .topbar-logo .dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--coral), var(--berry));
+    box-shadow: 0 0 0 3px rgba(255, 92, 57, 0.15);
+    flex-shrink: 0;
+  }
+  .topbar-progress {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 520px;
+    margin-left: auto;
+  }
+  .progress-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+  }
+  .progress-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(42, 26, 14, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--coral), var(--berry), var(--plum));
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 0 18px rgba(255, 92, 57, 0.35);
+  }
+  .progress-pct {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--coral);
+    min-width: 44px;
+    text-align: right;
+  }
+
+  /* ========== HERO HEADER ========== */
+  .hero {
+    max-width: 1180px;
+    margin: 56px auto 36px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 30px;
+    align-items: end;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    background: var(--card);
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--coral-d);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 18px;
+  }
+  .hero-badge::before {
+    content: "";
+    width: 8px; height: 8px;
+    background: var(--coral);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.5; }
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(2.1rem, 5.5vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .hero h1 .accent {
+    background: linear-gradient(120deg, var(--coral) 0%, var(--berry) 50%, var(--plum) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-style: italic;
+    position: relative;
+  }
+  .hero h1 .accent::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -8px;
+    height: 6px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 6'><path d='M0,3 Q50,0 100,3 T200,3' fill='none' stroke='%23FF5C39' stroke-width='3' stroke-linecap='round'/></svg>") no-repeat center / 100% 100%;
+  }
+  .hero p.lead {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 680px;
+    line-height: 1.55;
+  }
+  .hero-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+  }
+  .hero-tag {
+    font-family: var(--font-hand);
+    font-size: 1.4rem;
+    color: var(--plum);
+    transform: rotate(-3deg);
+    line-height: 1;
+  }
+  .hero-meta {
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-align: right;
+    font-weight: 500;
+  }
+  .hero-meta strong { color: var(--ink); font-weight: 700; }
+
+  /* ========== LAYOUT ========== */
+  .app {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ========== CARD ========== */
+  .card {
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    border-radius: var(--r);
+    padding: 36px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 6px; height: 100%;
+    background: var(--accent-color, var(--coral));
+    border-radius: 0 4px 4px 0;
+  }
+  .card[data-color="coral"]  { --accent-color: var(--coral); }
+  .card[data-color="berry"]  { --accent-color: var(--berry); }
+  .card[data-color="plum"]   { --accent-color: var(--plum); }
+  .card[data-color="teal"]   { --accent-color: var(--teal); }
+  .card[data-color="golden"] { --accent-color: var(--golden); }
+  .card[data-color="sky"]    { --accent-color: var(--sky); }
+
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px dashed var(--line-strong);
+  }
+  .card-num {
+    flex-shrink: 0;
+    width: 60px; height: 60px;
+    background: var(--accent-color, var(--coral));
+    color: #fff;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.8rem;
+    letter-spacing: -0.04em;
+    box-shadow: 0 8px 16px rgba(42, 26, 14, 0.18);
+    transform: rotate(-3deg);
+  }
+  .card-head-text { flex: 1; min-width: 0; }
+  .card-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--accent-color, var(--coral));
+    margin-bottom: 4px;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .card-points {
+    flex-shrink: 0;
+    background: var(--paper-soft);
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  /* ========== INFO NOTE ========== */
+  .note {
+    display: flex;
+    gap: 16px;
+    background: linear-gradient(135deg, rgba(245, 183, 0, 0.12), rgba(255, 92, 57, 0.08));
+    border: 1.5px solid rgba(245, 183, 0, 0.4);
+    border-left-width: 5px;
+    border-radius: var(--r-sm);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    color: var(--ink);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .note .ico {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+
+  /* ========== FORM FIELDS ========== */
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+  .fi {
+    width: 100%;
+    background: var(--paper);
+    border: 1.5px solid var(--line-strong);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .fi:hover { border-color: var(--coral); }
+  .fi:focus {
+    border-color: var(--coral);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 92, 57, 0.12);
+  }
+  select.fi { cursor: pointer; }
+  textarea.fi {
+    resize: vertical;
+    min-height: 110px;
+    line-height: 1.6;
+  }
+
+  /* ========== RETO 1 — FLOW BUILDER ========== */
+  .units-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 18px;
+  }
+  .unit-card {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .unit-card::after {
+    content: "";
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    background: var(--unit-color, var(--coral));
+    opacity: 0.08;
+    transition: transform 0.4s;
+  }
+  .unit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--unit-color, var(--coral));
+  }
+  .unit-card:hover::after {
+    transform: scale(1.5);
+  }
+  .unit-card.correct {
+    border-color: var(--success);
+    background: linear-gradient(180deg, #fff, rgba(43, 174, 102, 0.04));
+    box-shadow: 0 0 0 1px var(--success), 0 8px 20px rgba(43, 174, 102, 0.15);
+  }
+  .unit-card.correct::after { background: var(--success); opacity: 0.12; }
+
+  .unit-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1;
+    position: relative;
+  }
+  .unit-num {
+    flex-shrink: 0;
+    width: 30px; height: 30px;
+    background: var(--unit-color, var(--coral));
+    color: #fff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.95rem;
+  }
+  .unit-name {
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .unit-role {
+    margin-left: auto;
+    font-size: 0.64rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--paper-soft);
+    color: var(--unit-color, var(--coral));
+    border: 1px solid var(--line-strong);
+    white-space: nowrap;
+  }
+
+  .unit-io { display: flex; flex-direction: column; gap: 12px; }
+  .io-row { display: flex; flex-direction: column; gap: 5px; }
+  .io-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .io-fixed {
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--ink);
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+  .io-select {
+    width: 100%;
+    cursor: pointer;
+    background: #fff;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .io-select:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255, 92, 57, 0.12); }
+  .io-select.is-correct {
+    border-color: var(--success);
+    background: rgba(43, 174, 102, 0.06);
+    color: var(--success);
+    font-weight: 600;
+  }
+  .io-select.is-incorrect {
+    border-color: var(--danger);
+    background: rgba(214, 40, 40, 0.06);
+  }
+  .print-only-val { display: none; }
+
+  /* ========== RETO 2 — CONTROL ROOM ========== */
+  .room { display: flex; flex-direction: column; gap: 18px; }
+  .room-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tab-btn {
+    background: #fff;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 9px 18px;
+    color: var(--ink-soft);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover {
+    color: var(--ink);
+    border-color: var(--berry);
+    transform: translateY(-1px);
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--berry), var(--plum));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(200, 29, 122, 0.3);
+  }
+
+  .room-screen {
+    background: linear-gradient(160deg, #fff, var(--paper-soft));
+    border: 1.5px solid var(--line);
+    border-radius: var(--r);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+  }
+  .screen-content { display: none; animation: fadeIn 0.4s ease; }
+  .screen-content.active { display: flex; flex-direction: column; gap: 20px; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .screen-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    color: var(--unit-color, var(--ink));
+  }
+  .screen-desc {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 760px;
+  }
+
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+  }
+  .control-box {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .control-box:hover {
+    border-color: var(--berry);
+    transform: translateY(-2px);
+  }
+  .control-box h4 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .control-select {
+    width: 100%;
+    background: var(--paper);
+    border: 1.5px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .control-select:focus { border-color: var(--berry); box-shadow: 0 0 0 3px rgba(200, 29, 122, 0.12); }
+
+  .feedback {
+    min-height: 50px;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s;
+    border: 1.5px solid transparent;
+  }
+  .feedback.pending {
+    background: var(--paper-soft);
+    border-color: var(--line);
+    color: var(--ink-soft);
+  }
+  .feedback.ok {
+    background: rgba(43, 174, 102, 0.08);
+    border-color: var(--success);
+    color: #1A6A40;
+  }
+  .feedback.fail {
+    background: rgba(214, 40, 40, 0.06);
+    border-color: var(--danger);
+    color: #7A1818;
+  }
+
+  /* Botones de acción */
+  .btn {
+    border: none;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 11px 22px;
+    font-size: 0.9rem;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--coral), var(--coral-d));
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(255, 92, 57, 0.3);
+    align-self: flex-start;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(255, 92, 57, 0.4);
+  }
+
+  /* ========== RETO 3 — CASE CHALLENGES ========== */
+  .challenge-list { display: flex; flex-direction: column; gap: 22px; }
+  .challenge {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .challenge-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .challenge-tag {
+    background: linear-gradient(135deg, var(--sky), #1B7BB8);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .challenge h3 {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+  .challenge-body {
+    font-size: 0.92rem;
+    color: var(--ink);
+    background: var(--paper-soft);
+    border-left: 4px solid var(--sky);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    line-height: 1.6;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #fff;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 10px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .opt:hover { background: var(--paper); border-color: var(--coral); }
+  .opt input { margin-top: 4px; accent-color: var(--coral); flex-shrink: 0; cursor: pointer; }
+  .opt.selected {
+    border-color: var(--coral);
+    background: rgba(255, 92, 57, 0.06);
+    box-shadow: 0 0 0 1px var(--coral);
+  }
+  .opt.correct {
+    border-color: var(--success) !important;
+    background: rgba(43, 174, 102, 0.08) !important;
+    box-shadow: 0 0 0 1px var(--success);
+  }
+  .opt.wrong {
+    border-color: var(--danger) !important;
+    background: rgba(214, 40, 40, 0.06) !important;
+  }
+  .challenge-feedback {
+    display: none;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    animation: fadeIn 0.3s;
+    border: 1.5px solid transparent;
+  }
+  .challenge-feedback.show { display: block; }
+  .challenge-feedback.ok { background: rgba(43, 174, 102, 0.08); border-color: var(--success); color: #1A6A40; }
+  .challenge-feedback.fail { background: rgba(214, 40, 40, 0.06); border-color: var(--danger); color: #7A1818; }
+
+  /* ========== OPEN QUESTIONS ========== */
+  .questions { display: flex; flex-direction: column; gap: 22px; }
+  .q-box { display: flex; flex-direction: column; gap: 8px; }
+  .q-title {
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .q-subtitle {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    line-height: 1.55;
+  }
+
+  /* ========== SAVE ZONE ========== */
+  .save-zone { text-align: center; padding: 12px 0 30px; }
+  .send-note {
+    background: linear-gradient(135deg, rgba(43, 174, 102, 0.08), rgba(15, 181, 186, 0.08));
+    border: 1.5px solid rgba(43, 174, 102, 0.35);
+    border-radius: var(--r);
+    padding: 18px 22px;
+    margin: 0 auto 26px;
+    max-width: 720px;
+    text-align: left;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .send-note .ico { font-size: 1.6rem; flex-shrink: 0; line-height: 1.1; }
+  .send-note p { font-size: 0.92rem; color: var(--ink); line-height: 1.55; }
+  .send-note strong { color: var(--plum); }
+  .send-note .email-tag {
+    display: inline-block;
+    background: #fff;
+    border: 1.5px dashed var(--berry);
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--berry);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .btn-save {
+    background: linear-gradient(135deg, var(--coral), var(--berry));
+    color: #fff;
+    border: none;
+    padding: 18px 44px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    border-radius: 999px;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s;
+    box-shadow: 0 12px 30px rgba(200, 29, 122, 0.35);
+    letter-spacing: 0.3px;
+  }
+  .btn-save:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 16px 38px rgba(200, 29, 122, 0.45);
+  }
+  .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ========== OVERLAY ========== */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(42, 26, 14, 0.7);
+    backdrop-filter: blur(8px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-align: center;
+    padding: 24px;
+  }
+  .overlay.show { display: flex; }
+  .spinner {
+    width: 60px; height: 60px;
+    border: 5px solid rgba(255, 255, 255, 0.15);
+    border-top-color: var(--coral);
+    border-right-color: var(--berry);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    margin-bottom: 24px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.02em; }
+  .overlay p { color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; }
+
+  .success-card {
+    background: #fff;
+    color: var(--ink);
+    border-radius: var(--r);
+    padding: 40px 36px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+  }
+  .success-icon { font-size: 4rem; margin-bottom: 12px; }
+  .success-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .success-card p { color: var(--ink-soft); font-size: 0.95rem; margin-bottom: 10px; }
+  .success-card .email-highlight {
+    display: inline-block;
+    background: var(--paper-soft);
+    border: 1.5px dashed var(--berry);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--berry);
+    font-weight: 700;
+    margin: 8px 0;
+  }
+  .btn-back {
+    background: linear-gradient(135deg, var(--coral), var(--berry));
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+  }
+  .btn-back:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(200, 29, 122, 0.3); }
+
+  /* ========== PDF MODE ========== */
+  .pdf-only { display: none; }
+
+  body.pdf-mode {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    padding: 0 !important;
+  }
+  body.pdf-mode::before { display: none !important; }
+  body.pdf-mode .topbar,
+  body.pdf-mode .save-zone,
+  body.pdf-mode .send-note,
+  body.pdf-mode .overlay,
+  body.pdf-mode .btn-primary,
+  body.pdf-mode .room-tabs,
+  body.pdf-mode select,
+  body.pdf-mode input[type="radio"],
+  body.pdf-mode textarea,
+  body.pdf-mode .io-select,
+  body.pdf-mode .control-select {
+    display: none !important;
+  }
+  body.pdf-mode .pdf-only { display: block !important; }
+  body.pdf-mode .app { max-width: 100% !important; padding: 0 16px !important; gap: 18px !important; }
+  body.pdf-mode .hero { margin: 28px auto 18px; }
+  body.pdf-mode .hero h1 { font-size: 1.8rem; }
+  body.pdf-mode .hero p.lead { font-size: 0.9rem; }
+  body.pdf-mode .hero-side { display: none; }
+  body.pdf-mode .card {
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 1.5px solid #d6c8af !important;
+    padding: 22px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  body.pdf-mode .card-head { margin-bottom: 16px; padding-bottom: 14px; }
+  body.pdf-mode .card-num { transform: rotate(0deg); width: 50px; height: 50px; font-size: 1.4rem; }
+  body.pdf-mode .unit-card,
+  body.pdf-mode .challenge,
+  body.pdf-mode .control-box,
+  body.pdf-mode .room-screen {
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 1px solid #d6c8af !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  body.pdf-mode .screen-content { display: flex !important; margin-bottom: 16px; }
+  body.pdf-mode .feedback,
+  body.pdf-mode .challenge-feedback {
+    background: #f8f8f8 !important;
+    border: 1px solid #ccc !important;
+    color: #222 !important;
+  }
+  body.pdf-mode .feedback.ok,
+  body.pdf-mode .challenge-feedback.ok {
+    background: rgba(43,174,102,0.12) !important;
+    border-color: var(--success) !important;
+    color: #1a6a40 !important;
+  }
+  body.pdf-mode .feedback.fail,
+  body.pdf-mode .challenge-feedback.fail {
+    background: rgba(214,40,40,0.10) !important;
+    border-color: var(--danger) !important;
+    color: #7a1818 !important;
+  }
+  body.pdf-mode .print-only-val {
+    display: block !important;
+    background: #fdf7e8;
+    border: 1px solid #e2cf9b;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-weight: 600;
+    color: #2a1a0e;
+    font-size: 0.88rem;
+  }
+  body.pdf-mode .opt {
+    background: #fff !important;
+    border: 1px solid #d6c8af !important;
+  }
+  body.pdf-mode .opt.selected {
+    border: 2px solid #2a1a0e !important;
+    background: #f1ece2 !important;
+    box-shadow: none !important;
+  }
+  body.pdf-mode .opt.correct {
+    background: rgba(43,174,102,0.12) !important;
+    border: 2px solid var(--success) !important;
+  }
+  body.pdf-mode .opt.wrong {
+    background: rgba(214,40,40,0.08) !important;
+    border: 2px solid var(--danger) !important;
+  }
+  body.pdf-mode .pdf-answer {
+    display: block;
+    background: #fdf7e8;
+    border: 1px solid #d6c8af;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #1a1a1a;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    min-height: 60px;
+  }
+  body.pdf-mode .pdf-answer.empty { color: #999; font-style: italic; }
+  body.pdf-mode .field input,
+  body.pdf-mode .pdf-field-val {
+    display: block;
+    background: #fdf7e8;
+    border: 1px solid #d6c8af;
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: #1a1a1a;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  body.pdf-mode .field input { background: #fff !important; color: #1a1a1a !important; -webkit-print-color-adjust: exact; }
+
+  /* === PDF grade footer (Arial 10) === */
+  #pdf-grade-footer {
+    display: none;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    color: #1a1a1a !important;
+    margin-top: 30px;
+    padding: 16px 18px;
+    border-top: 2px solid #2a1a0e;
+    border-radius: 0;
+    background: #fff;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  body.pdf-mode #pdf-grade-footer { display: block; }
+  #pdf-grade-footer .gf-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  #pdf-grade-footer .gf-title {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-weight: bold;
+    font-size: 11pt !important;
+    margin-bottom: 6px;
+  }
+  #pdf-grade-footer .gf-grade {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 14pt !important;
+    font-weight: bold;
+    color: #c81d7a;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 768px) {
+    .topbar { padding: 10px 14px; gap: 12px; flex-wrap: wrap; }
+    .topbar-logo { font-size: 0.92rem; }
+    .topbar-progress { max-width: none; width: 100%; margin-left: 0; }
+
+    .hero { margin: 32px auto 24px; padding: 0 18px; }
+    .hero-row { grid-template-columns: 1fr; gap: 18px; }
+    .hero-side { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+    .hero h1 { font-size: 1.9rem; }
+    .hero p.lead { font-size: 0.95rem; }
+    .hero-tag { font-size: 1.15rem; }
+
+    .app { padding: 0 14px; gap: 22px; }
+    .card { padding: 22px 18px; border-radius: 14px; }
+    .card-head { flex-wrap: wrap; gap: 14px; margin-bottom: 18px; padding-bottom: 16px; }
+    .card-num { width: 50px; height: 50px; font-size: 1.4rem; }
+    .card-title { font-size: 1.2rem; }
+    .card-points { font-size: 0.7rem; }
+
+    .units-grid { grid-template-columns: 1fr; gap: 14px; }
+    .unit-card { padding: 16px; }
+    .controls-grid { grid-template-columns: 1fr; gap: 12px; }
+    .room-screen { padding: 18px; }
+    .room-tabs { gap: 6px; }
+    .tab-btn { padding: 8px 14px; font-size: 0.8rem; }
+    .field-grid { grid-template-columns: 1fr; gap: 14px; }
+
+    .challenge { padding: 18px; }
+    .challenge h3 { font-size: 1.02rem; }
+    .opt { padding: 12px 14px; font-size: 0.88rem; }
+
+    .send-note { padding: 14px 16px; }
+    .send-note p { font-size: 0.88rem; }
+    .btn-save { padding: 16px 32px; font-size: 0.98rem; width: 100%; max-width: 360px; justify-content: center; }
+    .note { padding: 14px 16px; font-size: 0.88rem; }
+  }
+
+  @media (max-width: 420px) {
+    .hero h1 { font-size: 1.65rem; }
+    .card { padding: 18px 14px; }
+    .card-head { gap: 10px; }
+    .card-num { width: 44px; height: 44px; font-size: 1.2rem; border-radius: 12px; }
+    .card-title { font-size: 1.05rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BARRA SUPERIOR (sin nota) -->
+<div class="topbar" id="topbar">
+  <div class="topbar-logo">
+    <span class="dot"></span>
+    <span>Taller · Refinación</span>
+  </div>
+  <div class="topbar-progress">
+    <span class="progress-label">Progreso</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="progress-pct" id="progressPct">0%</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-row">
+    <div>
+      <div class="hero-badge">Taller práctico evaluativo</div>
+      <h1>Integración de <span class="accent">Procesos</span><br>de Refinación</h1>
+      <p class="lead">Recorre el camino del crudo: desde el desalado hasta el azufre elemental.
+        Configura unidades, resuelve casos de Ecopetrol y conecta la química con el equipo real.</p>
+    </div>
+    <div class="hero-side">
+      <span class="hero-tag">¡Manos a la obra!</span>
+      <div class="hero-meta">
+        <strong>Procesos Industriales I</strong><br>
+        Unidad de Formación 4<br>
+        Ingeniería de Producción · UNIPAZ
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- 0. DATOS DEL ESTUDIANTE -->
+  <section class="card" data-color="teal">
+    <div class="card-head">
+      <div class="card-num">0</div>
+      <div class="card-head-text">
+        <div class="card-eyebrow">Identificación</div>
+        <div class="card-title">Datos del estudiante</div>
+      </div>
+    </div>
+    <div class="note">
+      <span class="ico">✏️</span>
+      <span>Completa la información antes de iniciar. Tu reporte en PDF llevará estos datos.</span>
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Nombre Completo</label>
+        <input type="text" class="fi" id="stu-name" placeholder="Ej. Marlon Gomez" oninput="updateGrader()">
+      </div>
+      <div class="field">
+        <label>Código Estudiantil</label>
+        <input type="text" class="fi" id="stu-code" placeholder="Ej. 2023-1002" oninput="updateGrader()">
+      </div>
+      <div class="field">
+        <label>Programa Académico</label>
+        <select class="fi" id="stu-program" onchange="updateGrader()">
+          <option value="">Seleccione...</option>
+          <option value="Ingeniería de Producción">Ingeniería de Producción</option>
+          <option value="Tecnología en Procesos Industriales">Tecnología en Procesos Industriales</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <span class="pdf-field-val pdf-only" id="pdf-stu-program">—</span>
+      </div>
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" class="fi" id="stu-date" oninput="updateGrader()">
+      </div>
+    </div>
+  </section>
+
+  <!-- RETO 1: CONSTRUCTOR DE FLUJO -->
+  <section class="card" data-color="coral" id="card-reto1">
+    <div class="card-head">
+      <div class="card-num">1</div>
+      <div class="card-head-text">
+        <div class="card-eyebrow">Reto 1 · Conexiones</div>
+        <div class="card-title">Constructor de flujo de refinación</div>
+      </div>
+      <div class="card-points">30 pts</div>
+    </div>
+    <div class="note">
+      <span class="ico">🔌</span>
+      <span><strong>Instrucciones:</strong> La refinería es un sistema integrado donde los productos de una unidad alimentan a otras. Elige en cada selector la corriente (insumo o producto) correcta para completar la tubería del proceso.</span>
+    </div>
+
+    <div class="units-grid">
+
+      <!-- 1. Desalador -->
+      <div class="unit-card" id="u-des" style="--unit-color: var(--c-des)">
+        <div class="unit-head">
+          <span class="unit-num">1</span>
+          <span class="unit-name">Desalador de Crudo</span>
+          <span class="unit-role">Acondicion.</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Crudo Húmedo (Con Sales)</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Salida a Destilación</span>
+            <select class="io-select" data-unit="des" data-answer="crudo_desalado" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="nafta">Nafta Pesada</option>
+              <option value="crudo_desalado">Petróleo Crudo Desalado</option>
+              <option value="vgo">Gasóleo de Vacío (VGO)</option>
+              <option value="residuo">Residuo de Vacío</option>
+            </select>
+            <span class="print-only-val" id="print-des">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CDU -->
+      <div class="unit-card" id="u-cdu" style="--unit-color: var(--c-cdu)">
+        <div class="unit-head">
+          <span class="unit-num">2</span>
+          <span class="unit-name">Destilación Atmosférica</span>
+          <span class="unit-role">Separación</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Petróleo Crudo Desalado</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Fracción de Fondo (>340°C)</span>
+            <select class="io-select" data-unit="cdu" data-answer="residuo_atm" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="vgo">Gasóleo de Vacío (VGO)</option>
+              <option value="residuo_atm">Residuo Atmosférico</option>
+              <option value="asfalto">Asfalto</option>
+              <option value="coque">Coque Sólido</option>
+            </select>
+            <span class="print-only-val" id="print-cdu">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. VDU -->
+      <div class="unit-card" id="u-vdu" style="--unit-color: var(--c-vdu)">
+        <div class="unit-head">
+          <span class="unit-num">3</span>
+          <span class="unit-name">Destilación al Vacío</span>
+          <span class="unit-role">Separación</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Residuo Atmosférico</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Fondo de Torre (>550°C)</span>
+            <select class="io-select" data-unit="vdu" data-answer="residuo_vacio" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="residuo_vacio">Residuo de Vacío (Asfaltenos)</option>
+              <option value="vgo">Gasóleos de Vacío (LVGO/HVGO)</option>
+              <option value="coke">Coque de Petróleo</option>
+              <option value="diesel">Diésel Pesado</option>
+            </select>
+            <span class="print-only-val" id="print-vdu">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. FCC -->
+      <div class="unit-card" id="u-fcc" style="--unit-color: var(--c-fcc)">
+        <div class="unit-head">
+          <span class="unit-num">4</span>
+          <span class="unit-name">Cracking Catalítico (FCC)</span>
+          <span class="unit-role">Conversión</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Gasóleos de Vacío (VGO)</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Gases Ligeros Clave</span>
+            <select class="io-select" data-unit="fcc" data-answer="iso_ole" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="h2">Hidrógeno (H₂)</option>
+              <option value="iso_ole">Isobutano + Olefinas (C₃-C₄)</option>
+              <option value="h2s">Ácido Sulfhídrico (H₂S)</option>
+              <option value="aromaticos">Aromáticos BTX</option>
+            </select>
+            <span class="print-only-val" id="print-fcc">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Hidrocraqueo -->
+      <div class="unit-card" id="u-hck" style="--unit-color: var(--c-hck)">
+        <div class="unit-head">
+          <span class="unit-num">5</span>
+          <span class="unit-name">Hidrocraqueo (HCK)</span>
+          <span class="unit-role">Conversión</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación Principal</span>
+            <span class="io-fixed">Gasóleos de Vacío Pesados (HVGO)</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Reactivo de Saturación</span>
+            <select class="io-select" data-unit="hck" data-answer="h2" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="vapor">Vapor de Agua</option>
+              <option value="h2">Hidrógeno (H₂)</option>
+              <option value="cloruro">Cloruro Orgánico</option>
+              <option value="acido">Ácido Sulfúrico (H₂SO₄)</option>
+            </select>
+            <span class="print-only-val" id="print-hck">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Reformado CCR -->
+      <div class="unit-card" id="u-ref" style="--unit-color: var(--c-ref)">
+        <div class="unit-head">
+          <span class="unit-num">6</span>
+          <span class="unit-name">Reformado Catalítico</span>
+          <span class="unit-role">Conversión</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Nafta Pesada Desulfurada</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Subproducto de Deshidrogenación</span>
+            <select class="io-select" data-unit="ref" data-answer="h2" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="coque">Coque de Petróleo</option>
+              <option value="h2">Hidrógeno Gas (H₂)</option>
+              <option value="h2s">Ácido Sulfhídrico (H₂S)</option>
+              <option value="agua">Salmuera</option>
+            </select>
+            <span class="print-only-val" id="print-ref">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Alquilación -->
+      <div class="unit-card" id="u-alk" style="--unit-color: var(--c-alk)">
+        <div class="unit-head">
+          <span class="unit-num">7</span>
+          <span class="unit-name">Alquilación</span>
+          <span class="unit-role">Conversión</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Isobutano + Olefinas (del FCC)</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Producto Final Obtenido</span>
+            <select class="io-select" data-unit="alk" data-answer="alquilato" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="alquilato">Alquilato (Gasolina Premium)</option>
+              <option value="isomerado">Isomerado (C₅/C₆)</option>
+              <option value="aromáticos">Benceno, Tolueno, Xilenos</option>
+              <option value="polimero">Polietileno</option>
+            </select>
+            <span class="print-only-val" id="print-alk">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Isomerización -->
+      <div class="unit-card" id="u-iso" style="--unit-color: var(--c-iso)">
+        <div class="unit-head">
+          <span class="unit-num">8</span>
+          <span class="unit-name">Isomerización</span>
+          <span class="unit-role">Conversión</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación Liviana (C₅-C₆)</span>
+            <select class="io-select" data-unit="iso" data-answer="nafta_liviana" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="nafta_liviana">Nafta Liviana de la CDU</option>
+              <option value="nafta_pesada">Nafta Pesada de la CDU</option>
+              <option value="gasoil">Gasóleo Liviano (LVGO)</option>
+              <option value="glp">Gases GLP (C₃-C₄)</option>
+            </select>
+            <span class="print-only-val" id="print-iso">—</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Producto Obtenido</span>
+            <span class="io-fixed">Isomerado (Ramificado, Mayor RON)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Coker -->
+      <div class="unit-card" id="u-cok" style="--unit-color: var(--c-cok)">
+        <div class="unit-head">
+          <span class="unit-num">9</span>
+          <span class="unit-name">Coquización Retardada</span>
+          <span class="unit-role">Residuo</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Residuo de Vacío (Fondo VDU)</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Producto Sólido Obtenido</span>
+            <select class="io-select" data-unit="cok" data-answer="coque" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="asfalto">Asfalto para Carreteras</option>
+              <option value="coque">Coque de Petróleo Sólido</option>
+              <option value="azufre">Azufre Elemental Amarillo</option>
+              <option value="slurry">Lodo Slurry</option>
+            </select>
+            <span class="print-only-val" id="print-cok">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. HDS -->
+      <div class="unit-card" id="u-hds" style="--unit-color: var(--c-hds)">
+        <div class="unit-head">
+          <span class="unit-num">10</span>
+          <span class="unit-name">Hidrodesulfuración</span>
+          <span class="unit-role">Tratamiento</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación (Nafta/Diésel/VGO)</span>
+            <span class="io-fixed">Fracciones de Destilación + Hidrógeno</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Gas Ácido Removido</span>
+            <select class="io-select" data-unit="hds" data-answer="h2s" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="so2">Dióxido de Azufre (SO₂)</option>
+              <option value="h2s">Ácido Sulfhídrico (H₂S)</option>
+              <option value="nh3">Amoniaco (NH₃)</option>
+              <option value="s">Azufre Elemental</option>
+            </select>
+            <span class="print-only-val" id="print-hds">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. Claus -->
+      <div class="unit-card" id="u-cla" style="--unit-color: var(--c-cla)">
+        <div class="unit-head">
+          <span class="unit-num">11</span>
+          <span class="unit-name">Recuperación Claus</span>
+          <span class="unit-role">Ambiental</span>
+        </div>
+        <div class="unit-io">
+          <div class="io-row">
+            <span class="io-label">Alimentación</span>
+            <span class="io-fixed">Gas Ácido H₂S (de la HDS y Aminas)</span>
+          </div>
+          <div class="io-row">
+            <span class="io-label">Subproducto Mineral Sólido</span>
+            <select class="io-select" data-unit="cla" data-answer="azufre_s" onchange="checkIO(this)">
+              <option value="">Seleccione corriente...</option>
+              <option value="yeso">Yeso (CaSO₄)</option>
+              <option value="azufre_s">Azufre Elemental (Líquido/Sólido)</option>
+              <option value="acido_s">Ácido Sulfúrico (H₂SO₄)</option>
+              <option value="coque">Coque Aguja</option>
+            </select>
+            <span class="print-only-val" id="print-cla">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- RETO 2: CONTROL ROOM -->
+  <section class="card" data-color="berry" id="card-reto2">
+    <div class="card-head">
+      <div class="card-num">2</div>
+      <div class="card-head-text">
+        <div class="card-eyebrow">Reto 2 · Sala de control</div>
+        <div class="card-title">Configura las unidades del proceso</div>
+      </div>
+      <div class="card-points">30 pts</div>
+    </div>
+    <div class="note">
+      <span class="ico">🎛️</span>
+      <span><strong>DCS Simulator:</strong> Configura los parámetros operacionales correctos para cada unidad listada abajo. Cuando configures las 3 variables (Temperatura, Presión y Catalizador), presiona <strong>"Verificar Condiciones"</strong>. Cada unidad configurada correctamente otorga 6 puntos.</span>
+    </div>
+
+    <div class="room">
+      <div class="room-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-cdu', event)">CDU</button>
+        <button class="tab-btn" onclick="switchTab('tab-fcc', event)">FCC</button>
+        <button class="tab-btn" onclick="switchTab('tab-hck', event)">Hidrocraqueo</button>
+        <button class="tab-btn" onclick="switchTab('tab-alk', event)">Alquilación</button>
+        <button class="tab-btn" onclick="switchTab('tab-cla', event)">Claus</button>
+      </div>
+
+      <div class="room-screen">
+
+        <!-- CDU -->
+        <div class="screen-content active" id="tab-cdu" data-temp="370" data-pres="1.5" data-cat="ninguno" style="--unit-color: var(--c-cdu)">
+          <div class="screen-title">Destilación Atmosférica (CDU)</div>
+          <div class="screen-desc">Recibe crudo desalado precalentado en hornos. Su objetivo es fraccionar físicamente la mezcla en cortes según su punto de ebullición. No debe haber reacciones químicas que rompan las cadenas en este punto.</div>
+
+          <div class="controls-grid">
+            <div class="control-box">
+              <h4>Temperatura Entrada Hornos</h4>
+              <select class="control-select c-temp" onchange="clearFeedback('tab-cdu')">
+                <option value="">Seleccione...</option>
+                <option value="10">5 - 10 °C</option>
+                <option value="250">250 °C</option>
+                <option value="370">370 °C (Ebullición controlada)</option>
+                <option value="530">530 °C</option>
+                <option value="1000">1000 °C</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-temp">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Presión de la Columna</h4>
+              <select class="control-select c-pres" onchange="clearFeedback('tab-cdu')">
+                <option value="">Seleccione...</option>
+                <option value="vacío">Vacío (25 - 50 mmHg)</option>
+                <option value="1.5">Ligera sobrepresión (~1.5 atm)</option>
+                <option value="80">Media (30 - 80 atm)</option>
+                <option value="150">Muy alta (~150 atm)</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-pres">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Catalizador del Proceso</h4>
+              <select class="control-select c-cat" onchange="clearFeedback('tab-cdu')">
+                <option value="">Seleccione...</option>
+                <option value="ninguno">Ninguno (Separación física)</option>
+                <option value="zeolita">Zeolita Y (Sitios ácidos)</option>
+                <option value="metales">Ni-Mo o Ni-W en Alúmina</option>
+                <option value="acido">Ácidos Fuertes (HF / H₂SO₄)</option>
+                <option value="platino">Platino / Alúmina Clorada</option>
+                <option value="alumina">Alúmina (Al₂O₃) pura</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-cat">—</span>
+            </div>
+          </div>
+          <div class="feedback pending" id="feedback-tab-cdu">Esperando configuración de variables operacionales…</div>
+          <button class="btn btn-primary" onclick="verifyOps('tab-cdu')">⚡ Verificar Condiciones de CDU</button>
+        </div>
+
+        <!-- FCC -->
+        <div class="screen-content" id="tab-fcc" data-temp="530" data-pres="1.5" data-cat="zeolita" style="--unit-color: var(--c-fcc)">
+          <div class="screen-title">Cracking Catalítico Fluidizado (FCC)</div>
+          <div class="screen-desc">La "fábrica de gasolina" de la refinería. Rompe hidrocarburos pesados (VGO) de bajo valor comercial en fragmentos ligeros aptos para gasolina de alto octanaje (RON 91-93). Produce coque que se adhiere al catalizador y debe quemarse en regeneración continua.</div>
+
+          <div class="controls-grid">
+            <div class="control-box">
+              <h4>Temperatura del Riser</h4>
+              <select class="control-select c-temp" onchange="clearFeedback('tab-fcc')">
+                <option value="">Seleccione...</option>
+                <option value="10">5 - 10 °C</option>
+                <option value="250">250 °C</option>
+                <option value="370">370 °C</option>
+                <option value="530">530 °C (Craqueo catalítico óptimo)</option>
+                <option value="1000">1000 °C</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-temp">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Presión del Sistema</h4>
+              <select class="control-select c-pres" onchange="clearFeedback('tab-fcc')">
+                <option value="">Seleccione...</option>
+                <option value="vacío">Vacío (25 - 50 mmHg)</option>
+                <option value="1.5">Baja/Moderada (~1.5 atm)</option>
+                <option value="80">Media (30 - 80 atm)</option>
+                <option value="150">Muy alta (~150 atm)</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-pres">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Catalizador Fluidizado</h4>
+              <select class="control-select c-cat" onchange="clearFeedback('tab-fcc')">
+                <option value="">Seleccione...</option>
+                <option value="ninguno">Ninguno (Térmico directo)</option>
+                <option value="zeolita">Zeolita Y en matriz porosa</option>
+                <option value="metales">Ni-Mo / Ni-W sobre Alúmina</option>
+                <option value="acido">Ácidos Fuertes (HF / H₂SO₄)</option>
+                <option value="platino">Platino / Alúmina Clorada</option>
+                <option value="alumina">Alúmina (Al₂O₃) pura</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-cat">—</span>
+            </div>
+          </div>
+          <div class="feedback pending" id="feedback-tab-fcc">Esperando configuración de variables operacionales…</div>
+          <button class="btn btn-primary" onclick="verifyOps('tab-fcc')">⚡ Verificar Condiciones de FCC</button>
+        </div>
+
+        <!-- HCK -->
+        <div class="screen-content" id="tab-hck" data-temp="400" data-pres="150" data-cat="metales" style="--unit-color: var(--c-hck)">
+          <div class="screen-title">Hidrocraqueo (Hydrocracking)</div>
+          <div class="screen-desc">Unidad de conversión de alta flexibilidad. Rompe cadenas pesadas e hidrogena simultáneamente en presencia de H₂ a extrema presión. Produce diésel y jet fuel ultra limpios con cero coque y bajo azufre. Reacción fuertemente exotérmica regulada con H₂ de quench.</div>
+
+          <div class="controls-grid">
+            <div class="control-box">
+              <h4>Temperatura del Reactor</h4>
+              <select class="control-select c-temp" onchange="clearFeedback('tab-hck')">
+                <option value="">Seleccione...</option>
+                <option value="10">5 - 10 °C</option>
+                <option value="250">250 °C</option>
+                <option value="400">400 °C (Rango de reacción)</option>
+                <option value="530">530 °C</option>
+                <option value="1000">1000 °C</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-temp">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Presión Parcial de H₂</h4>
+              <select class="control-select c-pres" onchange="clearFeedback('tab-hck')">
+                <option value="">Seleccione...</option>
+                <option value="vacío">Vacío (25 - 50 mmHg)</option>
+                <option value="1.5">Baja/Moderada (~1.5 atm)</option>
+                <option value="80">Media (30 - 80 atm)</option>
+                <option value="150">Extremadamente alta (150 - 175 atm)</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-pres">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Catalizador Bifuncional</h4>
+              <select class="control-select c-cat" onchange="clearFeedback('tab-hck')">
+                <option value="">Seleccione...</option>
+                <option value="ninguno">Ninguno</option>
+                <option value="zeolita">Zeolita pura</option>
+                <option value="metales">Metales (Ni-Mo o Ni-W) en Alúmina-Zeolita</option>
+                <option value="acido">Ácidos Fuertes (HF / H₂SO₄)</option>
+                <option value="platino">Platino / Alúmina Clorada</option>
+                <option value="alumina">Alúmina (Al₂O₃) pura</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-cat">—</span>
+            </div>
+          </div>
+          <div class="feedback pending" id="feedback-tab-hck">Esperando configuración de variables operacionales…</div>
+          <button class="btn btn-primary" onclick="verifyOps('tab-hck')">⚡ Verificar Condiciones de HCK</button>
+        </div>
+
+        <!-- ALK -->
+        <div class="screen-content" id="tab-alk" data-temp="10" data-pres="1.5" data-cat="acido" style="--unit-color: var(--c-alk)">
+          <div class="screen-title">Alquilación</div>
+          <div class="screen-desc">Reacción de adición que une olefinas ligeras (C₃-C₄) e isobutano. A diferencia del cracking, aquí se construyen moléculas más grandes. Produce alquilato, una base de gasolina ideal con octanaje superior, cero aromáticos, cero azufre y cero olefinas.</div>
+
+          <div class="controls-grid">
+            <div class="control-box">
+              <h4>Temperatura del Reactor</h4>
+              <select class="control-select c-temp" onchange="clearFeedback('tab-alk')">
+                <option value="">Seleccione...</option>
+                <option value="10">Refrigeración extrema (5 - 10 °C)</option>
+                <option value="250">250 °C</option>
+                <option value="370">370 °C</option>
+                <option value="530">530 °C</option>
+                <option value="1000">1000 °C</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-temp">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Presión de Operación</h4>
+              <select class="control-select c-pres" onchange="clearFeedback('tab-alk')">
+                <option value="">Seleccione...</option>
+                <option value="vacío">Vacío (25 - 50 mmHg)</option>
+                <option value="1.5">Baja (3 - 5 atm para fase líquida)</option>
+                <option value="80">Media (30 - 80 atm)</option>
+                <option value="150">Muy alta (150 atm)</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-pres">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Catalizador Homogéneo</h4>
+              <select class="control-select c-cat" onchange="clearFeedback('tab-alk')">
+                <option value="">Seleccione...</option>
+                <option value="ninguno">Ninguno (Fusión térmica)</option>
+                <option value="zeolita">Zeolita Y</option>
+                <option value="metales">Ni-Mo / Ni-W en Alúmina</option>
+                <option value="acido">Ácidos fuertes líquidos (HF o H₂SO₄)</option>
+                <option value="platino">Platino / Alúmina Clorada</option>
+                <option value="alumina">Alúmina (Al₂O₃) pura</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-cat">—</span>
+            </div>
+          </div>
+          <div class="feedback pending" id="feedback-tab-alk">Esperando configuración de variables operacionales…</div>
+          <button class="btn btn-primary" onclick="verifyOps('tab-alk')">⚡ Verificar Condiciones de Alquilación</button>
+        </div>
+
+        <!-- CLAUS -->
+        <div class="screen-content" id="tab-cla" data-temp="1000" data-pres="1.5" data-cat="alumina" style="--unit-color: var(--c-cla)">
+          <div class="screen-title">Recuperación de Azufre (Proceso Claus)</div>
+          <div class="screen-desc">Unidad ambiental crítica de la refinería. Convierte el altamente tóxico H₂S retirado en el hidrotratamiento en azufre elemental inerte comercializable. Se divide en una etapa térmica (quema a 1000°C) y etapas catalíticas en serie.</div>
+
+          <div class="controls-grid">
+            <div class="control-box">
+              <h4>Temp. Etapa Térmica</h4>
+              <select class="control-select c-temp" onchange="clearFeedback('tab-cla')">
+                <option value="">Seleccione...</option>
+                <option value="10">5 - 10 °C</option>
+                <option value="250">250 °C</option>
+                <option value="370">370 °C</option>
+                <option value="530">530 °C</option>
+                <option value="1000">1000 °C (Combustión de H₂S)</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-temp">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Presión del Gas</h4>
+              <select class="control-select c-pres" onchange="clearFeedback('tab-cla')">
+                <option value="">Seleccione...</option>
+                <option value="vacío">Vacío (25 - 50 mmHg)</option>
+                <option value="1.5">Baja (Cercana a la atmosférica ~1.5 atm)</option>
+                <option value="80">Media (30 - 80 atm)</option>
+                <option value="150">Muy alta (150 atm)</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-pres">—</span>
+            </div>
+            <div class="control-box">
+              <h4>Catalizador Etapa Catalítica</h4>
+              <select class="control-select c-cat" onchange="clearFeedback('tab-cla')">
+                <option value="">Seleccione...</option>
+                <option value="ninguno">Ninguno</option>
+                <option value="zeolita">Zeolita Y</option>
+                <option value="metales">Ni-Mo / Ni-W en Alúmina</option>
+                <option value="acido">Ácidos Fuertes HF / H₂SO₄</option>
+                <option value="platino">Platino / Alúmina Clorada</option>
+                <option value="alumina">Alúmina Activa (Al₂O₃)</option>
+              </select>
+              <span class="pdf-field-val pdf-only" data-source="c-cat">—</span>
+            </div>
+          </div>
+          <div class="feedback pending" id="feedback-tab-cla">Esperando configuración de variables operacionales…</div>
+          <button class="btn btn-primary" onclick="verifyOps('tab-cla')">⚡ Verificar Condiciones de Claus</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- RETO 3 -->
+  <section class="card" data-color="sky" id="card-reto3">
+    <div class="card-head">
+      <div class="card-num">3</div>
+      <div class="card-head-text">
+        <div class="card-eyebrow">Reto 3 · Casos colombianos</div>
+        <div class="card-title">Refinación en Colombia</div>
+      </div>
+      <div class="card-points">15 pts</div>
+    </div>
+    <div class="note">
+      <span class="ico">🏭</span>
+      <span><strong>Desafíos de operación:</strong> Analiza cada situación operacional real basada en el parque de refinación de Ecopetrol y selecciona la estrategia de ingeniería correcta. Cada respuesta correcta otorga 5 puntos.</span>
+    </div>
+
+    <div class="challenge-list">
+
+      <!-- Caso A -->
+      <div class="challenge" id="ch-a">
+        <div class="challenge-head">
+          <span class="challenge-tag">Caso A</span>
+          <h3>Diésel Ultra Bajo en Azufre (TIER 3 / Euro V) en Reficar</h3>
+        </div>
+        <div class="challenge-body">
+          La refinería de Cartagena (Reficar) procesa crudos medianos-pesados de la cuenca de los Llanos (como el crudo Castilla de 18-22° API), caracterizados por tener altas concentraciones de azufre y compuestos aromáticos. Para producir diésel que cumpla la exigente norma ambiental colombiana de <strong>menos de 15 ppm de azufre</strong>, ¿cuál es la ruta tecnológica y catalítica principal diseñada en Reficar?
+        </div>
+        <div class="options">
+          <label class="opt" onclick="selectOption('ch-a', 0)">
+            <input type="radio" name="r-ch-a" value="0">
+            <span>CDU ➔ Envío de diésel directo a mezcla, y el residuo pesado se procesa en el FCC usando catalizadores zeolíticos sin hidrógeno.</span>
+          </label>
+          <label class="opt" onclick="selectOption('ch-a', 1)">
+            <input type="radio" name="r-ch-a" value="1">
+            <span>CDU ➔ Destilación al Vacío (VDU) ➔ Craqueo del HVGO en la unidad de <strong>Hidrocraqueo (Hydrocracker)</strong> bajo ambiente de hidrógeno a alta presión (~150 atm) y catalizadores metálicos de Níquel-Molibdeno (Ni-Mo) que saturan y desulfuran en el mismo paso.</span>
+          </label>
+          <label class="opt" onclick="selectOption('ch-a', 2)">
+            <input type="radio" name="r-ch-a" value="2">
+            <span>CDU ➔ Mezcla en frío con reactivos ácidos de Alquilación para disolver el azufre.</span>
+          </label>
+        </div>
+        <div class="challenge-feedback" id="feedback-ch-a"></div>
+      </div>
+
+      <!-- Caso B -->
+      <div class="challenge" id="ch-b">
+        <div class="challenge-head">
+          <span class="challenge-tag">Caso B</span>
+          <h3>El Balance Crítico de Hidrógeno en Barrancabermeja</h3>
+        </div>
+        <div class="challenge-body">
+          Durante una corrida mensual de producción en la Refinería de Barrancabermeja (GRB), las unidades de Hidrodesulfuración (HDS) aumentan drásticamente su consumo de hidrógeno debido a una carga con mayor contenido de azufre. Para evitar la compra de hidrógeno importado extremadamente costoso, la refinería debe reestablecer su balance interno. ¿Qué decisión operativa se debe tomar para maximizar la producción autónoma de H₂ de la planta?
+        </div>
+        <div class="options">
+          <label class="opt" onclick="selectOption('ch-b', 0)">
+            <input type="radio" name="r-ch-b" value="0">
+            <span>Maximizar la temperatura de entrada y carga en la unidad de <strong>Reformado Catalítico (CCR)</strong>, ya que las reacciones de deshidrogenación necesarias para convertir las parafinas lineales en aromáticos liberan grandes cantidades de hidrógeno gas.</span>
+          </label>
+          <label class="opt" onclick="selectOption('ch-b', 1)">
+            <input type="radio" name="r-ch-b" value="1">
+            <span>Reducir la velocidad del catalizador fluidizado en el FCC para que no queme hidrógeno durante la quema de coque.</span>
+          </label>
+          <label class="opt" onclick="selectOption('ch-b', 2)">
+            <input type="radio" name="r-ch-b" value="2">
+            <span>Aumentar la dosificación de sal en el desalador para incentivar reacciones ácidas secundarias.</span>
+          </label>
+        </div>
+        <div class="challenge-feedback" id="feedback-ch-b"></div>
+      </div>
+
+      <!-- Caso C -->
+      <div class="challenge" id="ch-c">
+        <div class="challenge-head">
+          <span class="challenge-tag">Caso C</span>
+          <h3>La Valorización del Residuo de Vacío</h3>
+        </div>
+        <div class="challenge-body">
+          El fondo de la torre de vacío en las refinerías colombianas representa hasta un 30% del volumen del crudo de entrada. Es un material viscoso de nulo valor comercial que tradicionalmente se mezclaba para asfalto. Para "exprimir" el barril y transformarlo en naftas y gasóleos ligeros sin dañar catalizadores debido al alto contenido de metales venenosos (Níquel y Vanadio), Ecopetrol opera tambores de 25m de altura en Barrancabermeja y Cartagena. ¿A qué tecnología corresponde y bajo qué principio opera?
+        </div>
+        <div class="options">
+          <label class="opt" onclick="selectOption('ch-c', 0)">
+            <input type="radio" name="r-ch-c" value="0">
+            <span>Unidad de Hidrodesnitrogenación (HDN) de lecho fijo con quench intermedio.</span>
+          </label>
+          <label class="opt" onclick="selectOption('ch-c', 1)">
+            <input type="radio" name="r-ch-c" value="1">
+            <span>Unidad de <strong>Coquización Retardada (Delayed Coking)</strong>, un proceso de craqueo puramente térmico (sin catalizador) a ~500°C donde las moléculas pesadas se rompen térmicamente por calor, destilando vapores ligeros y solidificando el residuo como coque de petróleo.</span>
+          </label>
+          <label class="opt" onclick="selectOption('ch-c', 2)">
+            <input type="radio" name="r-ch-c" value="2">
+            <span>Unidad de Isomerización catalizada con platino y alúmina clorada.</span>
+          </label>
+        </div>
+        <div class="challenge-feedback" id="feedback-ch-c"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECCIÓN 4 -->
+  <section class="card" data-color="plum" id="card-preguntas">
+    <div class="card-head">
+      <div class="card-num">4</div>
+      <div class="card-head-text">
+        <div class="card-eyebrow">Sección 4 · Análisis abierto</div>
+        <div class="card-title">Análisis técnico y reflexión</div>
+      </div>
+      <div class="card-points">25 pts</div>
+    </div>
+
+    <div class="questions">
+
+      <div class="q-box">
+        <div class="q-title">4.1 — Fundamento del Vacío en la VDU (8 pts)</div>
+        <div class="q-subtitle">¿Por qué es mecánicamente y químicamente obligatorio bajar la presión operacional a 25–50 mmHg en la torre de vacío en lugar de simplemente elevar la temperatura del horno sobre los 400°C para evaporar el residuo atmosférico? Justifique su respuesta con base en la teoría.</div>
+        <textarea class="fi" id="q_vacuo" placeholder="Escriba su respuesta técnica detallada aquí (mínimo 3 líneas)..." oninput="updateGrader()"></textarea>
+        <div class="pdf-answer pdf-only" data-source="q_vacuo">—</div>
+      </div>
+
+      <div class="q-box">
+        <div class="q-title">4.2 — Comparación Tecnológica FCC vs Hydrocracking (9 pts)</div>
+        <div class="q-subtitle">Establezca los contrastes entre el Cracking Catalítico Fluidizado (FCC) y el Hidrocraqueo (Hydrocracking) considerando: Presencia/ausencia de Hidrógeno, generación de coque residual y el tipo de combustible estrella que produce cada una.</div>
+        <textarea class="fi" id="q_fcc_hck" placeholder="Escriba su comparación técnica estructurada aquí (mínimo 3 líneas)..." oninput="updateGrader()"></textarea>
+        <div class="pdf-answer pdf-only" data-source="q_fcc_hck">—</div>
+      </div>
+
+      <div class="q-box">
+        <div class="q-title">4.3 — Sinergia Ambiental HDS ➔ Claus (8 pts)</div>
+        <div class="q-subtitle">Explique cómo interactúan las unidades de Hidrotratamiento (HDS) y la unidad Claus en términos de balance de masa y protección ambiental. ¿Qué compuesto fluye entre ellas y cuál es el beneficio ecológico y económico final?</div>
+        <textarea class="fi" id="q_hds_claus" placeholder="Escriba su explicación sobre la integración de ambas plantas aquí (mínimo 3 líneas)..." oninput="updateGrader()"></textarea>
+        <div class="pdf-answer pdf-only" data-source="q_hds_claus">—</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ZONA DE ENVÍO -->
+  <div class="save-zone">
+    <div class="send-note">
+      <span class="ico">📧</span>
+      <div>
+        <p><strong>Entrega del taller:</strong> al presionar el botón, se generará automáticamente tu reporte oficial en PDF con tu nombre, código y respuestas. <strong>Envía el PDF descargado al correo de tu docente.</strong></p>
+        <span class="email-tag">marlon.gomez@unipaz.edu.co</span>
+      </div>
+    </div>
+
+    <button class="btn-save" id="btnSave" onclick="guardarTallerRef()">
+      💾 Generar reporte PDF
+    </button>
+  </div>
+
+</div>
+
+<!-- PDF GRADE FOOTER (Arial 10) -->
+<div id="pdf-grade-footer">
+  <div class="gf-title">Resumen de evaluación</div>
+  <div class="gf-row"><span>Estudiante:</span><span id="gf-name">—</span></div>
+  <div class="gf-row"><span>Código:</span><span id="gf-code">—</span></div>
+  <div class="gf-row"><span>Programa:</span><span id="gf-program">—</span></div>
+  <div class="gf-row"><span>Fecha:</span><span id="gf-date">—</span></div>
+  <div class="gf-row"><span>Progreso completado:</span><span id="gf-progress">0%</span></div>
+  <div class="gf-row"><span>Puntaje total:</span><span id="gf-points">0 / 100</span></div>
+  <div class="gf-row" style="margin-top:8px; padding-top:8px; border-top:1px solid #ccc;">
+    <span style="font-weight:bold;">Nota estimada (escala 0.0 – 5.0):</span>
+    <span class="gf-grade" id="gf-grade">0.0</span>
+  </div>
+  <div style="margin-top:10px; font-size:9pt; color:#666;">
+    Este reporte se generó automáticamente. La nota indicada es estimada; la validación final corresponde al docente.
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+  <h2 id="overlayTitle">Procesando respuestas del taller…</h2>
+  <p id="overlayMsg">Por favor, no cierres esta ventana.</p>
+</div>
+
+<!-- LIBRERÍAS DE GENERACIÓN PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+  /* ============================================================
+     DATOS Y CONFIGURACIÓN
+     ============================================================ */
+  const CORRECT_ANSWERS_RETO2 = {
+    'tab-cdu': { temp: '370',  pres: '1.5', cat: 'ninguno'  },
+    'tab-fcc': { temp: '530',  pres: '1.5', cat: 'zeolita'  },
+    'tab-hck': { temp: '400',  pres: '150', cat: 'metales'  },
+    'tab-alk': { temp: '10',   pres: '1.5', cat: 'acido'    },
+    'tab-cla': { temp: '1000', pres: '1.5', cat: 'alumina'  }
+  };
+  const CORRECT_ANSWERS_RETO3 = { 'ch-a': '1', 'ch-b': '0', 'ch-c': '1' };
+
+  let reto2Corrects = { 'tab-cdu': false, 'tab-fcc': false, 'tab-hck': false, 'tab-alk': false, 'tab-cla': false };
+  let reto3Answers  = { 'ch-a': null, 'ch-b': null, 'ch-c': null };
+
+  // Fecha de hoy
+  document.getElementById('stu-date').value = new Date().toISOString().split('T')[0];
+
+  /* ============================================================
+     TABS RETO 2
+     ============================================================ */
+  function switchTab(tabId, ev) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
+    if (ev && ev.target) ev.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  function clearFeedback(tabId) {
+    const fb = document.getElementById(`feedback-${tabId}`);
+    fb.className = "feedback pending";
+    fb.textContent = "Parámetros modificados. Requiere nueva verificación…";
+    reto2Corrects[tabId] = false;
+    updateGrader();
+  }
+
+  /* ============================================================
+     RETO 1 — VALIDACIÓN
+     ============================================================ */
+  function checkIO(selectEl) {
+    const unitId = selectEl.dataset.unit;
+    const isCorrect = selectEl.value === selectEl.dataset.answer;
+    const printSpan = document.getElementById(`print-${unitId}`);
+    if (printSpan) printSpan.textContent = selectEl.value ? selectEl.options[selectEl.selectedIndex].text : '—';
+    if (selectEl.value === "") {
+      selectEl.className = "io-select";
+      document.getElementById(`u-${unitId}`).classList.remove('correct');
+    } else if (isCorrect) {
+      selectEl.className = "io-select is-correct";
+      document.getElementById(`u-${unitId}`).classList.add('correct');
+    } else {
+      selectEl.className = "io-select is-incorrect";
+      document.getElementById(`u-${unitId}`).classList.remove('correct');
+    }
+    updateGrader();
+  }
+
+  /* ============================================================
+     RETO 2 — VERIFICACIÓN
+     ============================================================ */
+  function verifyOps(tabId) {
+    const screen = document.getElementById(tabId);
+    const tempSel = screen.querySelector('.c-temp').value;
+    const presSel = screen.querySelector('.c-pres').value;
+    const catSel  = screen.querySelector('.c-cat').value;
+    const fb = document.getElementById(`feedback-${tabId}`);
+
+    if (!tempSel || !presSel || !catSel) {
+      fb.className = "feedback fail";
+      fb.textContent = "⚠️ Debe definir las tres variables físicas del proceso antes de iniciar.";
+      reto2Corrects[tabId] = false;
+      updateGrader();
+      return;
+    }
+
+    const ans = CORRECT_ANSWERS_RETO2[tabId];
+    const okT = tempSel === ans.temp, okP = presSel === ans.pres, okC = catSel === ans.cat;
+
+    if (okT && okP && okC) {
+      let explain = "";
+      if (tabId === 'tab-cdu') explain = "Presión atmosférica y 370°C evaporan las fracciones medianas y ligeras sin llegar a la degradación térmica (>400°C). Sin catalizador.";
+      else if (tabId === 'tab-fcc') explain = "La zeolita ácida fluidizada a 530°C fractura rápidamente gasóleos medianos y pesados en gasolina de alta ramificación. No requiere hidrógeno.";
+      else if (tabId === 'tab-hck') explain = "La altísima presión (150 atm) e H₂ saturan fragmentos inestables evitando la polimerización a coque en lechos fijos Ni-Mo.";
+      else if (tabId === 'tab-alk') explain = "El reactor en frío catalizado con ácido (HF/H₂SO₄) evita la polimerización descontrolada favoreciendo la selectividad a isooctano.";
+      else if (tabId === 'tab-cla') explain = "La quema a 1000°C genera SO₂ que luego reacciona a menores temperaturas sobre alúmina activa para formar azufre inerte elemental.";
+      fb.className = "feedback ok";
+      fb.innerHTML = `✅ <strong>Parámetros válidos y seguros.</strong><br><em>${explain}</em>`;
+      reto2Corrects[tabId] = true;
+    } else {
+      const hints = [];
+      if (!okT) hints.push("temperatura inadecuada");
+      if (!okP) hints.push("presión de diseño fuera de rango");
+      if (!okC) hints.push("envenenamiento o catalizador incompatible");
+      fb.className = "feedback fail";
+      fb.textContent = `❌ Operación inestable: ${hints.join(', ')}. Revisa el material de aula.`;
+      reto2Corrects[tabId] = false;
+    }
+    updateGrader();
+  }
+
+  /* ============================================================
+     RETO 3 — OPCIONES
+     ============================================================ */
+  function selectOption(chId, optIdx) {
+    const card = document.getElementById(chId);
+    card.querySelectorAll('.opt').forEach((label, idx) => {
+      label.classList.toggle('selected', idx === optIdx);
+      label.classList.remove('correct', 'wrong');
+    });
+    const radio = card.querySelectorAll('input[type="radio"]')[optIdx];
+    radio.checked = true;
+    reto3Answers[chId] = optIdx.toString();
+    updateGrader();
+  }
+
+  /* ============================================================
+     AUTOCALIFICACIÓN INTERNA
+     ============================================================ */
+  let internalTotalPoints = 0;
+  let internalGrade = "0.0";
+
+  function updateGrader() {
+    let ptsReto1 = 0, ptsReto2 = 0, ptsReto3 = 0, ptsReto4 = 0;
+
+    // Reto 1
+    const r1Selects = document.querySelectorAll('#card-reto1 .io-select');
+    let r1Llenos = 0;
+    r1Selects.forEach(sel => {
+      if (sel.value !== "") {
+        r1Llenos++;
+        if (sel.value === sel.dataset.answer) ptsReto1 += (30 / 11);
+      }
+    });
+
+    // Reto 2
+    let r2Llenos = 0;
+    Object.keys(reto2Corrects).forEach(tabId => {
+      const screen = document.getElementById(tabId);
+      const t = screen.querySelector('.c-temp').value;
+      const p = screen.querySelector('.c-pres').value;
+      const c = screen.querySelector('.c-cat').value;
+      if (t && p && c) r2Llenos++;
+      if (reto2Corrects[tabId]) ptsReto2 += 6;
+    });
+
+    // Reto 3
+    let r3Llenos = 0;
+    Object.keys(reto3Answers).forEach(chId => {
+      if (reto3Answers[chId] !== null) {
+        r3Llenos++;
+        if (reto3Answers[chId] === CORRECT_ANSWERS_RETO3[chId]) ptsReto3 += 5;
+      }
+    });
+
+    // Reto 4
+    let r4Llenos = 0;
+    const qV = document.getElementById('q_vacuo').value.trim();
+    const qF = document.getElementById('q_fcc_hck').value.trim();
+    const qH = document.getElementById('q_hds_claus').value.trim();
+    if (qV.length > 20) { ptsReto4 += 8; r4Llenos++; } else if (qV.length > 0) { ptsReto4 += 2; r4Llenos++; }
+    if (qF.length > 20) { ptsReto4 += 9; r4Llenos++; } else if (qF.length > 0) { ptsReto4 += 2; r4Llenos++; }
+    if (qH.length > 20) { ptsReto4 += 8; r4Llenos++; } else if (qH.length > 0) { ptsReto4 += 2; r4Llenos++; }
+
+    internalTotalPoints = Math.min(100, Math.round(ptsReto1 + ptsReto2 + ptsReto3 + ptsReto4));
+    internalGrade = (internalTotalPoints / 20).toFixed(1);
+
+    const totalInputs = 11 + 5 + 3 + 3;
+    const llenosCount = r1Llenos + r2Llenos + r3Llenos + r4Llenos;
+    const progressPct = Math.round((llenosCount / totalInputs) * 100);
+
+    document.getElementById('progressFill').style.width = `${progressPct}%`;
+    document.getElementById('progressPct').textContent = `${progressPct}%`;
+  }
+
+  /* ============================================================
+     PREPARACIÓN DEL DOM PARA PDF
+     ============================================================ */
+  function preparePDFMode() {
+    // Volcar textareas a divs visibles
+    document.querySelectorAll('.pdf-answer[data-source]').forEach(div => {
+      const src = document.getElementById(div.dataset.source);
+      if (!src) return;
+      const val = src.value.trim();
+      div.textContent = val || '— Sin respuesta —';
+      div.classList.toggle('empty', !val);
+    });
+
+    // Volcar selects de variables de control (Reto 2)
+    document.querySelectorAll('.pdf-field-val[data-source]').forEach(span => {
+      const screen = span.closest('.screen-content');
+      if (!screen) return;
+      const sel = screen.querySelector('.' + span.dataset.source);
+      if (!sel) return;
+      span.textContent = sel.value ? sel.options[sel.selectedIndex].text : '— Sin seleccionar —';
+    });
+
+    // Programa académico
+    const prog = document.getElementById('stu-program');
+    const progOut = document.getElementById('pdf-stu-program');
+    if (progOut) progOut.textContent = prog.value || '— Sin seleccionar —';
+
+    // Mostrar TODAS las pantallas del Reto 2 una debajo de otra
+    document.querySelectorAll('.screen-content').forEach(s => s.classList.add('active'));
+
+    // Marcar respuestas del Reto 3 (correctas/incorrectas) para que se vean en el PDF
+    document.querySelectorAll('#card-reto3 .challenge').forEach(card => {
+      const chId = card.id;
+      const correctIdx = parseInt(CORRECT_ANSWERS_RETO3[chId]);
+      const selectIdx = reto3Answers[chId] === null ? null : parseInt(reto3Answers[chId]);
+      const fb = document.getElementById(`feedback-${chId}`);
+      fb.classList.add('show');
+
+      card.querySelectorAll('.opt').forEach((label, idx) => {
+        if (idx === correctIdx) label.classList.add('correct');
+        else if (idx === selectIdx && selectIdx !== correctIdx) label.classList.add('wrong');
+      });
+
+      if (selectIdx === null) {
+        fb.className = "challenge-feedback fail show";
+        fb.innerHTML = `❌ Sin respuesta. Respuesta correcta resaltada en verde.`;
+      } else if (selectIdx === correctIdx) {
+        fb.className = "challenge-feedback ok show";
+        const expl = chId === 'ch-a'
+          ? 'El Hidrocraqueo utiliza H₂ a presión extrema para retener rendimiento de diésel sin coque.'
+          : chId === 'ch-b'
+            ? 'El CCR genera la totalidad del H₂ de refinería al formar anillos aromáticos.'
+            : 'Delayed Coking rompe térmicamente el fondo pesado de vacío en tambores alternados.';
+        fb.innerHTML = `✅ CORRECTO: ${expl}`;
+      } else {
+        fb.className = "challenge-feedback fail show";
+        fb.innerHTML = `❌ INCORRECTO. Respuesta correcta resaltada en verde.`;
+      }
+    });
+
+    // Footer grade
+    document.getElementById('gf-name').textContent     = document.getElementById('stu-name').value || '—';
+    document.getElementById('gf-code').textContent     = document.getElementById('stu-code').value || '—';
+    document.getElementById('gf-program').textContent  = document.getElementById('stu-program').value || '—';
+    document.getElementById('gf-date').textContent     = document.getElementById('stu-date').value || '—';
+    document.getElementById('gf-progress').textContent = document.getElementById('progressPct').textContent;
+    document.getElementById('gf-points').textContent   = `${internalTotalPoints} / 100`;
+    document.getElementById('gf-grade').textContent    = `${internalGrade} / 5.0`;
+
+    document.body.classList.add('pdf-mode');
+  }
+
+  function exitPDFMode() {
+    document.body.classList.remove('pdf-mode');
+    // Devolver tabs al estado normal: sólo la activa
+    const activeBtn = document.querySelector('.tab-btn.active');
+    document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
+    if (activeBtn) {
+      const map = ['tab-cdu','tab-fcc','tab-hck','tab-alk','tab-cla'];
+      const idx = Array.from(document.querySelectorAll('.tab-btn')).indexOf(activeBtn);
+      document.getElementById(map[idx] || 'tab-cdu').classList.add('active');
+    } else {
+      document.getElementById('tab-cdu').classList.add('active');
+    }
+  }
+
+  /* ============================================================
+     GENERAR PDF
+     ============================================================ */
+  async function guardarTallerRef() {
+    const nombre   = document.getElementById('stu-name').value.trim();
+    const codigo   = document.getElementById('stu-code').value.trim();
+    const programa = document.getElementById('stu-program').value;
+
+    if (!nombre)   { alert("Por favor, ingrese su Nombre Completo.");      document.getElementById('stu-name').focus();    return; }
+    if (!codigo)   { alert("Por favor, ingrese su Código Estudiantil.");   document.getElementById('stu-code').focus();    return; }
+    if (!programa) { alert("Por favor, seleccione su Programa Académico."); document.getElementById('stu-program').focus(); return; }
+
+    const overlay = document.getElementById('overlay');
+    overlay.classList.add('show');
+
+    updateGrader();
+
+    document.getElementById('overlayTitle').textContent = "Generando reporte oficial (PDF)…";
+    document.getElementById('overlayMsg').textContent   = "Esto puede tomar unos segundos. Por favor espera.";
+
+    preparePDFMode();
+    overlay.style.display = 'none';
+
+    const opt = {
+      margin: [12, 12, 14, 12],
+      filename: `Reporte_Refinacion_${nombre.replace(/\s+/g, '_')}_${codigo}.pdf`,
+      image: { type: 'jpeg', quality: 0.96 },
+      html2canvas: { scale: 1.8, useCORS: true, backgroundColor: '#ffffff', windowWidth: 1200 },
+      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait', compress: true },
+      pagebreak: { mode: ['css', 'legacy'], avoid: ['.card', '.unit-card', '.challenge', '.control-box', '.q-box', '#pdf-grade-footer'] }
+    };
+
+    try {
+      await html2pdf().from(document.body).set(opt).save();
+    } catch (e) {
+      console.error("Error generando PDF", e);
+      alert("Hubo un problema al generar el PDF. Inténtalo de nuevo.");
+    }
+
+    exitPDFMode();
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <div class="success-card">
+        <div class="success-icon">✨</div>
+        <h2>¡Taller finalizado!</h2>
+        <p><strong>${nombre}</strong></p>
+        <p>Tu reporte se descargó automáticamente.</p>
+        <p style="margin-top:10px;">Envía el PDF al correo de tu docente:</p>
+        <span class="email-highlight">marlon.gomez@unipaz.edu.co</span>
+        <button class="btn-back" onclick="window.location.reload()">🔄 Reiniciar / Editar taller</button>
+      </div>
+    `;
+    overlay.classList.add('show');
+  }
+</script>
+</body>
+</html>
