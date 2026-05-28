@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>UF4 — Procesos de Refinación en Detalle | Procesos Industriales 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080810;--card:#111122;--card2:#161630;--text:#e2e2ee;--muted:#8888aa;--border:rgba(255,255,255,.06);--radius:16px;
+--sep:#e67e22;--conv:#e74c3c;--trat:#2ecc71;--ref:#3498db;--iso:#9b59b6;--alq:#1abc9c;--hdc:#f39c12}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.slide{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;position:relative}
+.sh{text-align:center;margin-bottom:40px;max-width:800px}
+.sh h2{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:800;line-height:1.2;margin-bottom:12px}
+.sh p{font-size:.95rem;color:var(--muted);max-width:650px;margin:0 auto}
+.badge{display:inline-block;padding:5px 18px;border-radius:50px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;transition:transform .3s,border-color .3s}
+.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.12)}
+.card h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.card p,.card li{font-size:.88rem;color:var(--muted);line-height:1.7}
+.card ul{list-style:none;padding:0}.card li{padding:6px 0;border-bottom:1px solid var(--border)}.card li:last-child{border:none}
+.grid{display:grid;gap:20px;width:100%;max-width:1200px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+/* Process Flow Box */
+.pf{display:flex;align-items:stretch;gap:0;width:100%;max-width:1000px;margin:0 auto 40px;flex-wrap:wrap;justify-content:center}
+.pf-in,.pf-out{flex:1;min-width:220px;padding:24px;border-radius:var(--radius);text-align:center}
+.pf-proc{flex:1.5;min-width:300px;padding:24px;border-radius:var(--radius);text-align:center;position:relative}
+.pf-in{background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.25)}
+.pf-out{background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25)}
+.pf-proc{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25)}
+.pf-arrow{display:flex;align-items:center;font-size:1.8rem;color:var(--muted);padding:0 8px}
+.pf h4{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700}
+.pf-in h4{color:var(--ref)}.pf-proc h4{color:var(--conv)}.pf-out h4{color:var(--trat)}
+.pf p{font-size:.85rem;color:var(--text);line-height:1.6}
+.pf .val{font-size:1.8rem;font-weight:900;margin:8px 0}
+/* Stats */
+.stats{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:40px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 24px;text-align:center;min-width:120px}
+.stat .sv{font-size:1.5rem;font-weight:900;margin-bottom:4px}
+.stat .sl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+/* Hero gradient */
+.hero-g{width:100%;max-width:1200px;height:180px;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;margin-bottom:40px;position:relative;overflow:hidden}
+.hero-g::before{content:'';position:absolute;inset:0;opacity:.15;pointer-events:none}
+.hero-g h2{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:900;z-index:2}
+.hero-g .badge{z-index:2}
+/* Title */
+#title{background:linear-gradient(160deg,#080810,#1a0e05 40%,#12101e)}
+.tw{text-align:center;z-index:2;max-width:850px}
+.tw h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;line-height:1.1;background:linear-gradient(135deg,#e67e22,#e74c3c 40%,#2ecc71 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.tw .sub{font-size:clamp(.9rem,2vw,1.15rem);color:var(--muted);font-weight:300;margin-bottom:30px}
+.tg{position:absolute;width:400px;height:400px;border-radius:50%;filter:blur(120px);opacity:.1;pointer-events:none}
+.inner-box{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;font-size:.85rem;color:var(--muted);line-height:1.7}
+.inner-box strong{color:var(--text)}
+.divider{width:80px;height:3px;border-radius:2px;margin:60px auto}
+.footer{text-align:center;padding:40px 20px;color:rgba(255,255,255,.2);font-size:.8rem}
+@media(max-width:700px){.slide{padding:40px 16px}.pf{flex-direction:column}.pf-arrow{transform:rotate(90deg);padding:8px 0}}
+.gloss{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.4);color:#e67e22;font-size:.65rem;font-weight:800;cursor:pointer;vertical-align:middle;margin-left:4px;transition:background .2s,transform .2s;line-height:1;text-decoration:none;font-family:'Inter',sans-serif}
+.gloss:hover{background:rgba(230,126,34,.3);transform:scale(1.15)}
+.gloss-popup{position:fixed;background:#1a1a36;border:1px solid rgba(230,126,34,.35);border-radius:14px;padding:16px 20px;max-width:340px;width:90%;z-index:11000;box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s,transform .25s;transform:translateY(6px);pointer-events:none}
+.gloss-popup.show{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+.gloss-popup .gp-term{font-size:.78rem;font-weight:800;color:#e67e22;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.gloss-popup .gp-def{font-size:.85rem;color:var(--muted);line-height:1.65}
+.gloss-popup .gp-def strong{color:var(--text)}
+.gloss-popup .gp-close{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;line-height:1}
+.gloss-popup .gp-close:hover{color:#fff}
+</style>
+</head>
+<body>
+<!-- ═══ TÍTULO ═══ -->
+<section class="slide" id="title">
+<div class="tg" style="background:var(--sep);top:-150px;right:-100px"></div>
+<div class="tg" style="background:var(--conv);bottom:-150px;left:-100px"></div>
+<div class="tg" style="background:var(--trat);bottom:50px;right:30%"></div>
+<div class="tw">
+<h1>Procesos de Refinación en Detalle</h1>
+<p class="sub">Qué entra · Qué sucede adentro · Qué sale — Proceso por proceso</p>
+<p style="color:var(--muted);font-size:.85rem">Semana 8 — UF4: Refinería Integrada como Sistema de Producción</p>
+</div>
+</section>
+
+<!-- ═══ MAPA GENERAL ═══ -->
+<section class="slide" id="mapa">
+<div class="sh">
+<span class="badge" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted)">Visión General</span>
+<h2>10 Procesos — 3 Categorías</h2>
+<p>Cada proceso recibe una alimentación, la transforma bajo condiciones específicas y genera productos. Hoy los veremos uno por uno.</p>
+</div>
+<div class="grid g3">
+<div class="card" style="border-top:3px solid var(--sep)">
+<h3 style="color:var(--sep)">🔀 SEPARACIÓN</h3>
+<ul><li><strong>1.</strong> Destilación Atmosférica (CDU)</li><li><strong>2.</strong> Destilación al Vacío (VDU)</li></ul>
+<div class="inner-box">No transforman moléculas. Separan por <strong>punto de ebullición</strong>.</div>
+</div>
+<div class="card" style="border-top:3px solid var(--conv)">
+<h3 style="color:var(--conv)">⚡ CONVERSIÓN</h3>
+<ul><li><strong>3.</strong> Cracking Catalítico Fluidizado (FCC)</li><li><strong>4.</strong> Hidrocraqueo (Hydrocracking)</li><li><strong>5.</strong> Reformado Catalítico</li><li><strong>6.</strong> Alquilación</li><li><strong>7.</strong> Isomerización</li></ul>
+<div class="inner-box"><strong>Transforman moléculas</strong>: rompen, reorganizan o unen cadenas de carbono.</div>
+</div>
+<div class="card" style="border-top:3px solid var(--trat)">
+<h3 style="color:var(--trat)">🧹 TRATAMIENTO</h3>
+<ul><li><strong>8.</strong> Hidrotratamiento (HDS/HDN)</li><li><strong>9.</strong> Coquización Retardada (Delayed Coking)</li><li><strong>10.</strong> Recuperación de Azufre (Claus)</li></ul>
+<div class="inner-box"><strong>Limpian</strong> productos y procesan los residuos más pesados de la refinería.</div>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--sep)"></div>
+
+<!-- ═══ 1. CDU ═══ -->
+<section class="slide" id="cdu">
+<div class="hero-g" style="background:linear-gradient(135deg,#1a0e00,#2d1600 30%,#e67e22 200%)">
+<span class="badge" style="background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.3);color:var(--sep)">Proceso 1 — Separación</span>
+<h2>Destilación Atmosférica (CDU)<span class="gloss" data-gloss="cdu">?</span></h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">Crudo</div><p>Petróleo crudo desalado<span class="gloss" data-gloss="desalado">?</span> y precalentado.<br>Mezcla de miles de hidrocarburos.<br>Temperatura: <strong>370°C</strong></p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">Torre 50m</div><p>El crudo vaporizado entra a la <strong>zona flash<span class="gloss" data-gloss="flash">?</span></strong>. Los vapores suben por <strong>40-50 platos de burbujeo<span class="gloss" data-gloss="platos">?</span></strong>. Cada plato está a menor temperatura.<br><br>Los hidrocarburos se <strong>condensan a diferentes alturas</strong> según su punto de ebullición. Los más livianos llegan al tope, los pesados caen al fondo.<br><br><strong>Presión:</strong> ~1.5 atm | <strong>No hay reacción química</strong></p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">6 cortes</div><p>🔝 <strong>Gases</strong> (C₁-C₄)<br>⛽ <strong>Nafta</strong> 30-180°C<br>✈️ <strong>Queroseno</strong> 180-260°C<br>🚛 <strong>Diésel</strong> 260-340°C<br>⬇️ <strong>Residuo atm.</strong> >340°C<br><br><em>→ Residuo va a torre de vacío</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--sep)">370°C</div><div class="sl">Temp. entrada</div></div>
+<div class="stat"><div class="sv" style="color:var(--sep)">1 atm</div><div class="sl">Presión</div></div>
+<div class="stat"><div class="sv" style="color:var(--sep)">50m</div><div class="sl">Altura torre</div></div>
+<div class="stat"><div class="sv" style="color:var(--sep)">40-50</div><div class="sl">Platos</div></div>
+<div class="stat"><div class="sv" style="color:var(--sep)">0</div><div class="sl">Catalizador</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--sep)">
+<h3>🔧 Equipos clave</h3>
+<ul><li><strong>Horno de precalentamiento:</strong> Calienta crudo a 370°C</li><li><strong>Zona flash:</strong> Donde el crudo vaporiza al entrar</li><li><strong>Platos de burbujeo:</strong> Contacto vapor-líquido para separar</li><li><strong>Condensadores laterales:</strong> Enfrían y extraen cada corte</li><li><strong>Reflujo:</strong> Líquido devuelto al tope para mejorar separación</li></ul>
+</div>
+<div class="card" style="border-left:3px solid var(--sep)">
+<h3>🇨🇴 En Colombia</h3>
+<ul><li><strong>GRB Barrancabermeja:</strong> 250 KBPD — la CDU más grande del país</li><li><strong>Reficar Cartagena:</strong> 165 KBPD — diseñada para crudos pesados</li><li>El crudo colombiano promedio es <strong>mediano-pesado</strong> (22-29° API)</li><li>Produce más residuo → necesita más conversión</li></ul>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--iso)"></div>
+
+<!-- ═══ 2. VDU ═══ -->
+<section class="slide" id="vdu">
+<div class="hero-g" style="background:linear-gradient(135deg,#0e0016,#1a0030 30%,#9b59b6 200%)">
+<span class="badge" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.3);color:var(--iso)">Proceso 2 — Separación</span>
+<h2>Destilación al Vacío (VDU)<span class="gloss" data-gloss="vdu">?</span></h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">Residuo Atm.</div><p>Todo lo que <strong>no se evaporó</strong> en la CDU.<br>Hidrocarburos >C₂₀.<br>Punto de ebullición >340°C.<br>~40-50% del crudo pesado.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">25-50 mmHg</div><p>Se <strong>reduce la presión a 25-50 mmHg</strong> (vs 760 normal). Esto baja el punto de ebullición de los hidrocarburos pesados.<br><br>Así se pueden separar <strong>sin superar 400°C</strong>, evitando que las moléculas se rompan por calor (<strong>cracking térmico</strong>).<br><br>Usa <strong>empaque estructurado</strong> en vez de platos (menor caída de presión).</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">4 cortes</div><p>📊 <strong>LVGO</strong> (gasóleo liviano) 340-400°C<br>📊 <strong>HVGO</strong> (gasóleo pesado) 400-500°C<br>🛢️ <strong>Bases lubricantes</strong> 400-550°C<br>🛣️ <strong>Residuo de vacío</strong> >550°C<br><br><em>LVGO/HVGO → FCC o Hydrocracker</em><br><em>Residuo → Asfalto o Coker</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--iso)">400°C</div><div class="sl">Temp. máxima</div></div>
+<div class="stat"><div class="sv" style="color:var(--iso)">25-50</div><div class="sl">mmHg presión</div></div>
+<div class="stat"><div class="sv" style="color:var(--iso)">3</div><div class="sl">Eyectores de vapor</div></div>
+<div class="stat"><div class="sv" style="color:var(--iso)">40%</div><div class="sl">Del crudo pesado</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--iso)">
+<h3>❓ ¿Por qué no calentar más?</h3>
+<p>Si calentamos el residuo a >400°C a presión normal, las moléculas grandes se <strong>rompen descontroladamente</strong> (cracking térmico). Esto produce coque que <strong>tapa las tuberías</strong> y daña equipos. La solución: bajar la presión para que hiervan a menor temperatura.</p>
+</div>
+<div class="card" style="border-left:3px solid var(--iso)">
+<h3>💡 Dato clave</h3>
+<p>Sin la torre de vacío, hasta el <strong>50% de un crudo pesado colombiano</strong> sería residuo sin valor. La VDU recupera gasóleos (VGO) que luego el FCC o Hydrocracker convierten en <strong>gasolina y diésel de alto valor</strong>.</p>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--conv)"></div>
+
+<!-- ═══ 3. FCC ═══ -->
+<section class="slide" id="fcc">
+<div class="hero-g" style="background:linear-gradient(135deg,#1a0505,#300a0a 30%,#e74c3c 200%)">
+<span class="badge" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:var(--conv)">Proceso 3 — Conversión</span>
+<h2>Cracking Catalítico Fluidizado (FCC)<span class="gloss" data-gloss="fcc">?</span></h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">VGO</div><p>Gasóleo de vacío (LVGO + HVGO).<br>Moléculas C₂₀-C₅₀.<br>Cadenas largas, pesadas.<br>Bajo valor como combustible.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">530°C</div><p>El Gasóleo de Vacío (VGO)<span class="gloss" data-gloss="vgo">?</span> contacta un <strong>catalizador zeolítico<span class="gloss" data-gloss="zeolita">?</span></strong> caliente en forma de polvo fino. Las moléculas grandes se <strong>rompen (cracking)</strong> en segundos.<br><br>El catalizador se <strong>fluidiza</strong>: se comporta como un líquido por la velocidad de los vapores. El coque depositado en el catalizador se quema en el <strong>regenerador</strong> a 700°C, recalentándolo.<br><br><strong>Tiempo de reacción:</strong> 2-4 segundos</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">5 productos</div><p>⛽ <strong>Gasolina FCC</strong> ~50% (RON 91-93)<br>🔥 <strong>GLP</strong> ~15% (propano, butano)<br>🚛 <strong>Aceite cíclico</strong> ~15% (diésel)<br>⚫ <strong>Coque</strong> ~5% (quemado como energía)<br>💨 <strong>Gas seco</strong> ~15% (combustible refin.)</p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--conv)">530°C</div><div class="sl">Temp. reactor</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">700°C</div><div class="sl">Temp. regenerador</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">1.5 atm</div><div class="sl">Presión</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">2-4s</div><div class="sl">Tiempo reacción</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">Zeolita</div><div class="sl">Catalizador</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--conv)">
+<h3>⚙️ Dentro del reactor</h3>
+<ul><li><strong>Riser:</strong> Tubo vertical de 30m donde ocurre la reacción en 2-4 segundos</li><li><strong>Regenerador:</strong> Quema el coque del catalizador a 700°C, suministra calor al proceso</li><li><strong>Ciclones:</strong> Separan el catalizador del vapor de productos</li><li><strong>Fraccionadora principal:</strong> Separa gasolina, GLP, aceite cíclico y gas</li></ul>
+</div>
+<div class="card" style="border-left:3px solid var(--conv)">
+<h3>💰 ¿Por qué es tan rentable?</h3>
+<p>Convierte residuo de <strong>~USD 40/barril → gasolina de ~USD 80/barril</strong>. Un barril de VGO produce ~0.5 barriles de gasolina. En Barrancabermeja el FCC procesa <strong>~40.000 BPD</strong> y es la unidad que más margen genera. Sin FCC, la refinería no sería rentable con crudo colombiano pesado.</p>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--hdc)"></div>
+
+<!-- ═══ 4. HYDROCRACKING ═══ -->
+<section class="slide" id="hdc">
+<div class="hero-g" style="background:linear-gradient(135deg,#1a0e00,#302000 30%,#f39c12 200%)">
+<span class="badge" style="background:rgba(243,156,18,.15);border:1px solid rgba(243,156,18,.3);color:var(--hdc)">Proceso 4 — Conversión</span>
+<h2>Hidrocraqueo (Hydrocracking)<span class="gloss" data-gloss="hdc">?</span></h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">VGO + H₂</div><p>Gasóleo de Vacío Pesado (HVGO)<span class="gloss" data-gloss="vgo">?</span>.<br>Hidrógeno a <strong>alta presión</strong>.<br>El H₂ viene del reformado catalítico.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">150 atm</div><p>Las moléculas pesadas se rompen en presencia de <strong>hidrógeno + catalizador</strong> (Ni-Mo o Ni-W sobre alúmina).<br><br>El H₂ <strong>satura los fragmentos</strong>, eliminando azufre y nitrógeno simultáneamente. Opera en <strong>lechos fijos catalíticos</strong>.<br><br>Es más <strong>selectivo</strong> que el FCC: produce más diésel y menos gasolina.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">Premium</div><p>🚛 <strong>Diésel premium</strong> ~60% (cetano >55)<br>✈️ <strong>Jet fuel</strong> ~20% (ultra limpio)<br>⛽ <strong>Nafta</strong> ~15%<br>🔥 <strong>GLP</strong> ~5%<br><br><em>Todos los productos salen limpios (sin S, N)</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--hdc)">400°C</div><div class="sl">Temp. reactor</div></div>
+<div class="stat"><div class="sv" style="color:var(--hdc)">150 atm</div><div class="sl">Presión H₂</div></div>
+<div class="stat"><div class="sv" style="color:var(--hdc)">Ni-Mo</div><div class="sl">Catalizador</div></div>
+<div class="stat"><div class="sv" style="color:var(--hdc)">60%</div><div class="sl">Rend. diésel</div></div>
+<div class="stat"><div class="sv" style="color:var(--hdc)"><15 ppm</div><div class="sl">Azufre salida</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--hdc)">
+<h3>🔬 FCC vs Hydrocracking</h3>
+<ul><li><strong>FCC:</strong> Sin H₂, baja presión, produce gasolina. Coque como subproducto</li><li><strong>HDC:</strong> Con H₂, alta presión, produce diésel premium. Sin coque</li><li>FCC → gasolina (mercado norteamericano)</li><li>HDC → diésel (mercado europeo y colombiano)</li></ul>
+</div>
+<div class="card" style="border-left:3px solid var(--hdc)">
+<h3>🇨🇴 Reficar = Hydrocracking</h3>
+<p>La <strong>Refinería de Cartagena</strong> (USD 8.000M) fue diseñada con hydrocracker como unidad principal. Procesa <strong>crudos pesados colombianos</strong> (Castilla, 18° API) y produce diésel Euro V (<15 ppm S). Es la tecnología más moderna de refinación en Colombia.</p>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--ref)"></div>
+
+<!-- ═══ 5. REFORMADO ═══ -->
+<section class="slide" id="reformado">
+<div class="hero-g" style="background:linear-gradient(135deg,#000a1a,#001630 30%,#3498db 200%)">
+<span class="badge" style="background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.3);color:var(--ref)">Proceso 5 — Conversión</span>
+<h2>Reformado Catalítico</h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">Nafta</div><p>Nafta pesada de la CDU (C₇-C₁₂).<br>Bajo octanaje: <strong>RON 40-60</strong>.<br>Cadenas lineales (parafinas).<br>Ya <strong>hidrotratada</strong> (sin azufre).</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">500°C</div><p>Las parafinas lineales se <strong>reorganizan</strong> en <strong>aromáticos<span class="gloss" data-gloss="btx">?</span></strong> (benceno, tolueno, xileno) y <strong>ramificados</strong>.<br><br>Reacciones: <strong>deshidrogenación</strong> (libera H₂), <strong>ciclización</strong> (forma anillos), <strong>isomerización</strong> (ramifica).<br><br>Catalizador: <strong>Platino-Renio</strong> sobre alúmina clorada. Opera en <strong>3-4 reactores en serie</strong>.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">2 clave</div><p>⛽ <strong>Reformado</strong> RON 95-100<br>(gasolina premium)<br><br>💨 <strong>Hidrógeno</strong> — subproducto clave que alimenta:<br>• Hidrotratamiento<br>• Hydrocracking<br><br><em>Sin reformado no hay H₂ en la refinería</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--ref)">500°C</div><div class="sl">Temperatura</div></div>
+<div class="stat"><div class="sv" style="color:var(--ref)">15-30 atm</div><div class="sl">Presión</div></div>
+<div class="stat"><div class="sv" style="color:var(--ref)">Pt-Re</div><div class="sl">Catalizador</div></div>
+<div class="stat"><div class="sv" style="color:var(--ref)">3-4</div><div class="sl">Reactores serie</div></div>
+<div class="stat"><div class="sv" style="color:var(--ref)">RON 100</div><div class="sl">Octanaje salida</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--ref)">
+<h3>🔄 Doble función</h3>
+<p>El reformado es <strong>el único proceso que genera H₂ como subproducto</strong>. Sin él, la refinería tendría que comprar H₂ externamente. Es la "fábrica de hidrógeno" que hace posible el hidrotratamiento y el hydrocracking.</p>
+</div>
+<div class="card" style="border-left:3px solid var(--ref)">
+<h3>🧪 Reacciones principales</h3>
+<ul><li><strong>Deshidrogenación:</strong> Naftenos → Aromáticos + H₂</li><li><strong>Ciclización:</strong> Parafinas → Naftenos (forma anillo)</li><li><strong>Isomerización:</strong> n-parafinas → iso-parafinas (ramifica)</li><li>Todas son <strong>endotérmicas</strong> → requieren calentamiento entre reactores</li></ul>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--alq)"></div>
+
+<!-- ═══ 6. ALQUILACIÓN ═══ -->
+<section class="slide" id="alquilacion">
+<div class="hero-g" style="background:linear-gradient(135deg,#051510,#0a3020 30%,#1abc9c 200%)">
+<span class="badge" style="background:rgba(26,188,156,.15);border:1px solid rgba(26,188,156,.3);color:var(--alq)">Proceso 6 — Conversión</span>
+<h2>Alquilación</h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">C₃-C₄</div><p><strong>Isobutano</strong> + <strong>olefinas<span class="gloss" data-gloss="olefinas">?</span></strong> (propileno, butileno).<br>Gases ligeros del FCC.<br>Moléculas pequeñas, gaseosas.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">10°C</div><p>A diferencia de los demás, opera en <strong>frío</strong>. Las olefinas y el isobutano se <strong>unen</strong> (reacción inversa al cracking) usando un <strong>ácido fuerte</strong> como catalizador.<br><br>Catalizador: <strong>HF (ácido fluorhídrico)</strong> o <strong>H₂SO₄ (ácido sulfúrico)</strong>.<br><br>Produce cadenas ramificadas C₇-C₈ de <strong>altísimo octanaje</strong>.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">Alquilato</div><p>⛽ <strong>Alquilato</strong> RON 93-97<br>• 0 azufre<br>• 0 aromáticos<br>• 0 olefinas<br><br><em>El componente más limpio y premium para mezclar gasolina</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--alq)">5-10°C</div><div class="sl">Temperatura</div></div>
+<div class="stat"><div class="sv" style="color:var(--alq)">3-5 atm</div><div class="sl">Presión</div></div>
+<div class="stat"><div class="sv" style="color:var(--alq)">HF / H₂SO₄</div><div class="sl">Catalizador</div></div>
+<div class="stat"><div class="sv" style="color:var(--alq)">RON 95</div><div class="sl">Octanaje</div></div>
+<div class="stat"><div class="sv" style="color:var(--alq)">0 ppm</div><div class="sl">Azufre salida</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--alq)">
+<h3>🔀 Une en vez de romper</h3>
+<p>La alquilación es el <strong>opuesto del cracking</strong>. Mientras el FCC rompe moléculas grandes, la alquilación <strong>une moléculas pequeñas</strong> del FCC para producir gasolina premium. Así la refinería maximiza el valor de TODOS sus productos.</p>
+</div>
+<div class="card" style="border-left:3px solid var(--alq)">
+<h3>⚠️ Riesgo: HF</h3>
+<p>El ácido fluorhídrico es <strong>extremadamente tóxico</strong>. Un escape puede causar quemaduras letales. GRB Barrancabermeja usa HF. Las refinerías modernas prefieren H₂SO₄ o <strong>líquidos iónicos</strong> (más seguros). El manejo de HF requiere protocolos estrictos de seguridad.</p>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--trat)"></div>
+
+<!-- ═══ 7. HIDROTRATAMIENTO ═══ -->
+<section class="slide" id="hds">
+<div class="hero-g" style="background:linear-gradient(135deg,#051a0a,#0a3016 30%,#2ecc71 200%)">
+<span class="badge" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:var(--trat)">Proceso 7 — Tratamiento</span>
+<h2>Hidrotratamiento (HDS / HDN)<span class="gloss" data-gloss="hds">?</span></h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">Productos + H₂</div><p>Nafta, diésel, queroseno, VGO.<br>Contienen <strong>azufre</strong> (500-20.000 ppm), <strong>nitrógeno</strong>, <strong>metales</strong>.<br>Hidrógeno del reformado.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">350°C</div><p>El H₂ reacciona con los compuestos de azufre y nitrógeno sobre catalizador <strong>CoMo o NiMo</strong> en lecho fijo.<br><br>• R-S-R + H₂ → R-H + <strong>H₂S</strong><br>• R-N-R + H₂ → R-H + <strong>NH₃</strong><br><br>El H₂S se convierte en <strong>azufre elemental</strong> (proceso Claus<span class="gloss" data-gloss="claus">?</span>). El NH₃ se neutraliza.<br><br><strong>No rompe</strong> las moléculas, solo <strong>limpia</strong>.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">Limpio</div><p>⛽ <strong>Producto limpio</strong> (<10-15 ppm S)<br>💛 <strong>Azufre elemental</strong> (se vende)<br>💨 <strong>NH₃</strong> (se neutraliza)<br><br><em>Cumple norma Euro V / TIER 3:<br>Diésel <15 ppm azufre<br>Gasolina <10 ppm azufre</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--trat)">320-380°C</div><div class="sl">Temperatura</div></div>
+<div class="stat"><div class="sv" style="color:var(--trat)">30-80 atm</div><div class="sl">Presión H₂</div></div>
+<div class="stat"><div class="sv" style="color:var(--trat)">CoMo/NiMo</div><div class="sl">Catalizador</div></div>
+<div class="stat"><div class="sv" style="color:var(--trat)"><15 ppm</div><div class="sl">S en salida</div></div>
+<div class="stat"><div class="sv" style="color:var(--trat)">Claus</div><div class="sl">Recupera azufre</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--trat)">
+<h3>🌍 ¿Por qué es obligatorio?</h3>
+<p>El azufre en combustibles produce <strong>SO₂</strong> al quemarse → <strong>lluvia ácida</strong>. Las normas ambientales exigen:<br>• <strong>Euro V/VI:</strong> Diésel <10 ppm S<br>• <strong>Colombia (Res. 90963):</strong> <15 ppm S en zonas principales<br>Sin hidrotratamiento, los combustibles colombianos no cumplirían normas de calidad del aire.</p>
+</div>
+<div class="card" style="border-left:3px solid var(--trat)">
+<h3>🔗 Conexión con Semana 5</h3>
+<p>El <strong>endulzamiento con aminas</strong> que estudiamos limpia el <strong>gas natural</strong>. El hidrotratamiento hace lo mismo con <strong>líquidos de refinería</strong>. Ambos eliminan azufre, pero con tecnologías diferentes: aminas (absorción) vs H₂ + catalizador (reacción química).</p>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--iso)"></div>
+
+<!-- ═══ 8. ISOMERIZACIÓN ═══ -->
+<section class="slide" id="iso">
+<div class="hero-g" style="background:linear-gradient(135deg,#0e0016,#1a0030 30%,#9b59b6 200%)">
+<span class="badge" style="background:rgba(155,89,182,.15);border:1px solid rgba(155,89,182,.3);color:var(--iso)">Proceso 8 — Conversión</span>
+<h2>Isomerización<span class="gloss" data-gloss="isomerizacion">?</span></h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">Nafta Liviana</div><p>Nafta liviana de la CDU (C₅-C₆).<br>Cadenas <strong>lineales</strong> (n-pentano, n-hexano).<br>RON bajo: ~60-70.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">250°C</div><p>Las cadenas lineales se <strong>ramifican</strong> sin cambiar la fórmula molecular. n-pentano → isopentano. n-hexano → isohexano.<br><br>Catalizador: <strong>Platino sobre alúmina clorada</strong> o <strong>zeolita</strong>. Opera a baja temperatura comparado con el reformado.<br><br><strong>No rompe ni une:</strong> solo reorganiza la forma de la molécula.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">Isomerado</div><p>⛽ <strong>Isomerado</strong> RON 80-85<br>• Sin aromáticos<br>• Sin azufre<br><br><em>Complementa al reformado para mezclar gasolina final</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--iso)">250°C</div><div class="sl">Temperatura</div></div>
+<div class="stat"><div class="sv" style="color:var(--iso)">20-30 atm</div><div class="sl">Presión</div></div>
+<div class="stat"><div class="sv" style="color:var(--iso)">Pt/Al₂O₃</div><div class="sl">Catalizador</div></div>
+<div class="stat"><div class="sv" style="color:var(--iso)">RON 83</div><div class="sl">Octanaje salida</div></div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--conv)"></div>
+
+<!-- ═══ 9. DELAYED COKING ═══ -->
+<section class="slide" id="coking">
+<div class="hero-g" style="background:linear-gradient(135deg,#1a0505,#300a0a 30%,#e74c3c 200%)">
+<span class="badge" style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.3);color:var(--conv)">Proceso 9 — Conversión / Tratamiento</span>
+<h2>Coquización Retardada<span class="gloss" data-gloss="coking">?</span> (Delayed Coking)</h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">Residuo Vacío</div><p>Lo <strong>más pesado</strong> de toda la refinería.<br>Residuo de vacío (>550°C).<br>Alto contenido de asfaltenos<span class="gloss" data-gloss="asfaltenos">?</span>, metales (Ni, V), azufre.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">500°C</div><p>El residuo se calienta a 500°C en un horno y se envía a <strong>tambores de coquización</strong> (cilindros verticales de 25m).<br><br>Dentro del tambor, el calor <strong>rompe térmicamente</strong> las moléculas pesadas. Los productos livianos salen como vapor. Lo que queda se solidifica como <strong>coque de petróleo</strong>.<br><br><strong>Ciclo:</strong> 2 tambores alternados (24h llenado + 24h descoque). El coque se corta con chorros de agua a alta presión.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">4 productos</div><p>⛽ <strong>Nafta</strong> ~15% (va a reformado)<br>🚛 <strong>Gasóleo</strong> ~50% (va a Hidrotratamiento)<br>💨 <strong>Gas</strong> ~15% (combustible)<br>⚫ <strong>Coque</strong> ~20%<br><br><em>El coque se vende como combustible para cementeras y acerías, o como ánodo en aluminio</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--conv)">500°C</div><div class="sl">Temp. horno</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">4-6 atm</div><div class="sl">Presión tambor</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">Ninguno</div><div class="sl">Catalizador</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">24h</div><div class="sl">Ciclo tambor</div></div>
+<div class="stat"><div class="sv" style="color:var(--conv)">25m</div><div class="sl">Altura tambor</div></div>
+</div>
+<div class="grid g2" style="max-width:900px">
+<div class="card" style="border-left:3px solid var(--conv)">
+<h3>⚫ ¿Qué pasa con el coque?</h3>
+<p>El coque de petróleo <strong>NO muere ahí</strong>:<br>• <strong>Grado combustible (fuel-grade):</strong> Se vende a cementeras como combustible barato de alto poder calorífico<br>• <strong>Grado ánodo (anode-grade):</strong> Se calcina y usa en la producción de aluminio<br>• <strong>Grado aguja (needle coke):</strong> Premium, para electrodos de hornos de arco eléctrico en acerías. Precio: ~USD 1.500/ton</p>
+</div>
+<div class="card" style="border-left:3px solid var(--conv)">
+<h3>🇨🇴 Reficar tiene Delayed Coker</h3>
+<p>La Refinería de Cartagena opera un <strong>Delayed Coker</strong> que procesa el residuo de vacío de los crudos pesados colombianos. Produce ~3.000 ton/día de coque que se exporta a cementeras y plantas de aluminio. Sin esta unidad, el 30% del crudo sería residuo sin valor.</p>
+</div>
+</div>
+</section>
+
+<div class="divider" style="background:var(--trat)"></div>
+
+<!-- ═══ 10. CLAUS ═══ -->
+<section class="slide" id="claus">
+<div class="hero-g" style="background:linear-gradient(135deg,#051a0a,#0a3016 30%,#2ecc71 200%)">
+<span class="badge" style="background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:var(--trat)">Proceso 10 — Tratamiento</span>
+<h2>Recuperación de Azufre (Proceso Claus)<span class="gloss" data-gloss="claus">?</span></h2>
+</div>
+<div class="pf">
+<div class="pf-in"><h4>🔵 Entrada</h4><div class="val" style="color:var(--ref)">H₂S</div><p>Ácido sulfhídrico (H₂S) del hidrotratamiento y del endulzamiento con aminas.<br>Gas altamente <strong>tóxico y corrosivo</strong>.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-proc"><h4>🔴 Qué sucede adentro</h4><div class="val" style="color:var(--conv)">1000°C</div><p><strong>Etapa 1 (térmica):</strong> Se quema 1/3 del H₂S con aire a 1000°C en un horno.<br>→ H₂S + O₂ → SO₂ + H₂O<br><br><strong>Etapa 2 (catalítica):</strong> El SO₂ reacciona con el H₂S restante sobre catalizador de alúmina en 2-3 reactores en serie.<br>→ 2H₂S + SO₂ → 3S + 2H₂O<br><br>El azufre se condensa como <strong>líquido amarillo</strong> y se solidifica.</p></div>
+<div class="pf-arrow">→</div>
+<div class="pf-out"><h4>🟢 Salidas</h4><div class="val" style="color:var(--trat)">Azufre</div><p>💛 <strong>Azufre elemental</strong> sólido (S) — pureza 99.9%<br>💨 <strong>Gas de cola</strong> (se trata en unidad TGTU)<br><br><em>El azufre se vende para fabricar ácido sulfúrico, fertilizantes, caucho y fármacos</em></p></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="sv" style="color:var(--trat)">95-97%</div><div class="sl">Recuperación S</div></div>
+<div class="stat"><div class="sv" style="color:var(--trat)">1000°C</div><div class="sl">Temp. horno</div></div>
+<div class="stat"><div class="sv" style="color:var(--trat)">Al₂O₃</div><div class="sl">Catalizador</div></div>
+<div class="stat"><div class="sv" style="color:var(--trat)">2-3</div><div class="sl">Reactores serie</div></div>
+</div>
+</section>
+
+<!-- ═══ RESUMEN INTEGRADO ═══ -->
+<section class="slide" id="resumen">
+<div class="sh">
+<span class="badge" style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted)">Integración</span>
+<h2>La Refinería como Sistema</h2>
+<p>Todos los procesos están <strong>interconectados</strong>. La salida de uno es la entrada de otro.</p>
+</div>
+<div class="grid g3">
+<div class="card" style="border-top:3px solid var(--sep)">
+<h3 style="color:var(--sep)">CDU → VDU</h3>
+<p>El residuo atmosférico alimenta la torre de vacío para recuperar gasóleos valiosos.</p>
+</div>
+<div class="card" style="border-top:3px solid var(--conv)">
+<h3 style="color:var(--conv)">VDU → FCC / Hydrocracker</h3>
+<p>Los gasóleos de vacío alimentan cracking o hidrocraqueo para producir gasolina y diésel.</p>
+</div>
+<div class="card" style="border-top:3px solid var(--ref)">
+<h3 style="color:var(--ref)">CDU → Reformado → H₂</h3>
+<p>La nafta pesada va al reformado para subir octanaje y producir hidrógeno.</p>
+</div>
+<div class="card" style="border-top:3px solid var(--alq)">
+<h3 style="color:var(--alq)">FCC → Alquilación</h3>
+<p>Los gases ligeros del FCC se unen en la alquilación para producir gasolina premium.</p>
+</div>
+<div class="card" style="border-top:3px solid var(--hdc)">
+<h3 style="color:var(--hdc)">Residuo Vacío → Coker → Coque</h3>
+<p>Lo más pesado se coquiza. El coque se vende. Los líquidos vuelven al circuito.</p>
+</div>
+<div class="card" style="border-top:3px solid var(--trat)">
+<h3 style="color:var(--trat)">HDS → H₂S → Claus → Azufre</h3>
+<p>El azufre removido se recupera y vende. Nada se desperdicia.</p>
+</div>
+</div>
+</section>
+
+<div class="footer">UNIPAZ — Ingeniería de Producción — Procesos Industriales 1 — 2026-1<br>Esp. Marlon Gomez</div>
+
+<script>
+const GLOSSARY={
+cdu:{term:'CDU — Crude Distillation Unit',def:'Unidad de Destilación de Crudo. La primera y más importante de la refinería. Separa el petróleo crudo en fracciones por <strong>diferencias de punto de ebullición</strong>. Opera a presión atmosférica (~1 atm) y 370°C.'},
+vdu:{term:'VDU — Vacuum Distillation Unit',def:'Unidad de Destilación al Vacío. Procesa el residuo atmosférico reduciendo la presión a 25-50 mmHg para que los hidrocarburos pesados hiervan <strong>sin descomponerse</strong>. Recupera gasóleos (VGO) que irán a conversión.'},
+fcc:{term:'FCC — Fluid Catalytic Cracking',def:'Cracking Catalítico Fluidizado. Rompe moléculas pesadas (VGO) usando catalizador zeolítico a 530°C. El catalizador se comporta como un <strong>fluido</strong> (de ahí el nombre). Es la unidad <strong>más rentable</strong> de la refinería.'},
+hdc:{term:'Hydrocracking — Hidrocraqueo',def:'Proceso que rompe moléculas pesadas usando <strong>hidrógeno a alta presión</strong> (150 atm). Produce diésel premium y jet fuel ultra limpios. A diferencia del FCC, todos los productos salen <strong>sin azufre ni nitrógeno</strong>.'},
+hds:{term:'HDS/HDN — Hidrodesulfuración / Hidrodesnitrogenación',def:'<strong>HDS</strong> elimina azufre con H₂. <strong>HDN</strong> elimina nitrógeno. Ambos usan catalizadores CoMo o NiMo. Son obligatorios para cumplir normas Euro V (<15 ppm S).'},
+vgo:{term:'VGO — Vacuum Gas Oil (Gasóleo de Vacío)',def:'Fracción obtenida en la torre de vacío (340-550°C). Se divide en <strong>LVGO</strong> (liviano) y <strong>HVGO</strong> (pesado). Es la <strong>alimentación principal del FCC y el Hydrocracker</strong>. Sin recuperar VGO, hasta el 50% del crudo pesado sería residuo.'},
+zeolita:{term:'Zeolita (Catalizador Zeolítico)',def:'Mineral cristalino con estructura de poros microscópicos. En el FCC, la zeolita tipo <strong>Y</strong> proporciona los sitios ácidos donde las moléculas grandes se rompen. Se regenera continuamente quemando el coque depositado a 700°C.'},
+btx:{term:'BTX — Benceno, Tolueno, Xileno',def:'Los tres aromáticos principales producidos en el reformado catalítico. Son materia prima clave de la <strong>petroquímica</strong>: plásticos (PET, poliestireno), fibras sintéticas (nylon), pinturas y solventes.'},
+olefinas:{term:'Olefinas (Alquenos)',def:'Hidrocarburos con un <strong>doble enlace</strong> C=C. Son reactivos — se usan como materia prima en petroquímica (etileno → polietileno, propileno → polipropileno) y en alquilación para producir gasolina. Ejemplos: etileno, propileno, butileno.'},
+claus:{term:'Proceso Claus',def:'Convierte el H₂S tóxico (del hidrotratamiento y endulzamiento) en <strong>azufre elemental</strong> vendible. Dos etapas: quema parcial a 1000°C + conversión catalítica sobre alúmina. Recupera 95-97% del azufre. Conexión con semana 5: el H₂S del endulzamiento también va al Claus.'},
+coking:{term:'Coquización Retardada (Delayed Coking)',def:'Proceso térmico que descompone el <strong>residuo de vacío</strong> (lo más pesado del crudo) en productos livianos + coque sólido. Se llama "retardada" porque la reacción ocurre en tambores (no en el horno). El coque se vende a cementeras, acerías o productores de aluminio.'},
+isomerizacion:{term:'Isomerización',def:'Reorganiza la <strong>forma</strong> de las moléculas sin cambiar su fórmula. Convierte cadenas lineales (n-pentano) en ramificadas (isopentano) de mayor octanaje. Opera a baja temperatura (~250°C) con catalizador de platino.'},
+asfaltenos:{term:'Asfaltenos',def:'Las moléculas más pesadas y complejas del petróleo. Contienen anillos aromáticos policíclicos con metales (Ni, V) y heteroátomos (S, N, O). Son responsables de la <strong>viscosidad</strong> del crudo pesado y son la base del asfalto para carreteras.'},
+desalado:{term:'Desalado',def:'Primer tratamiento del crudo antes de entrar a la CDU. Se mezcla con agua caliente para <strong>disolver y extraer sales</strong> (NaCl, CaCl₂, MgCl₂) que causarían corrosión e incrustaciones en los equipos. Se usa un campo eléctrico para separar el agua salada del crudo.'},
+flash:{term:'Zona Flash',def:'Punto de la torre de destilación donde el crudo precalentado <strong>entra y se vaporiza instantáneamente</strong>. Los vapores suben por la torre y los líquidos caen al fondo. Es donde ocurre la separación inicial entre fase vapor y fase líquida.'},
+platos:{term:'Platos de Burbujeo',def:'Bandejas horizontales dentro de la torre con orificios y cápsulas. El <strong>vapor sube a través de los orificios</strong> y burbujea en el líquido que hay sobre cada plato. Este contacto íntimo vapor-líquido es lo que permite la separación por diferencias de punto de ebullición.'}
+};
+const gp=document.createElement('div');gp.className='gloss-popup';gp.innerHTML='<button class="gp-close" onclick="hideG()">×</button><div class="gp-term" id="gpT"></div><div class="gp-def" id="gpD"></div>';document.body.appendChild(gp);
+document.addEventListener('click',function(e){const g=e.target.closest('.gloss');if(g){e.stopPropagation();const k=g.dataset.gloss,en=GLOSSARY[k];if(!en)return;document.getElementById('gpT').textContent=en.term;document.getElementById('gpD').innerHTML=en.def;const r=g.getBoundingClientRect();let t=r.bottom+10,l=r.left-100;if(l<10)l=10;if(l+340>window.innerWidth)l=window.innerWidth-350;if(t+200>window.innerHeight)t=r.top-200;gp.style.top=t+'px';gp.style.left=l+'px';gp.classList.add('show')}else if(!e.target.closest('.gloss-popup'))hideG()});
+function hideG(){gp.classList.remove('show')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideG()});
+</script>
+</body>
+</html>
