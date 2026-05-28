@@ -132,24 +132,61 @@ function buildMixingValve() {
 
 function buildWashWater() {
   const g = new THREE.Group();
-  const x = -3.5, z = -3.0;
-  // tanque vertical de agua de lavado
-  const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 2.4, 28), matWater());
-  tank.position.set(x, 1.6, z); g.add(tank);
-  const top = new THREE.Mesh(new THREE.SphereGeometry(0.7, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), matSteelDark());
-  top.position.set(x, 2.8, z); g.add(top);
-  // bomba de inyección
-  const pump = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.4), matSteel());
-  pump.position.set(x + 1.0, 0.7, z); g.add(pump);
-  const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.4, 16), matMotor());
-  motor.rotation.z = Math.PI / 2; motor.position.set(x + 1.35, 0.7, z); g.add(motor);
-  // línea de inyección a la válvula de mezcla
-  addPipes(g, [[x, 0.7, z], [x, 0.7, 0], [-3.5, 1.4, 0]], matWater(), 0.06);
+  // Reubicado al rincón posterior-izquierdo, fuera del desalador 1 (z=-2.5).
+  const x = -7.5, z = -4.2;
+
+  // Pequeño cimiento de hormigón bajo el tanque
+  const tankPad = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.18, 1.9), matConcrete());
+  tankPad.position.set(x, 0.49, z); g.add(tankPad);
+
+  // Tanque vertical de agua de lavado: faldón + cuerpo + domo + flange
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 0.5, 28), matSteelDark());
+  skirt.position.set(x, 0.83, z); g.add(skirt);
+  const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 2.2, 28), matWater());
+  tank.position.set(x, 2.18, z); g.add(tank);
+  g.add(flange(0.7, 3.28, matSteelDark(), x, z));
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(0.7, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+    matSteelDark()
+  );
+  dome.position.set(x, 3.28, z); g.add(dome);
+  // Boquilla de venteo en lo alto
+  const vent = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.4, 12), matSteelDark());
+  vent.position.set(x, 4.0, z); g.add(vent);
+  // Indicador de nivel lateral
+  const lg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.6, 10), matSteel());
+  lg.position.set(x + 0.78, 2.0, z); g.add(lg);
+
+  // Pedestal de bomba al costado del tanque
+  const pumpPad = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.18, 0.7), matConcrete());
+  pumpPad.position.set(x + 1.8, 0.49, z); g.add(pumpPad);
+  // Bomba centrífuga (cuerpo + voluta + motor)
+  const pump = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.42, 18), matSteel());
+  pump.rotation.z = Math.PI / 2; pump.position.set(x + 1.5, 0.78, z); g.add(pump);
+  const vol = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), matSteel());
+  vol.position.set(x + 1.34, 0.78, z); vol.scale.set(1, 1, 0.85); g.add(vol);
+  const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.5, 18), matMotor());
+  motor.rotation.z = Math.PI / 2; motor.position.set(x + 1.95, 0.78, z); g.add(motor);
+  const coup = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.12, 10), matSteelDark());
+  coup.rotation.z = Math.PI / 2; coup.position.set(x + 1.72, 0.78, z); g.add(coup);
+
+  // Línea de succión: salida del tanque -> bomba (línea corta)
+  addPipes(g, [[x, 0.83, z], [x + 0.7, 0.83, z], [x + 1.3, 0.78, z]], matWater(), 0.05);
+  // Línea de descarga (ortogonal): bomba -> válvula de mezcla en (-3.5, 1.4, 0)
+  addPipes(g, [
+    [x + 2.1, 0.78, z],
+    [x + 2.1, 0.78, 0],
+    [-3.5, 0.78, 0],
+    [-3.5, 1.4, 0],
+  ], matWater(), 0.06);
+
   return tagGroup(g, {
-    id: 'des-wash-water', title: 'Inyección de agua de lavado', category: 'Equipo principal',
-    description: 'Sistema que dosifica agua dulce (4-8 % vol sobre el crudo) que se mezcla con el crudo para disolver las sales. El agua arrastra los cloruros y luego se separa en los desaladores como salmuera.',
-    specs: 'Agua desmineralizada o condensado · 4-8 % vol sobre carga'
-  }, new THREE.Vector3(0, -1, -3));
+    id: 'des-wash-water',
+    title: 'Inyección de agua de lavado',
+    category: 'Equipo principal',
+    description: 'Sistema que dosifica agua dulce (4-8 % vol sobre el crudo) que se mezcla con el crudo en la válvula de mezcla para disolver las sales. El agua arrastra los cloruros y luego se separa en los desaladores como salmuera.',
+    specs: 'Agua desmineralizada o condensado · 4-8 % vol sobre carga · Bomba dosificadora'
+  }, new THREE.Vector3(-2, -1, -2));
 }
 
 function buildDesalter(stage, x, z) {
