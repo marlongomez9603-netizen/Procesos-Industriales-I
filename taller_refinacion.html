@@ -934,32 +934,42 @@
     display: none !important;
   }
   body.pdf-mode .pdf-only { display: block !important; }
-  body.pdf-mode .app { max-width: 100% !important; padding: 0 16px !important; gap: 18px !important; }
-  body.pdf-mode .hero { margin: 28px auto 18px; }
-  body.pdf-mode .hero h1 { font-size: 1.8rem; }
-  body.pdf-mode .hero p.lead { font-size: 0.9rem; }
+  body.pdf-mode .app { max-width: 100% !important; padding: 0 14px !important; gap: 14px !important; margin: 0 !important; }
+  body.pdf-mode .hero { margin: 14px auto 14px; padding: 0 14px; }
+  body.pdf-mode .hero h1 { font-size: 1.5rem; margin-bottom: 6px; }
+  body.pdf-mode .hero p.lead { font-size: 0.82rem; margin-top: 4px; }
   body.pdf-mode .hero-side { display: none; }
+  body.pdf-mode .hero-badge { margin-bottom: 8px; padding: 4px 12px; font-size: 0.65rem; }
   body.pdf-mode .card {
     background: #fff !important;
     box-shadow: none !important;
-    border: 1.5px solid #d6c8af !important;
-    padding: 22px !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
+    border: 1px solid #d6c8af !important;
+    padding: 16px 18px !important;
+    /* No "avoid break" en la card grande — dejamos que las secciones grandes
+       (Reto 1, Reto 2) puedan partirse para no generar páginas en blanco. */
   }
-  body.pdf-mode .card-head { margin-bottom: 16px; padding-bottom: 14px; }
-  body.pdf-mode .card-num { transform: rotate(0deg); width: 50px; height: 50px; font-size: 1.4rem; }
+  body.pdf-mode .card-head { margin-bottom: 12px; padding-bottom: 10px; gap: 12px; }
+  body.pdf-mode .card-num { transform: rotate(0deg); width: 44px; height: 44px; font-size: 1.2rem; border-radius: 10px; }
+  body.pdf-mode .card-title { font-size: 1.1rem; }
+  body.pdf-mode .card-eyebrow { font-size: 0.62rem; letter-spacing: 1.5px; }
+  body.pdf-mode .card-points { font-size: 0.65rem; padding: 3px 10px; }
+  body.pdf-mode .note { padding: 10px 14px; font-size: 0.78rem; margin-bottom: 14px; }
   body.pdf-mode .unit-card,
   body.pdf-mode .challenge,
   body.pdf-mode .control-box,
-  body.pdf-mode .room-screen {
+  body.pdf-mode .screen-content,
+  body.pdf-mode .q-box {
     background: #fff !important;
     box-shadow: none !important;
     border: 1px solid #d6c8af !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }
-  body.pdf-mode .screen-content { display: flex !important; margin-bottom: 16px; }
+  body.pdf-mode .screen-content { display: flex !important; margin-bottom: 12px; padding: 14px; }
+  body.pdf-mode .q-box { padding: 14px; }
+  body.pdf-mode .unit-card { padding: 12px 14px; }
+  body.pdf-mode .challenge { padding: 14px; }
+  body.pdf-mode .control-box { padding: 10px 12px; }
   body.pdf-mode .feedback,
   body.pdf-mode .challenge-feedback {
     background: #f8f8f8 !important;
@@ -1008,15 +1018,15 @@
   body.pdf-mode .pdf-answer {
     display: block;
     background: #fdf7e8;
-    border: 1px solid #d6c8af;
-    border-radius: 8px;
-    padding: 12px 16px;
+    border-radius: 6px;
+    padding: 10px 14px;
     color: #1a1a1a;
-    font-size: 0.92rem;
-    line-height: 1.55;
+    font-size: 0.88rem;
+    line-height: 1.5;
     white-space: pre-wrap;
     word-wrap: break-word;
-    min-height: 60px;
+    min-height: 50px;
+    margin-top: 6px;
   }
   body.pdf-mode .pdf-answer.empty { color: #999; font-style: italic; }
   body.pdf-mode .field input,
@@ -1910,24 +1920,24 @@
     </button>
   </div>
 
-</div>
+  <!-- PDF GRADE FOOTER (Arial 10) — debe quedar dentro de .app para ser capturado -->
+  <div id="pdf-grade-footer">
+    <div class="gf-title">Resumen de evaluación</div>
+    <div class="gf-row"><span>Estudiante:</span><span id="gf-name">—</span></div>
+    <div class="gf-row"><span>Código:</span><span id="gf-code">—</span></div>
+    <div class="gf-row"><span>Programa:</span><span id="gf-program">—</span></div>
+    <div class="gf-row"><span>Fecha:</span><span id="gf-date">—</span></div>
+    <div class="gf-row"><span>Progreso completado:</span><span id="gf-progress">0%</span></div>
+    <div class="gf-row"><span>Puntaje total:</span><span id="gf-points">0 / 100</span></div>
+    <div class="gf-row" style="margin-top:8px; padding-top:8px; border-top:1px solid #ccc;">
+      <span style="font-weight:bold;">Nota estimada (escala 0.0 – 5.0):</span>
+      <span class="gf-grade" id="gf-grade">0.0</span>
+    </div>
+    <div style="margin-top:10px; font-size:9pt; color:#666;">
+      Este reporte se generó automáticamente. La nota indicada es estimada; la validación final corresponde al docente.
+    </div>
+  </div>
 
-<!-- PDF GRADE FOOTER (Arial 10) -->
-<div id="pdf-grade-footer">
-  <div class="gf-title">Resumen de evaluación</div>
-  <div class="gf-row"><span>Estudiante:</span><span id="gf-name">—</span></div>
-  <div class="gf-row"><span>Código:</span><span id="gf-code">—</span></div>
-  <div class="gf-row"><span>Programa:</span><span id="gf-program">—</span></div>
-  <div class="gf-row"><span>Fecha:</span><span id="gf-date">—</span></div>
-  <div class="gf-row"><span>Progreso completado:</span><span id="gf-progress">0%</span></div>
-  <div class="gf-row"><span>Puntaje total:</span><span id="gf-points">0 / 100</span></div>
-  <div class="gf-row" style="margin-top:8px; padding-top:8px; border-top:1px solid #ccc;">
-    <span style="font-weight:bold;">Nota estimada (escala 0.0 – 5.0):</span>
-    <span class="gf-grade" id="gf-grade">0.0</span>
-  </div>
-  <div style="margin-top:10px; font-size:9pt; color:#666;">
-    Este reporte se generó automáticamente. La nota indicada es estimada; la validación final corresponde al docente.
-  </div>
 </div>
 
 <!-- OVERLAY -->
@@ -1937,8 +1947,8 @@
   <p id="overlayMsg">Por favor, no cierres esta ventana.</p>
 </div>
 
-<!-- LIBRERÍAS DE GENERACIÓN PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- LIBRERÍA DE GENERACIÓN PDF (jsPDF UMD) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
   /* ============================================================
@@ -2116,138 +2126,299 @@
   }
 
   /* ============================================================
-     PREPARACIÓN DEL DOM PARA PDF
-     ============================================================ */
-  function preparePDFMode() {
-    // Volcar textareas a divs visibles
-    document.querySelectorAll('.pdf-answer[data-source]').forEach(div => {
-      const src = document.getElementById(div.dataset.source);
-      if (!src) return;
-      const val = src.value.trim();
-      div.textContent = val || '— Sin respuesta —';
-      div.classList.toggle('empty', !val);
-    });
-
-    // Volcar selects de variables de control (Reto 2)
-    document.querySelectorAll('.pdf-field-val[data-source]').forEach(span => {
-      const screen = span.closest('.screen-content');
-      if (!screen) return;
-      const sel = screen.querySelector('.' + span.dataset.source);
-      if (!sel) return;
-      span.textContent = sel.value ? sel.options[sel.selectedIndex].text : '— Sin seleccionar —';
-    });
-
-    // Programa académico
-    const prog = document.getElementById('stu-program');
-    const progOut = document.getElementById('pdf-stu-program');
-    if (progOut) progOut.textContent = prog.value || '— Sin seleccionar —';
-
-    // Mostrar TODAS las pantallas del Reto 2 una debajo de otra
-    document.querySelectorAll('.screen-content').forEach(s => s.classList.add('active'));
-
-    // Marcar respuestas del Reto 3 (correctas/incorrectas) para que se vean en el PDF
-    document.querySelectorAll('#card-reto3 .challenge').forEach(card => {
-      const chId = card.id;
-      const correctIdx = parseInt(CORRECT_ANSWERS_RETO3[chId]);
-      const selectIdx = reto3Answers[chId] === null ? null : parseInt(reto3Answers[chId]);
-      const fb = document.getElementById(`feedback-${chId}`);
-      fb.classList.add('show');
-
-      card.querySelectorAll('.opt').forEach((label, idx) => {
-        if (idx === correctIdx) label.classList.add('correct');
-        else if (idx === selectIdx && selectIdx !== correctIdx) label.classList.add('wrong');
-      });
-
-      if (selectIdx === null) {
-        fb.className = "challenge-feedback fail show";
-        fb.innerHTML = `❌ Sin respuesta. Respuesta correcta resaltada en verde.`;
-      } else if (selectIdx === correctIdx) {
-        fb.className = "challenge-feedback ok show";
-        const expl = chId === 'ch-a'
-          ? 'El Hidrocraqueo utiliza H₂ a presión extrema para retener rendimiento de diésel sin coque.'
-          : chId === 'ch-b'
-            ? 'El CCR genera la totalidad del H₂ de refinería al formar anillos aromáticos.'
-            : 'Delayed Coking rompe térmicamente el fondo pesado de vacío en tambores alternados.';
-        fb.innerHTML = `✅ CORRECTO: ${expl}`;
-      } else {
-        fb.className = "challenge-feedback fail show";
-        fb.innerHTML = `❌ INCORRECTO. Respuesta correcta resaltada en verde.`;
-      }
-    });
-
-    // Footer grade
-    document.getElementById('gf-name').textContent     = document.getElementById('stu-name').value || '—';
-    document.getElementById('gf-code').textContent     = document.getElementById('stu-code').value || '—';
-    document.getElementById('gf-program').textContent  = document.getElementById('stu-program').value || '—';
-    document.getElementById('gf-date').textContent     = document.getElementById('stu-date').value || '—';
-    document.getElementById('gf-progress').textContent = document.getElementById('progressPct').textContent;
-    document.getElementById('gf-points').textContent   = `${internalTotalPoints} / 100`;
-    document.getElementById('gf-grade').textContent    = `${internalGrade} / 5.0`;
-
-    document.body.classList.add('pdf-mode');
-  }
-
-  function exitPDFMode() {
-    document.body.classList.remove('pdf-mode');
-    // Devolver tabs al estado normal: sólo la activa
-    const activeBtn = document.querySelector('.tab-btn.active');
-    document.querySelectorAll('.screen-content').forEach(s => s.classList.remove('active'));
-    if (activeBtn) {
-      const map = ['tab-cdu','tab-fcc','tab-hck','tab-alk','tab-cla'];
-      const idx = Array.from(document.querySelectorAll('.tab-btn')).indexOf(activeBtn);
-      document.getElementById(map[idx] || 'tab-cdu').classList.add('active');
-    } else {
-      document.getElementById('tab-cdu').classList.add('active');
-    }
-  }
-
-  /* ============================================================
-     GENERAR PDF
+     GENERAR PDF — UNA SOLA HOJA · Listado de respuestas con jsPDF
      ============================================================ */
   async function guardarTallerRef() {
     const nombre   = document.getElementById('stu-name').value.trim();
     const codigo   = document.getElementById('stu-code').value.trim();
     const programa = document.getElementById('stu-program').value;
+    const fecha    = document.getElementById('stu-date').value;
 
     if (!nombre)   { alert("Por favor, ingrese su Nombre Completo.");      document.getElementById('stu-name').focus();    return; }
     if (!codigo)   { alert("Por favor, ingrese su Código Estudiantil.");   document.getElementById('stu-code').focus();    return; }
     if (!programa) { alert("Por favor, seleccione su Programa Académico."); document.getElementById('stu-program').focus(); return; }
 
-    const overlay = document.getElementById('overlay');
-    overlay.classList.add('show');
-
-    updateGrader();
-
-    document.getElementById('overlayTitle').textContent = "Generando reporte oficial (PDF)…";
-    document.getElementById('overlayMsg').textContent   = "Esto puede tomar unos segundos. Por favor espera.";
-
-    preparePDFMode();
-    overlay.style.display = 'none';
-
-    const opt = {
-      margin: [12, 12, 14, 12],
-      filename: `Reporte_Refinacion_${nombre.replace(/\s+/g, '_')}_${codigo}.pdf`,
-      image: { type: 'jpeg', quality: 0.96 },
-      html2canvas: { scale: 1.8, useCORS: true, backgroundColor: '#ffffff', windowWidth: 1200 },
-      jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait', compress: true },
-      pagebreak: { mode: ['css', 'legacy'], avoid: ['.card', '.unit-card', '.challenge', '.control-box', '.q-box', '#pdf-grade-footer'] }
-    };
-
-    try {
-      await html2pdf().from(document.body).set(opt).save();
-    } catch (e) {
-      console.error("Error generando PDF", e);
-      alert("Hubo un problema al generar el PDF. Inténtalo de nuevo.");
+    // Verificar que jsPDF esté cargado
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert("La librería de PDF aún no terminó de cargar. Espera unos segundos y vuelve a intentar.");
+      return;
     }
 
-    exitPDFMode();
-    overlay.style.display = 'flex';
+    const overlay = document.getElementById('overlay');
+    overlay.innerHTML = `
+      <div class="spinner"></div>
+      <h2>Generando reporte…</h2>
+      <p>Solo un momento.</p>
+    `;
+    overlay.classList.add('show');
+
+    // Dejar al navegador pintar el overlay antes de empezar el trabajo pesado
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    try {
+      await generarPDF(nombre, codigo, programa, fecha);
+    } catch (err) {
+      console.error("Error al generar el PDF:", err);
+      overlay.classList.remove('show');
+      alert("Ocurrió un error al generar el PDF:\n\n" + (err && err.message ? err.message : err) + "\n\nRevisa la consola del navegador (F12) para más detalles.");
+    }
+  }
+
+  async function generarPDF(nombre, codigo, programa, fecha) {
+    updateGrader();
+
+    // === Recopilación de respuestas ===
+    const r1 = [];
+    document.querySelectorAll('#card-reto1 .unit-card').forEach(uc => {
+      const name = uc.querySelector('.unit-name').textContent.trim();
+      const sel = uc.querySelector('.io-select');
+      if (!sel) return;
+      const val = sel.value;
+      r1.push({
+        name,
+        text: val ? sel.options[sel.selectedIndex].text : 'Sin respuesta',
+        answered: val !== '',
+        correct: val === sel.dataset.answer
+      });
+    });
+
+    const tabsR2 = [
+      { id: 'tab-cdu', label: 'CDU' },
+      { id: 'tab-fcc', label: 'FCC' },
+      { id: 'tab-hck', label: 'Hidrocraqueo' },
+      { id: 'tab-alk', label: 'Alquilación' },
+      { id: 'tab-cla', label: 'Claus' }
+    ];
+    const r2 = tabsR2.map(({ id, label }) => {
+      const screen = document.getElementById(id);
+      const pick = cls => {
+        const s = screen.querySelector('.' + cls);
+        return s.value ? s.options[s.selectedIndex].text : '—';
+      };
+      return {
+        name: label,
+        temp: pick('c-temp'),
+        pres: pick('c-pres'),
+        cat:  pick('c-cat'),
+        correct: reto2Corrects[id]
+      };
+    });
+
+    const casesR3 = [
+      { id: 'ch-a', label: 'Caso A' },
+      { id: 'ch-b', label: 'Caso B' },
+      { id: 'ch-c', label: 'Caso C' }
+    ];
+    const r3 = casesR3.map(({ id, label }) => {
+      const sel = reto3Answers[id];
+      return {
+        name: label,
+        pick: sel === null ? '—' : `Opción ${parseInt(sel) + 1}`,
+        correctOpt: `Opción ${parseInt(CORRECT_ANSWERS_RETO3[id]) + 1}`,
+        answered: sel !== null,
+        correct: sel !== null && sel === CORRECT_ANSWERS_RETO3[id]
+      };
+    });
+
+    const r4 = [
+      { q: '4.1 — Fundamento del vacío en la VDU',     a: document.getElementById('q_vacuo').value.trim()     || 'Sin respuesta' },
+      { q: '4.2 — Comparación FCC vs Hidrocraqueo',    a: document.getElementById('q_fcc_hck').value.trim()   || 'Sin respuesta' },
+      { q: '4.3 — Sinergia HDS -> Claus',              a: document.getElementById('q_hds_claus').value.trim() || 'Sin respuesta' }
+    ];
+
+    // === Construir el PDF ===
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'letter', orientation: 'portrait', compress: true });
+
+    const pageW = 215.9, pageH = 279.4;
+    const M = 10;                 // margen
+    const W = pageW - 2 * M;      // ancho útil
+
+    const COL_OK   = [43, 174, 102];
+    const COL_FAIL = [214, 40, 40];
+    const COL_DARK = [30, 30, 30];
+    const COL_MUTED = [110, 110, 110];
+
+    const setFont = (style = 'normal', size = 9) => { doc.setFont('helvetica', style); doc.setFontSize(size); };
+    const setColor = (rgb) => doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+
+    // Banda superior
+    doc.setFillColor(200, 29, 122);
+    doc.rect(0, 0, pageW, 18, 'F');
+    setFont('bold', 13);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Reporte del Taller — Integración de Procesos de Refinación', M, 9);
+    setFont('normal', 8);
+    doc.text('Procesos Industriales I · Unidad 4 · UNIPAZ', M, 14);
+
+    let y = 24;
+    setColor(COL_DARK);
+
+    // Helper para el "banner" de cada sección
+    const sectionHeader = (title, rgb) => {
+      doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+      doc.rect(M, y, W, 5.5, 'F');
+      setFont('bold', 9);
+      doc.setTextColor(255, 255, 255);
+      doc.text(title, M + 2, y + 3.9);
+      y += 7;
+      setColor(COL_DARK);
+    };
+
+    // === DATOS DEL ESTUDIANTE ===
+    sectionHeader('Datos del estudiante', [248, 170, 50]);
+    setFont('normal', 8.5);
+    const colW = W / 2;
+    doc.text(`Nombre: ${nombre}`, M + 1, y);
+    doc.text(`Código: ${codigo}`, M + colW + 1, y);
+    y += 4.5;
+    doc.text(`Programa: ${programa}`, M + 1, y);
+    doc.text(`Fecha: ${fecha || '—'}`, M + colW + 1, y);
+    y += 6.5;
+
+    // === RETO 1 ===
+    sectionHeader('Reto 1 — Constructor de flujo (30 pts)', [255, 92, 57]);
+    // dos columnas
+    const halfW = W / 2 - 2;
+    const splitAt = Math.ceil(r1.length / 2); // 6
+    let yLeft = y, yRight = y;
+    r1.forEach((it, idx) => {
+      const left = idx < splitAt;
+      const x = left ? M : M + W / 2 + 2;
+      const yy = left ? yLeft : yRight;
+
+      setFont('bold', 7.5); setColor(COL_DARK);
+      doc.text(it.name, x, yy);
+
+      const value = it.text;
+      const lines = doc.splitTextToSize(value, halfW - 4);
+      const showLine = lines[0] + (lines.length > 1 ? ' …' : '');
+      setFont('normal', 7.5);
+      if (!it.answered) setColor(COL_MUTED);
+      else if (it.correct) setColor(COL_OK);
+      else setColor(COL_FAIL);
+      doc.text(showLine, x + 2, yy + 3.2);
+      setColor(COL_DARK);
+
+      const inc = 6.6;
+      if (left) yLeft = yy + inc; else yRight = yy + inc;
+    });
+    y = Math.max(yLeft, yRight) + 1.5;
+
+    // === RETO 2 ===
+    sectionHeader('Reto 2 — Sala de control (30 pts)', [200, 29, 122]);
+    // Cabecera de tabla
+    setFont('bold', 7.8);
+    doc.setFillColor(248, 240, 222);
+    doc.rect(M, y, W, 5, 'F');
+    const cTemp = M + 32, cPres = M + 95, cCat = M + 130, cOK = M + W - 8;
+    doc.text('Unidad', M + 1, y + 3.4);
+    doc.text('Temperatura', cTemp, y + 3.4);
+    doc.text('Presión', cPres, y + 3.4);
+    doc.text('Catalizador', cCat, y + 3.4);
+    doc.text('Resultado', cOK - 8, y + 3.4);
+    y += 5;
+
+    setFont('normal', 7.8);
+    r2.forEach((u, i) => {
+      if (i % 2 === 0) { doc.setFillColor(252, 250, 244); doc.rect(M, y, W, 4.7, 'F'); }
+      setColor(COL_DARK);
+      doc.text(u.name, M + 1, y + 3.3);
+      doc.text(doc.splitTextToSize(u.temp, 60)[0], cTemp, y + 3.3);
+      doc.text(doc.splitTextToSize(u.pres, 32)[0], cPres, y + 3.3);
+      doc.text(doc.splitTextToSize(u.cat,  46)[0], cCat,  y + 3.3);
+      setFont('bold', 7.8);
+      const allEmpty = u.temp === '—' && u.pres === '—' && u.cat === '—';
+      if (allEmpty) { setColor(COL_MUTED); doc.text('Sin verificar', cOK - 8, y + 3.3); }
+      else if (u.correct) { setColor(COL_OK); doc.text('Correcto', cOK - 8, y + 3.3); }
+      else { setColor(COL_FAIL); doc.text('Incorrecto', cOK - 8, y + 3.3); }
+      setFont('normal', 7.8); setColor(COL_DARK);
+      y += 4.7;
+    });
+    y += 2;
+
+    // === RETO 3 ===
+    sectionHeader('Reto 3 — Casos colombianos (15 pts)', [45, 156, 219]);
+    setFont('normal', 8);
+    r3.forEach(c => {
+      setColor(COL_DARK);
+      setFont('bold', 8);
+      doc.text(c.name + ':', M + 1, y);
+      setFont('normal', 8);
+      const status = !c.answered ? 'Sin responder' : (c.correct ? 'Correcta' : `Incorrecta (correcta: ${c.correctOpt})`);
+      doc.text(`marcó ${c.pick}`, M + 17, y);
+      if (!c.answered) setColor(COL_MUTED);
+      else if (c.correct) setColor(COL_OK);
+      else setColor(COL_FAIL);
+      doc.text(status, M + W - 4, y, { align: 'right' });
+      setColor(COL_DARK);
+      y += 4.6;
+    });
+    y += 2;
+
+    // === SECCIÓN 4 ===
+    sectionHeader('Sección 4 — Análisis abierto (25 pts)', [107, 45, 142]);
+
+    // Reservar 18 mm para el pie con la nota
+    const footerH = 18;
+    const availableForR4 = pageH - M - footerH - y - 2;
+    const perQuestion = availableForR4 / 3;
+
+    r4.forEach(item => {
+      setFont('bold', 8); setColor(COL_DARK);
+      doc.text(item.q, M + 1, y);
+      y += 3.5;
+      setFont('normal', 8);
+      if (item.a === 'Sin respuesta') setColor(COL_MUTED);
+      const lines = doc.splitTextToSize(item.a, W - 4);
+      const maxLines = Math.max(2, Math.floor((perQuestion - 5) / 3.3));
+      const shown = lines.slice(0, maxLines);
+      if (lines.length > maxLines) {
+        const last = shown[shown.length - 1] || '';
+        shown[shown.length - 1] = (last.length > 6 ? last.slice(0, -2) : last) + ' …';
+      }
+      shown.forEach(ln => { doc.text(ln, M + 2, y); y += 3.3; });
+      setColor(COL_DARK);
+      y += 2;
+    });
+
+    // === PIE (Arial 10) ===
+    const fy = pageH - M - 12;
+    doc.setDrawColor(160, 160, 160);
+    doc.setLineWidth(0.3);
+    doc.line(M, fy, M + W, fy);
+
+    setFont('normal', 10); // Helvetica = equivalente Arial en jsPDF
+    setColor(COL_DARK);
+    const progresoTxt = document.getElementById('progressPct').textContent;
+    doc.text(`Progreso: ${progresoTxt}   ·   Puntaje total: ${internalTotalPoints} / 100`, M, fy + 5);
+
+    setFont('bold', 10);
+    setColor([200, 29, 122]);
+    doc.text(`Nota estimada: ${internalGrade} / 5.0`, M, fy + 10);
+
+    setFont('normal', 9);
+    setColor(COL_MUTED);
+    doc.text('Enviar PDF a: marlon.gomez@unipaz.edu.co', M + W, fy + 10, { align: 'right' });
+
+    // Guardar
+    const filename = `Reporte_Refinacion_${nombre.replace(/\s+/g, '_')}_${codigo}.pdf`;
+    let pdfOk = false;
+    try {
+      doc.save(filename);
+      pdfOk = true;
+    } catch (e) {
+      console.error('Error guardando PDF', e);
+    }
+
+    // Pantalla de éxito
+    const overlay = document.getElementById('overlay');
     overlay.innerHTML = `
       <div class="success-card">
-        <div class="success-icon">✨</div>
-        <h2>¡Taller finalizado!</h2>
+        <div class="success-icon">${pdfOk ? '✨' : '📄'}</div>
+        <h2>${pdfOk ? '¡Taller finalizado!' : 'Reporte preparado'}</h2>
         <p><strong>${nombre}</strong></p>
-        <p>Tu reporte se descargó automáticamente.</p>
+        <p>${pdfOk ? 'Tu reporte se descargó automáticamente.' : 'La descarga no inició; intenta de nuevo.'}</p>
         <p style="margin-top:10px;">Envía el PDF al correo de tu docente:</p>
         <span class="email-highlight">marlon.gomez@unipaz.edu.co</span>
         <button class="btn-back" onclick="window.location.reload()">🔄 Reiniciar / Editar taller</button>
