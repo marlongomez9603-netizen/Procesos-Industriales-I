@@ -10,6 +10,8 @@
     --text:#e9eef6; --muted:#9aa6bd; --accent:#ea580c; --accent2:#4aa3ff;
     --c-des:#0ea5e9; --c-cdu:#2563eb; --c-vdu:#7c3aed; --c-fcc:#dc2626;
     --c-hck:#0d9488; --c-ref:#d97706; --c-alk:#db2777; --c-iso:#65a30d;
+    --c-hdt:#06b6d4; --c-amn:#6366f1; --c-sru:#eab308; --c-sws:#14b8a6; --c-mrx:#84cc16;
+    --c-hds:#2ecc71; --c-cok:#b91c1c; --c-cla:#facc15;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
@@ -204,6 +206,45 @@ const UNITS = [
     equip:['Secadores','Reactores lead-lag','Inyección de cloruro','Estabilizador','Desisohexanizador'],
     why:'A baja temperatura el equilibrio favorece los isómeros de mayor octanaje.'
   },
+  {
+    key:'hds', color:'var(--c-hds)', name:'Hidrotratamiento (HDS/HDN)', role:'Tratamiento',
+    what:'Elimina azufre, nitrógeno y metales de naftas, diésel y gasóleos usando hidrógeno y catalizador. Es el "limpiador" de la refinería.',
+    feed:'Nafta, diésel, queroseno, VGO + H₂', prod:'Producto limpio (<15 ppm S), H₂S (→ Claus) y NH₃',
+    inside:[
+      'El H₂ reacciona con compuestos de azufre sobre catalizador <b>CoMo o NiMo</b> en lecho fijo.',
+      'R-S-R + H₂ → R-H + <b>H₂S</b> (hidrodesulfuración).',
+      'R-N-R + H₂ → R-H + <b>NH₃</b> (hidrodesnitrogenación).',
+      'El H₂S se envía al <b>proceso Claus</b> para recuperar azufre elemental.'
+    ],
+    equip:['Reactor de lecho fijo','Compresor de H₂','Separador HP/LP','Absorbedor de aminas','Stripper de H₂S'],
+    why:'Sin hidrotratamiento los combustibles no cumplen normas Euro V / TIER 3 (<15 ppm S).'
+  },
+  {
+    key:'cok', color:'var(--c-cok)', name:'Coquización Retardada (Delayed Coking)', role:'Conversión',
+    what:'Descompone térmicamente el residuo de vacío —lo más pesado del crudo— en productos ligeros y coque sólido.',
+    feed:'Residuo de vacío (>550 °C)', prod:'Nafta, gasóleo, gas y coque de petróleo',
+    inside:[
+      'El residuo se calienta a <b>500 °C</b> en un horno y entra a <b>tambores verticales</b> de 25 m.',
+      'Dentro del tambor el calor <b>rompe térmicamente</b> las moléculas; los livianos salen como vapor.',
+      'Lo que queda se solidifica como <b>coque de petróleo</b>; se corta con chorros de agua a alta presión.',
+      'Operan <b>2 tambores alternados</b>: 24 h de llenado + 24 h de descoque.'
+    ],
+    equip:['Horno de coquización','Tambores (2)','Sistema de corte hidráulico','Fraccionadora','Foso de coque'],
+    why:'Sin esta unidad, el ~30 % del crudo pesado sería residuo sin valor. El coque se vende a cementeras y acerías.'
+  },
+  {
+    key:'cla', color:'var(--c-cla)', name:'Recuperación de Azufre (Claus)', role:'Tratamiento',
+    what:'Convierte el H₂S tóxico (del hidrotratamiento y el endulzamiento) en azufre elemental vendible.',
+    feed:'H₂S del hidrotratamiento y del endulzamiento con aminas', prod:'Azufre elemental sólido (99,9 %) y gas de cola',
+    inside:[
+      '<b>Etapa térmica:</b> se quema ⅓ del H₂S con aire a 1 000 °C → SO₂ + H₂O.',
+      '<b>Etapa catalítica:</b> 2 H₂S + SO₂ → 3 S + 2 H₂O sobre catalizador de <b>alúmina</b>.',
+      'El azufre se condensa como <b>líquido amarillo</b> y luego se solidifica.',
+      'Se usan <b>2-3 reactores en serie</b> para alcanzar 95-97 % de recuperación.'
+    ],
+    equip:['Horno de reacción','Reactores catalíticos (2-3)','Condensadores de azufre','Foso de azufre','TGTU (gas de cola)'],
+    why:'Cierra el ciclo ambiental: transforma un gas tóxico en un producto industrial útil (fertilizantes, caucho, H₂SO₄).'
+  },
 ];
 
 const slides = [];
@@ -236,7 +277,14 @@ slides.push(`
       <div class="card">
         <h3>2 · Conversión química</h3>
         <p>Rompe o reordena moléculas para crear productos más valiosos y limpios.</p>
-        <div class="chips"><span class="chip">FCC</span><span class="chip">Hidrocraqueo</span><span class="chip">Reformado</span><span class="chip">Alquilación</span><span class="chip">Isomerización</span></div>
+        <div class="chips"><span class="chip">FCC</span><span class="chip">Hidrocraqueo</span><span class="chip">Reformado</span><span class="chip">Alquilación</span><span class="chip">Isomerización</span><span class="chip">Coquización</span></div>
+      </div>
+    </div>
+    <div class="cols" style="margin-top:18px">
+      <div class="card">
+        <h3>3 · Tratamiento</h3>
+        <p>Limpia productos y procesa residuos: elimina azufre, nitrógeno y metales.</p>
+        <div class="chips"><span class="chip">Hidrotratamiento</span><span class="chip">Claus (Recuperación de azufre)</span></div>
       </div>
     </div>
     <p class="muted" style="margin-top:14px">Regla para recordar: cada hidrocarburo hierve a una temperatura distinta — cuanto más grande la molécula, mayor su punto de ebullición.</p>
@@ -266,6 +314,18 @@ slides.push(`
       <span class="node" style="border-color:var(--c-iso)">Isomerización</span>
       <span class="node" style="border-color:var(--c-alk)">Alquilación</span>
       <span class="arrow">⇒</span><span class="node">Gasolina de alto octanaje</span>
+    </div>
+    <div class="flow">
+      <span class="node" style="border-color:var(--c-vdu)">Residuo de vacío</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-cok)">Coquización</span>
+      <span class="arrow">⇒</span><span class="node">Nafta · Gasóleo · Coque</span>
+    </div>
+    <div class="flow">
+      <span class="node">Productos (nafta, diésel…)</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-hds)">Hidrotratamiento</span>
+      <span class="arrow">→</span><span class="node">H₂S</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-cla)">Claus</span>
+      <span class="arrow">⇒</span><span class="node">Azufre elemental</span>
     </div>
     <p class="muted" style="margin-top:22px">El reformado además produce el <b>hidrógeno</b> que consumen el hidrotratamiento y el hidrocraqueo.</p>
   </div>`);
@@ -353,6 +413,9 @@ slides.push(`
       <tr><td><b>Reformado</b></td><td>Conversión</td><td>Sí (cat. + H₂)</td><td>Media</td><td>Reformado + H₂</td></tr>
       <tr><td><b>Alquilación</b></td><td>Conversión</td><td>Sí (ácido)</td><td>Baja</td><td>Alquilato</td></tr>
       <tr><td><b>Isomerización</b></td><td>Conversión</td><td>Sí (catalítica)</td><td>Media</td><td>Isomerato</td></tr>
+      <tr><td><b>Hidrotratamiento</b></td><td>Tratamiento</td><td>Sí (con H₂)</td><td>Media-alta</td><td>Producto limpio</td></tr>
+      <tr><td><b>Coquización</b></td><td>Conversión</td><td>Térmica (sin cat.)</td><td>Baja</td><td>Coque + livianos</td></tr>
+      <tr><td><b>Claus</b></td><td>Tratamiento</td><td>Sí (térm. + cat.)</td><td>Baja</td><td>Azufre elemental</td></tr>
     </table>
   </div>`);
 
@@ -362,10 +425,14 @@ const glos = [
   ['Reflujo','Líquido condensado que vuelve a la columna para mejorar la separación.'],
   ['Pumparound','Corriente que se extrae, enfría y reinyecta para controlar la temperatura.'],
   ['Catalizador','Sustancia que acelera una reacción sin consumirse.'],
-  ['Coque','Carbón que se forma sobre el catalizador y debe quemarse para reactivarlo.'],
+  ['Coque','Carbón sólido formado por descomposición térmica de hidrocarburos pesados.'],
   ['Quench','Inyección de fluido frío entre lechos para controlar la temperatura.'],
   ['Endo/Exotérmico','Reacción que consume calor / que libera calor.'],
   ['HVGO / LVGO','Gasóleo pesado / ligero de vacío.'],
+  ['HDS / HDN','Hidrodesulfuración / Hidrodesnitrogenación: eliminación de S y N con H₂.'],
+  ['H₂S','Ácido sulfhídrico: gas tóxico que se genera al eliminar azufre.'],
+  ['Claus','Proceso que convierte H₂S en azufre elemental vendible.'],
+  ['Asfaltenos','Moléculas más pesadas del crudo; base del asfalto para carreteras.'],
 ];
 slides.push(`
   <div class="slide">
@@ -373,8 +440,8 @@ slides.push(`
     <h1>Glosario</h1>
     <div class="accentbar" style="background:var(--accent2)"></div>
     <div class="cols">
-      <div>${glos.slice(0,4).map(([k,v])=>`<p style="margin:.5em 0"><b style="color:var(--accent2)">${k}:</b> ${v}</p>`).join('')}</div>
-      <div>${glos.slice(4).map(([k,v])=>`<p style="margin:.5em 0"><b style="color:var(--accent2)">${k}:</b> ${v}</p>`).join('')}</div>
+      <div>${glos.slice(0,6).map(([k,v])=>`<p style="margin:.5em 0"><b style="color:var(--accent2)">${k}:</b> ${v}</p>`).join('')}</div>
+      <div>${glos.slice(6).map(([k,v])=>`<p style="margin:.5em 0"><b style="color:var(--accent2)">${k}:</b> ${v}</p>`).join('')}</div>
     </div>
   </div>`);
 
