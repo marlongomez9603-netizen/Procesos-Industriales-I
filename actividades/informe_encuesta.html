@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe de resultados · Encuesta de evaluación · UNIPAZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg: #FFF6E9; --ink: #1B0E05; --ink-soft: #4B3725; --muted: #957B5E;
+    --paper: #FFFFFF; --paper-soft: #FBEAD0; --line: #E6CDA4;
+    --coral: #FF5C39; --teal: #0FB5BA; --berry: #C81D7A; --plum: #6B2D8E;
+    --ok: #2BAE66; --warn: #F5B700; --err: #D62828;
+    --fd: 'Fraunces', Georgia, serif;
+    --fb: 'Outfit', system-ui, sans-serif;
+    --fm: 'JetBrains Mono', monospace;
+  }
+  body {
+    font-family: var(--fb); color: var(--ink);
+    background: var(--bg); line-height: 1.55;
+    padding: 24px 16px 64px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  /* Portada */
+  .cover {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 22px;
+    padding: 48px 44px;
+    margin-bottom: 32px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 20px 50px rgba(27,14,5,0.10);
+  }
+  .cover::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 8px;
+    background: linear-gradient(90deg, var(--coral), var(--berry), var(--teal));
+  }
+  .cover .label {
+    display: inline-block; background: var(--ink); color: #fff;
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 2.5px;
+  }
+  .cover h1 {
+    font-family: var(--fd); font-weight: 900;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    line-height: 0.95; letter-spacing: -0.035em;
+    margin: 18px 0 12px;
+  }
+  .cover h1 .em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--coral), var(--berry));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .cover .subtitle {
+    font-size: 1.05rem; color: var(--ink-soft); max-width: 700px;
+    margin-bottom: 22px;
+  }
+  .cover .meta {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px; margin-top: 18px;
+  }
+  .cover .meta div {
+    background: var(--paper-soft); border-radius: 12px;
+    padding: 12px 16px; border-left: 4px solid var(--coral);
+  }
+  .cover .meta b {
+    display: block;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 2px;
+  }
+  .cover .meta span { font-weight: 700; font-size: 1rem; color: var(--ink); }
+
+  /* Secciones */
+  .section {
+    background: var(--paper); border-radius: 20px;
+    padding: 32px 36px; margin-bottom: 24px;
+    box-shadow: 0 14px 32px rgba(27,14,5,0.08);
+    border-top: 6px solid var(--sec, var(--coral));
+  }
+  .section .eyebrow {
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 3px;
+    color: var(--sec, var(--coral)); margin-bottom: 4px;
+  }
+  .section h2 {
+    font-family: var(--fd); font-weight: 900;
+    font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+    line-height: 1.1; letter-spacing: -0.025em;
+    margin-bottom: 14px;
+  }
+  .section h3 {
+    font-family: var(--fd); font-weight: 700;
+    font-size: 1.25rem; margin: 22px 0 10px;
+    color: var(--ink);
+  }
+  .section p { margin-bottom: 12px; color: var(--ink-soft); }
+  .section ul, .section ol { margin: 8px 0 14px 22px; color: var(--ink-soft); }
+  .section li { margin-bottom: 4px; }
+
+  /* Resumen ejecutivo */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px; margin: 16px 0 8px;
+  }
+  .kpi {
+    background: var(--paper-soft); border-radius: 14px;
+    padding: 18px 16px; border-left: 5px solid var(--k-color);
+  }
+  .kpi b {
+    display: block; font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .kpi .v {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 2rem; line-height: 1; color: var(--ink);
+    letter-spacing: -0.03em;
+  }
+  .kpi .sub {
+    font-family: var(--fm); font-size: 0.78rem;
+    color: var(--muted); margin-top: 4px;
+  }
+
+  /* Tablas */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 14px 0; font-size: 0.92rem;
+    border-radius: 10px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(27,14,5,0.06);
+  }
+  thead {
+    background: var(--ink); color: #fff;
+  }
+  th, td {
+    padding: 10px 12px; text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    font-size: 0.74rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.2px;
+  }
+  tbody tr:nth-child(even) { background: var(--paper-soft); }
+  tbody tr:hover { background: rgba(255,92,57,0.08); }
+  td.num, th.num { text-align: right; font-family: var(--fm); font-weight: 600; }
+  .alpha-good { color: var(--ok); font-weight: 800; }
+  .alpha-warn { color: var(--warn); font-weight: 800; }
+
+  /* Charts */
+  .chart-box {
+    background: var(--paper-soft); border-radius: 14px;
+    padding: 18px; margin: 14px 0;
+  }
+  .chart-box .title {
+    font-size: 0.78rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .chart-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 16px;
+  }
+
+  /* Notas / callouts */
+  .note {
+    background: linear-gradient(135deg, #FFFBEF, #FFF1DA);
+    border-left: 5px solid var(--warn);
+    border-radius: 10px;
+    padding: 14px 18px; margin: 16px 0;
+    font-size: 0.92rem;
+  }
+  .note b { color: #8a6d00; }
+  .note.danger { background: linear-gradient(135deg,#fbe9e7,#f8d7d2); border-left-color: var(--err); }
+  .note.danger b { color: #8a1a1a; }
+  .note.ok { background: linear-gradient(135deg,#e8f5e9,#c8e6c9); border-left-color: var(--ok); }
+  .note.ok b { color: #1a6a40; }
+
+  /* Verbatim */
+  .verbatim {
+    background: #fff; border-left: 4px solid var(--berry);
+    border-radius: 8px; padding: 10px 14px; margin: 6px 0;
+    font-style: italic; color: var(--ink-soft); font-size: 0.92rem;
+  }
+  .verbatim .src {
+    display: block; font-style: normal; font-weight: 700;
+    font-size: 0.72rem; color: var(--berry);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;
+  }
+
+  .tag {
+    display: inline-block; background: var(--paper-soft);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 10px; font-size: 0.76rem; font-weight: 700;
+    color: var(--ink); margin: 2px 4px 2px 0;
+  }
+  .tag .n { font-family: var(--fm); color: var(--coral); }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .section, .cover { box-shadow: none; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ========== PORTADA ========== -->
+  <div class="cover">
+    <span class="label">📊 Investigación de Maestría · UNIPAZ · 2026</span>
+    <h1>Informe de <span class="em">resultados</span></h1>
+    <p class="subtitle">Evaluación de la plataforma 3D de unidades de refinación y las presentaciones interactivas como recurso didáctico en el curso de <b>Procesos Industriales I</b>.</p>
+    <div class="meta">
+      <div><b>Instrumento</b><span>Encuesta tipo Likert (1–5)</span></div>
+      <div><b>Tamaño muestral</b><span>n = 12 estudiantes</span></div>
+      <div><b>Población</b><span>Ing. Producción · 6° sem.</span></div>
+      <div><b>Fecha de aplicación</b><span>05 / 06 / 2026</span></div>
+      <div><b>Ítems totales</b><span>25 (18 Likert + 5 perfil + 2 abiertas)</span></div>
+      <div><b>Dimensiones evaluadas</b><span>3 (3D · Pres · Aprendizaje)</span></div>
+    </div>
+  </div>
+
+  <!-- ========== RESUMEN EJECUTIVO ========== -->
+  <div class="section" style="--sec: var(--coral)">
+    <div class="eyebrow">1 · Resumen ejecutivo</div>
+    <h2>Hallazgos principales</h2>
+    <p>La evaluación arroja valoraciones <b>consistentemente altas</b> en las tres dimensiones del instrumento. Los promedios superan ampliamente el punto medio teórico (M = 3.0), ubicándose en el rango de "de acuerdo" a "totalmente de acuerdo".</p>
+
+    <div class="kpi-grid">
+      <div class="kpi" style="--k-color: var(--coral)">
+        <b>Plataforma 3D</b>
+        <div class="v">4.51</div>
+        <div class="sub">DE = 1.03 · α = 0.988</div>
+      </div>
+      <div class="kpi" style="--k-color: var(--berry)">
+        <b>Presentaciones</b>
+        <div class="v">4.51</div>
+        <div class="sub">DE = 0.94 · α = 0.986</div>
+      </div>
+      <div class="kpi" style="--k-color: var(--plum)">
+        <b>Aprendizaje</b>
+        <div class="v">4.38</div>
+        <div class="sub">DE = 1.08 · α = 0.977</div>
+      </div>
+      <div class="kpi" style="--k-color: var(--teal)">
+        <b>Recomendación de uso</b>
+        <div class="v">91.7%</div>
+        <div class="sub">Mo = 5 · Mdn = 5</div>
+      </div>
+    </div>
+
+    <h3>Conclusiones clave</h3>
+    <ol>
+      <li><b>Las dos modalidades (3D y presentaciones) son percibidas como equivalentes en valor</b> (M = 4.51 en ambas), lo que respalda la hipótesis de complementariedad del diseño didáctico.</li>
+      <li><b>El ítem mejor valorado es la intención de recomendar el visor 3D</b> (M = 4.75; 83% otorgó la puntuación máxima).</li>
+      <li><b>Los ítems con menor puntuación pertenecen a la dimensión Aprendizaje</b>: comprensión de la relación entre unidades (M = 4.25) y comprensión general (M = 4.33), aún dentro del rango "muy de acuerdo".</li>
+      <li><b>La consistencia interna de las escalas es excelente</b> en las tres dimensiones (α > 0.97), aunque se discute en el apartado de limitaciones.</li>
+    </ol>
+  </div>
+
+  <!-- ========== METODOLOGÍA ========== -->
+  <div class="section" style="--sec: var(--teal)">
+    <div class="eyebrow">2 · Metodología</div>
+    <h2>Diseño del instrumento y procedimiento</h2>
+    <p>El estudio empleó un <b>diseño descriptivo de corte transversal</b> con enfoque cuantitativo y un componente cualitativo complementario para las preguntas abiertas.</p>
+    <h3>Instrumento</h3>
+    <ul>
+      <li><b>25 ítems</b> organizados en cinco bloques: Perfil (5), Plataforma 3D (7), Presentaciones (7), Aprendizaje percibido (4) y Comentarios abiertos (2).</li>
+      <li><b>Escala Likert de 5 niveles</b> en los bloques 2–4: 1 = Totalmente en desacuerdo · 5 = Totalmente de acuerdo.</li>
+      <li>Aplicación digital autoadministrada vía formulario HTML; almacenamiento en base de datos PostgreSQL (Supabase).</li>
+    </ul>
+    <h3>Procedimiento ético</h3>
+    <ul>
+      <li>Consentimiento informado al inicio del instrumento.</li>
+      <li>Tratamiento de datos conforme a la <b>Ley 1581 de 2012</b> (Habeas Data, Colombia).</li>
+      <li>Participación voluntaria y respuestas tratadas de forma agregada.</li>
+    </ul>
+    <h3>Procesamiento de datos</h3>
+    <ul>
+      <li>Cálculo de estadísticos descriptivos (M, Mdn, Mo, DE, mín, máx) por ítem y por dimensión.</li>
+      <li>Análisis de confiabilidad mediante <b>Alfa de Cronbach</b> para cada dimensión.</li>
+      <li>Codificación temática inductiva para las respuestas abiertas.</li>
+    </ul>
+  </div>
+
+  <!-- ========== CARACTERIZACIÓN ========== -->
+  <div class="section" style="--sec: var(--berry)">
+    <div class="eyebrow">3 · Caracterización</div>
+    <h2>Perfil de la muestra</h2>
+    <p>La muestra está conformada por <b>12 estudiantes</b> del programa de Ingeniería de Producción, todos en sexto semestre.</p>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="title">Distribución por género</div>
+        <canvas id="chGenero" height="180"></canvas>
+      </div>
+      <div class="chart-box">
+        <div class="title">Experiencia previa con herramientas 3D</div>
+        <canvas id="chExp" height="180"></canvas>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr><th>Variable</th><th>Categoría</th><th class="num">n</th><th class="num">%</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="2"><b>Género</b></td><td>Femenino</td><td class="num">5</td><td class="num">41.7%</td></tr>
+        <tr><td>Masculino</td><td class="num">7</td><td class="num">58.3%</td></tr>
+        <tr><td rowspan="3"><b>Experiencia con 3D</b></td><td>No, primera vez</td><td class="num">7</td><td class="num">58.3%</td></tr>
+        <tr><td>Sí, alguna vez</td><td class="num">3</td><td class="num">25.0%</td></tr>
+        <tr><td>Sí, varias veces</td><td class="num">2</td><td class="num">16.7%</td></tr>
+        <tr><td rowspan="2"><b>Conocimiento previo en refinación</b></td><td>Básico</td><td class="num">7</td><td class="num">58.3%</td></tr>
+        <tr><td>Intermedio</td><td class="num">5</td><td class="num">41.7%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ========== DESCRIPTIVO POR DIMENSIÓN ========== -->
+  <div class="section" style="--sec: var(--coral)">
+    <div class="eyebrow">4 · Análisis descriptivo</div>
+    <h2>Estadísticos por dimensión</h2>
+    <p>Se presentan medias, desviaciones estándar, mediana y coeficiente Alfa de Cronbach para cada una de las tres dimensiones evaluadas.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Dimensión</th><th class="num">k (ítems)</th>
+          <th class="num">M</th><th class="num">Mdn</th>
+          <th class="num">DE</th><th class="num">α de Cronbach</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Plataforma 3D</td><td class="num">7</td><td class="num">4.51</td><td class="num">5.00</td><td class="num">1.03</td><td class="num alpha-good">0.988</td></tr>
+        <tr><td>Presentaciones interactivas</td><td class="num">7</td><td class="num">4.51</td><td class="num">4.93</td><td class="num">0.94</td><td class="num alpha-good">0.986</td></tr>
+        <tr><td>Aprendizaje percibido</td><td class="num">4</td><td class="num">4.38</td><td class="num">4.88</td><td class="num">1.08</td><td class="num alpha-good">0.977</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note ok">
+      <b>Interpretación de α:</b> los tres valores superan el umbral de confiabilidad excelente (α ≥ 0.90). Esto sugiere que los ítems de cada dimensión miden un constructo coherente. Sin embargo, ver consideraciones en el apartado de limitaciones.
+    </div>
+
+    <div class="chart-box">
+      <div class="title">Comparación de medias por dimensión (escala 1–5)</div>
+      <canvas id="chDim" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- ========== DESCRIPTIVO POR ÍTEM ========== -->
+  <div class="section" style="--sec: var(--berry)">
+    <div class="eyebrow">5 · Análisis por ítem</div>
+    <h2>Estadísticos ítem por ítem</h2>
+
+    <h3>Dimensión 1 · Plataforma 3D</h3>
+    <table>
+      <thead><tr><th>Ítem</th><th class="num">M</th><th class="num">Mdn</th><th class="num">Mo</th><th class="num">DE</th><th class="num">Mín</th><th class="num">Máx</th></tr></thead>
+      <tbody>
+        <tr><td>06. Fácil aprender a usar</td><td class="num">4.50</td><td class="num">5</td><td class="num">5</td><td class="num">1.17</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>07. Interfaz clara</td><td class="num">4.50</td><td class="num">5</td><td class="num">5</td><td class="num">1.17</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>08. Funciona con fluidez</td><td class="num">4.42</td><td class="num">5</td><td class="num">5</td><td class="num">1.16</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>09. Modelos representan con realismo</td><td class="num">4.42</td><td class="num">5</td><td class="num">5</td><td class="num">1.16</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>10. Etiquetas son útiles</td><td class="num">4.50</td><td class="num">5</td><td class="num">5</td><td class="num">1.17</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>11. Motivó a aprender más</td><td class="num">4.50</td><td class="num">5</td><td class="num">5</td><td class="num">0.90</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td><b>12. Recomendaría a otros</b></td><td class="num"><b>4.75</b></td><td class="num">5</td><td class="num">5</td><td class="num">0.62</td><td class="num">3</td><td class="num">5</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Dimensión 2 · Presentaciones interactivas</h3>
+    <table>
+      <thead><tr><th>Ítem</th><th class="num">M</th><th class="num">Mdn</th><th class="num">Mo</th><th class="num">DE</th><th class="num">Mín</th><th class="num">Máx</th></tr></thead>
+      <tbody>
+        <tr><td>13. Explicaciones claras</td><td class="num">4.42</td><td class="num">5</td><td class="num">5</td><td class="num">0.90</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td><b>14. Animaciones ayudan a entender</b></td><td class="num"><b>4.67</b></td><td class="num">5</td><td class="num">5</td><td class="num">0.89</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td>15. Diseño visual atractivo</td><td class="num">4.58</td><td class="num">5</td><td class="num">5</td><td class="num">1.16</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>16. Ritmo adecuado</td><td class="num">4.50</td><td class="num">5</td><td class="num">5</td><td class="num">0.90</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td>17. Funciona en mobile</td><td class="num">4.42</td><td class="num">5</td><td class="num">5</td><td class="num">1.16</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>18. Complementan al 3D</td><td class="num">4.50</td><td class="num">5</td><td class="num">5</td><td class="num">0.90</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td>19. Volvería a consultar</td><td class="num">4.50</td><td class="num">5</td><td class="num">5</td><td class="num">0.90</td><td class="num">2</td><td class="num">5</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Dimensión 3 · Aprendizaje percibido</h3>
+    <table>
+      <thead><tr><th>Ítem</th><th class="num">M</th><th class="num">Mdn</th><th class="num">Mo</th><th class="num">DE</th><th class="num">Mín</th><th class="num">Máx</th></tr></thead>
+      <tbody>
+        <tr><td>20. Comprendo mejor el flujo general</td><td class="num">4.33</td><td class="num">4.5</td><td class="num">5</td><td class="num">0.89</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td>21. Identifico la relación entre unidades</td><td class="num">4.25</td><td class="num">5</td><td class="num">5</td><td class="num">1.22</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td>22. Más efectiva que método tradicional</td><td class="num">4.42</td><td class="num">5</td><td class="num">5</td><td class="num">1.16</td><td class="num">1</td><td class="num">5</td></tr>
+        <tr><td><b>23. Recomendaría incorporarlo al curso</b></td><td class="num"><b>4.50</b></td><td class="num">5</td><td class="num">5</td><td class="num">1.17</td><td class="num">1</td><td class="num">5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ========== DISTRIBUCIÓN DE FRECUENCIAS ========== -->
+  <div class="section" style="--sec: var(--plum)">
+    <div class="eyebrow">6 · Distribución</div>
+    <h2>Distribución de respuestas por nivel Likert</h2>
+    <p>Visualización de la frecuencia de respuestas en cada nivel de la escala, agregada por dimensión.</p>
+
+    <div class="chart-box">
+      <div class="title">Frecuencia (%) por nivel Likert, por dimensión</div>
+      <canvas id="chFreq" height="240"></canvas>
+    </div>
+
+    <p style="margin-top:14px">El patrón muestra una <b>fuerte asimetría positiva</b>: más del 75% de las respuestas se concentran en los niveles 4 y 5 ("de acuerdo" y "totalmente de acuerdo") en las tres dimensiones.</p>
+  </div>
+
+  <!-- ========== ANÁLISIS CUALITATIVO ========== -->
+  <div class="section" style="--sec: var(--teal)">
+    <div class="eyebrow">7 · Análisis cualitativo</div>
+    <h2>Codificación temática de respuestas abiertas</h2>
+    <p>Se aplicó codificación temática inductiva a las respuestas de los ítems 24 ("lo que más gustó") y 25 ("mejoras"). Las categorías emergieron del análisis de las respuestas.</p>
+
+    <h3>Pregunta 24 · ¿Qué fue lo que más te gustó?</h3>
+    <p><b>Categorías emergentes:</b></p>
+    <div>
+      <span class="tag">Visualización gráfica del proceso <span class="n">8</span></span>
+      <span class="tag">Comprensión / aprendizaje activo <span class="n">6</span></span>
+      <span class="tag">Interactividad y manipulación <span class="n">3</span></span>
+      <span class="tag">Diseño y facilidad de uso <span class="n">3</span></span>
+      <span class="tag">Acceso a equipos no disponibles físicamente <span class="n">2</span></span>
+    </div>
+
+    <p style="margin-top: 12px"><b>Citas representativas:</b></p>
+    <div class="verbatim"><span class="src">E08 · Femenino · Intermedio</span>"Es una alternativa excelente para nosotros como estudiantes ya que es difícil encontrar ese tipo de interacciones más que todo para una clase, ayudan a entender más ya que muchos no hemos visto un equipo en la vida real…"</div>
+    <div class="verbatim"><span class="src">E09 · Masculino · Básico</span>"Como es una herramienta que puedes manipular como Solidworks, permite que te concentres en puntos concretos a tu ritmo."</div>
+    <div class="verbatim"><span class="src">E07 · Masculino · Básico</span>"Ver un prototipo de una unidad atmosférica y torres de destilación y entre otras, donde se veía detalladamente el funcionamiento de cada una."</div>
+    <div class="verbatim"><span class="src">E01 · Femenino · Básico</span>"El aprendizaje con ejemplo; muchas veces lo gráfico y con herramientas que podemos manejar alienta mucho el conocimiento."</div>
+
+    <h3>Pregunta 25 · ¿Qué mejorarías?</h3>
+    <p><b>Categorías emergentes:</b></p>
+    <div>
+      <span class="tag">Sin sugerencias (satisfacción total) <span class="n">5</span></span>
+      <span class="tag">Rendimiento / velocidad de carga <span class="n">2</span></span>
+      <span class="tag">Mayor interactividad / construcción guiada <span class="n">2</span></span>
+      <span class="tag">Trazabilidad del flujo del proceso <span class="n">2</span></span>
+      <span class="tag">Compatibilidad de navegador <span class="n">1</span></span>
+    </div>
+
+    <p style="margin-top: 12px"><b>Citas representativas:</b></p>
+    <div class="verbatim"><span class="src">E10 · Femenino · Básico</span>"Que tuviera un paso a paso de dónde se inicia el procedimiento, para así entender más de dónde sale y hasta dónde termina."</div>
+    <div class="verbatim"><span class="src">E03 · Masculino · Intermedio</span>"Que pudiéramos ver desde cero y hacerlo nosotros."</div>
+    <div class="verbatim"><span class="src">E09 · Masculino · Básico</span>"Mostrar cómo circulan los componentes, como el crudo; de resto todo bien."</div>
+    <div class="verbatim"><span class="src">E06 · Masculino · Intermedio</span>"Que las presentaciones tengan menos texto y más desarrollo del proceso."</div>
+
+    <div class="note">
+      <b>Insight metodológico para la tesis:</b> hay convergencia entre los datos cuantitativos y los cualitativos. El bloque "Aprendizaje" obtuvo la puntuación más baja (M = 4.38) y específicamente el ítem 21 ("identifico la relación entre unidades", M = 4.25). Los comentarios refuerzan esto al pedir <b>trazabilidad del flujo</b> entre unidades. Esta es una recomendación de mejora respaldada por triangulación de fuentes.
+    </div>
+  </div>
+
+  <!-- ========== TRIANGULACIÓN ========== -->
+  <div class="section" style="--sec: var(--coral)">
+    <div class="eyebrow">8 · Triangulación</div>
+    <h2>Diferencias por experiencia previa</h2>
+    <p>Comparación de las medias por dimensión según el grado de experiencia previa con herramientas 3D. Dado el tamaño muestral (n=12), se reporta a nivel descriptivo, no inferencial.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Experiencia previa</th><th class="num">n</th>
+          <th class="num">M · 3D</th><th class="num">M · Pres.</th><th class="num">M · Aprend.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>No, primera vez</td><td class="num">7</td><td class="num">4.96</td><td class="num">4.84</td><td class="num">4.71</td></tr>
+        <tr><td>Sí, alguna vez</td><td class="num">3</td><td class="num">4.62</td><td class="num">4.62</td><td class="num">4.58</td></tr>
+        <tr><td>Sí, varias veces</td><td class="num">2</td><td class="num">2.79</td><td class="num">3.07</td><td class="num">2.63</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note danger">
+      <b>Observación importante:</b> el subgrupo con "varias experiencias previas" (n=2) presenta promedios marcadamente más bajos. Al inspeccionar los datos individuales, se identifica que un caso (E06) reportó valoraciones extremas (1–2) en casi todos los ítems mientras simultáneamente emitió comentarios positivos en las preguntas abiertas. <b>Este patrón sugiere posible respuesta atípica</b> (extreme low responder) y debe documentarse en limitaciones.
+    </div>
+  </div>
+
+  <!-- ========== LIMITACIONES ========== -->
+  <div class="section" style="--sec: var(--err)">
+    <div class="eyebrow">9 · Limitaciones</div>
+    <h2>Consideraciones metodológicas</h2>
+    <ol>
+      <li><b>Tamaño muestral reducido (n = 12).</b> Los hallazgos deben interpretarse como <b>evaluación piloto</b>. No es posible aplicar pruebas inferenciales con potencia estadística suficiente. Los coeficientes Alfa de Cronbach calculados son referenciales; se recomienda replicar el estudio con n ≥ 30 para obtener valores definitivos.</li>
+      <li><b>Alfa inflado por respuesta atípica.</b> La presencia de un respondiente (E06) con puntuaciones extremas bajas distorsiona al alza el cálculo de α al aumentar la varianza total. Recalcular excluyendo este caso podría dar valores α más realistas; se recomienda análisis de sensibilidad.</li>
+      <li><b>Sesgo de aceptabilidad social.</b> La aplicación en contexto académico, con la docente como investigadora, puede haber introducido un sesgo hacia respuestas positivas. Trabajos futuros pueden incorporar evaluadores externos.</li>
+      <li><b>Diseño descriptivo de corte transversal.</b> No permite establecer relaciones causales entre el uso de la plataforma y el aprendizaje. Se sugiere un diseño cuasi-experimental con pre-test/post-test en estudios posteriores.</li>
+      <li><b>Una sola aplicación.</b> No se evalúa efecto de novedad. Se recomienda re-aplicar la encuesta tras varios usos para discriminar evaluación de la herramienta vs. entusiasmo inicial.</li>
+    </ol>
+  </div>
+
+  <!-- ========== CONCLUSIONES ========== -->
+  <div class="section" style="--sec: var(--ok)">
+    <div class="eyebrow">10 · Conclusiones</div>
+    <h2>Conclusiones de la evaluación piloto</h2>
+    <ol>
+      <li>La plataforma 3D y las presentaciones interactivas obtienen valoraciones <b>altamente positivas</b> en los estudiantes de Procesos Industriales I, con medias por dimensión entre 4.38 y 4.51 sobre 5.</li>
+      <li>La hipótesis de <b>complementariedad de ambos recursos</b> queda respaldada por la equivalencia de medias entre las dimensiones 3D y Presentaciones (M = 4.51 en ambas) y por la valoración explícita del ítem 18 ("complementan al 3D", M = 4.50).</li>
+      <li>El instrumento presenta <b>excelente consistencia interna</b> en condiciones piloto (α > 0.97 en las tres dimensiones), lo que respalda su uso en estudios de mayor escala con la salvedad indicada en limitaciones.</li>
+      <li>La <b>triangulación cuanti–cualitativa</b> identifica la <b>trazabilidad del flujo entre unidades</b> como la principal oportunidad de mejora del diseño didáctico, dato que aparece tanto en el ítem 21 (M = 4.25) como en los comentarios abiertos.</li>
+      <li>Para la siguiente fase del estudio se recomienda: (a) ampliar la muestra; (b) implementar las mejoras sugeridas; (c) aplicar un diseño cuasi-experimental con grupo control; (d) incluir medición objetiva de aprendizaje (no solo percibido).</li>
+    </ol>
+  </div>
+
+  <!-- ========== ANEXOS ========== -->
+  <div class="section" style="--sec: var(--muted)">
+    <div class="eyebrow">11 · Anexo</div>
+    <h2>Matriz de respuestas individuales</h2>
+    <p>Datos crudos por estudiante (identificadores anonimizados E01–E12), agrupados por dimensión.</p>
+
+    <table style="font-size: 0.78rem">
+      <thead>
+        <tr>
+          <th>ID</th><th>Gén</th><th>Exp. previa</th><th>Nivel</th>
+          <th class="num">3D</th><th class="num">Pres</th><th class="num">Apr</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>E01</td><td>F</td><td>Primera vez</td><td>Básico</td><td class="num">5.00</td><td class="num">5.00</td><td class="num">5.00</td></tr>
+        <tr><td>E02</td><td>M</td><td>Alguna vez</td><td>Intermedio</td><td class="num">5.00</td><td class="num">5.00</td><td class="num">5.00</td></tr>
+        <tr><td>E03</td><td>M</td><td>Varias veces</td><td>Intermedio</td><td class="num">4.14</td><td class="num">4.43</td><td class="num">4.00</td></tr>
+        <tr><td>E04</td><td>F</td><td>Primera vez</td><td>Intermedio</td><td class="num">5.00</td><td class="num">4.86</td><td class="num">4.50</td></tr>
+        <tr><td>E05</td><td>M</td><td>Alguna vez</td><td>Básico</td><td class="num">4.00</td><td class="num">4.00</td><td class="num">4.25</td></tr>
+        <tr><td style="background:#fbe9e7">E06</td><td style="background:#fbe9e7">M</td><td style="background:#fbe9e7">Varias veces</td><td style="background:#fbe9e7">Intermedio</td><td class="num" style="background:#fbe9e7">1.43</td><td class="num" style="background:#fbe9e7">1.71</td><td class="num" style="background:#fbe9e7">1.25</td></tr>
+        <tr><td>E07</td><td>M</td><td>Primera vez</td><td>Básico</td><td class="num">5.00</td><td class="num">4.86</td><td class="num">5.00</td></tr>
+        <tr><td>E08</td><td>F</td><td>Primera vez</td><td>Intermedio</td><td class="num">5.00</td><td class="num">5.00</td><td class="num">5.00</td></tr>
+        <tr><td>E09</td><td>M</td><td>Alguna vez</td><td>Básico</td><td class="num">4.86</td><td class="num">5.00</td><td class="num">4.75</td></tr>
+        <tr><td>E10</td><td>F</td><td>Primera vez</td><td>Básico</td><td class="num">4.71</td><td class="num">4.29</td><td class="num">3.75</td></tr>
+        <tr><td>E11</td><td>M</td><td>Primera vez</td><td>Básico</td><td class="num">5.00</td><td class="num">5.00</td><td class="num">5.00</td></tr>
+        <tr><td>E12</td><td>F</td><td>Primera vez</td><td>Básico</td><td class="num">5.00</td><td class="num">5.00</td><td class="num">5.00</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.84rem; margin-top:8px"><i>Nota: la fila E06 (resaltada) corresponde al respondiente con patrón atípico identificado en la sección de limitaciones.</i></p>
+  </div>
+
+</div>
+
+<script>
+const COLORS = {
+  coral: '#FF5C39', teal: '#0FB5BA', berry: '#C81D7A',
+  plum: '#6B2D8E', ink: '#1B0E05', muted: '#957B5E'
+};
+Chart.defaults.font.family = "Outfit, system-ui, sans-serif";
+Chart.defaults.color = '#4B3725';
+
+// Género
+new Chart(document.getElementById('chGenero'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Femenino', 'Masculino'],
+    datasets: [{
+      data: [5, 7],
+      backgroundColor: [COLORS.berry, COLORS.teal],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+// Experiencia previa
+new Chart(document.getElementById('chExp'), {
+  type: 'doughnut',
+  data: {
+    labels: ['No, primera vez', 'Sí, alguna vez', 'Sí, varias veces'],
+    datasets: [{
+      data: [7, 3, 2],
+      backgroundColor: [COLORS.coral, COLORS.plum, COLORS.ink],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+// Medias por dimensión
+new Chart(document.getElementById('chDim'), {
+  type: 'bar',
+  data: {
+    labels: ['Plataforma 3D', 'Presentaciones', 'Aprendizaje'],
+    datasets: [{
+      label: 'Media',
+      data: [4.51, 4.51, 4.38],
+      backgroundColor: [COLORS.coral, COLORS.berry, COLORS.plum],
+      borderRadius: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } } },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// Distribución de frecuencias por dimensión
+// 3D: 1=4, 2=1, 3=1, 4=16, 5=62 (7 items × 12 = 84)
+// Pres: 1=2, 2=5, 3=0, 4=18, 5=59 (84)
+// Apr: 1=3, 2=1, 3=1, 4=10, 5=33 (48)
+const pct = (arr) => { const t = arr.reduce((s,v)=>s+v,0); return arr.map(v => +(v/t*100).toFixed(1)); };
+new Chart(document.getElementById('chFreq'), {
+  type: 'bar',
+  data: {
+    labels: ['Plataforma 3D', 'Presentaciones', 'Aprendizaje'],
+    datasets: [
+      { label: '1 (Totalmente en desacuerdo)', data: [pct([4,1,1,16,62])[0], pct([2,5,0,18,59])[0], pct([3,1,1,10,33])[0]], backgroundColor: '#D62828' },
+      { label: '2 (En desacuerdo)',            data: [pct([4,1,1,16,62])[1], pct([2,5,0,18,59])[1], pct([3,1,1,10,33])[1]], backgroundColor: '#F18C2D' },
+      { label: '3 (Neutral)',                  data: [pct([4,1,1,16,62])[2], pct([2,5,0,18,59])[2], pct([3,1,1,10,33])[2]], backgroundColor: '#F5B700' },
+      { label: '4 (De acuerdo)',               data: [pct([4,1,1,16,62])[3], pct([2,5,0,18,59])[3], pct([3,1,1,10,33])[3]], backgroundColor: '#7AC74F' },
+      { label: '5 (Totalmente de acuerdo)',    data: [pct([4,1,1,16,62])[4], pct([2,5,0,18,59])[4], pct([3,1,1,10,33])[4]], backgroundColor: '#2BAE66' }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    scales: {
+      x: { stacked: true, max: 100, ticks: { callback: v => v + '%' } },
+      y: { stacked: true }
+    },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+</script>
+</body>
+</html>
