@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROC-IND-002 · Derivados del Petróleo · UNIPAZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PALETA & RESET
+   ============================================================ */
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #0A1628;
+  --bg-soft: #0D1A30;
+  --panel: #0F1E36;
+  --panel-2: #142949;
+  --panel-3: #1A3458;
+  --line: #1B3868;
+  --line-bright: #2D5BAB;
+  --line-dim: #163056;
+
+  --cyan: #4DD0E1;
+  --cyan-bright: #00E5FF;
+  --cyan-dim: #2B7A85;
+
+  --amber: #FFB300;
+  --amber-bright: #FFCC33;
+  --amber-dim: #8C6200;
+
+  --green: #00E676;
+  --red: #FF5252;
+  --magenta: #E91E63;
+
+  --text: #E3EBF5;
+  --text-mute: #7891B5;
+  --text-dim: #4A6A8F;
+
+  --fd: 'JetBrains Mono', monospace;
+  --fb: 'Inter', system-ui, sans-serif;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--fb);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-x: hidden;
+  position: relative;
+}
+/* Grid blueprint sutil */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(50,100,160,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(50,100,160,0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(800px 500px at 20% 0%, rgba(77,208,225,0.08), transparent 60%),
+    radial-gradient(900px 500px at 90% 100%, rgba(255,179,0,0.05), transparent 60%);
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+/* ============================================================
+   HEADER técnico
+   ============================================================ */
+header {
+  border-bottom: 1px solid var(--line);
+  background: rgba(10,22,40,0.85);
+  backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 50;
+}
+.hdr-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; flex-wrap: wrap; gap: 12px;
+  font-family: var(--fd); font-size: 11px; font-weight: 600;
+  color: var(--text-mute);
+}
+.hdr-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--cyan);
+}
+.hdr-tag::before { content: "◇"; color: var(--amber); font-size: 14px; }
+.hdr-stamp {
+  border: 1px solid var(--line-bright);
+  padding: 2px 10px;
+  color: var(--text);
+}
+.hdr-main {
+  padding: 18px 0 22px;
+  display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center;
+}
+.hdr-corner {
+  font-family: var(--fd); font-size: 10px; font-weight: 700;
+  color: var(--text-dim);
+  border: 1px dashed var(--line-bright);
+  padding: 6px 12px;
+  letter-spacing: 1.5px;
+}
+.hdr-title {
+  font-family: var(--fd); font-weight: 800;
+  font-size: clamp(1.4rem, 3.2vw, 2rem);
+  letter-spacing: -0.02em; line-height: 1.05;
+  color: var(--text);
+}
+.hdr-sub {
+  font-family: var(--fd); font-size: 0.78rem;
+  color: var(--cyan); font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-top: 4px;
+}
+.hdr-sub::before { content: "▸ "; color: var(--amber); }
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
+.toolbar {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  padding: 16px 0; border-bottom: 1px dashed var(--line);
+  align-items: center;
+}
+.tool-group {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--fd); font-size: 11px;
+  color: var(--text-mute); font-weight: 600;
+}
+.tool-group .lbl { letter-spacing: 1.5px; text-transform: uppercase; }
+.tool-group .lbl::after { content: " ║"; color: var(--line-bright); margin-left: 4px; }
+
+.btn {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--line-bright);
+  padding: 8px 14px; cursor: pointer;
+  font-family: var(--fd); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  transition: all 0.18s;
+  display: inline-flex; align-items: center; gap: 6px;
+  position: relative;
+}
+.btn:hover {
+  border-color: var(--cyan); color: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan-dim), 0 0 16px rgba(77,208,225,0.2);
+}
+.btn.active {
+  border-color: var(--amber); color: var(--amber);
+  background: rgba(255,179,0,0.08);
+}
+.btn.primary {
+  border-color: var(--cyan-bright); color: var(--cyan-bright);
+  background: rgba(0,229,255,0.06);
+}
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn::before { content: "["; opacity: 0.6; }
+.btn::after { content: "]"; opacity: 0.6; }
+
+select.btn { appearance: none; padding-right: 28px; cursor: pointer; }
+select.btn::before, select.btn::after { content: ""; }
+
+/* ============================================================
+   GRID DE TARJETAS / PROCESS BLOCKS
+   ============================================================ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.block {
+  background: var(--panel);
+  border: 1px solid var(--line-bright);
+  padding: 0;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column;
+}
+/* Marcadores de esquina tipo blueprint */
+.block::before, .block::after,
+.block-corners::before, .block-corners::after {
+  content: "✚";
+  position: absolute;
+  font-size: 14px; color: var(--cyan-dim);
+  font-family: var(--fd); font-weight: 700;
+  pointer-events: none;
+}
+.block::before { top: -7px; left: -7px; }
+.block::after  { top: -7px; right: -7px; }
+.block-corners::before { bottom: -7px; left: -7px; }
+.block-corners::after  { bottom: -7px; right: -7px; }
+
+.block:hover {
+  transform: translateY(-3px);
+  border-color: var(--cyan);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 0 1px var(--cyan-dim);
+}
+.block:hover::before, .block:hover::after,
+.block:hover .block-corners::before, .block:hover .block-corners::after {
+  color: var(--amber);
+}
+
+.block.selected {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber), 0 0 24px rgba(255,179,0,0.2);
+}
+.block.selected::before, .block.selected::after,
+.block.selected .block-corners::before, .block.selected .block-corners::after {
+  color: var(--amber);
+}
+
+.block-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-bright);
+  background: var(--bg-soft);
+  font-family: var(--fd); font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px;
+}
+.block-tag { color: var(--cyan); }
+.block-tag::before { content: "["; color: var(--text-dim); }
+.block-tag::after  { content: "]"; color: var(--text-dim); }
+.block-rev { color: var(--text-dim); }
+.block-rev::before { content: "REV "; }
+
+.block-body { padding: 18px 16px 14px; flex: 1; }
+
+.block-icon {
+  width: 100%; aspect-ratio: 16 / 10;
+  border: 1px solid var(--line-bright);
+  display: grid; place-items: center;
+  margin-bottom: 14px;
+  background: var(--bg-soft);
+  position: relative;
+  overflow: hidden;
+}
+.block-icon::before {
+  content: ""; position: absolute; inset: -3px;
+  border: 1px dashed var(--cyan-dim);
+  pointer-events: none; z-index: 2;
+}
+.block-icon::after {
+  content: attr(data-tag); position: absolute;
+  bottom: 4px; right: 6px;
+  font-family: var(--fd); font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; color: var(--cyan);
+  background: rgba(10,22,40,0.85);
+  padding: 2px 6px;
+  border: 1px solid var(--cyan-dim);
+  z-index: 3;
+}
+.block-icon img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.95) saturate(1.05);
+  transition: transform 0.45s, filter 0.3s;
+}
+.block:hover .block-icon img {
+  transform: scale(1.05);
+  filter: brightness(1.05) saturate(1.15);
+}
+.block-icon .blob {
+  width: 50%; height: 70%;
+  border-radius: 50%;
+  background: var(--product-color);
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: inset 0 -10px 20px rgba(0,0,0,0.45), inset 0 5px 10px rgba(255,255,255,0.15);
+}
+
+.block-name {
+  font-family: var(--fd); font-weight: 800;
+  font-size: 1.15rem; letter-spacing: -0.01em;
+  color: var(--text); line-height: 1.1;
+  margin-bottom: 4px;
+}
+.block-alt {
+  font-family: var(--fd); font-size: 0.72rem;
+  color: var(--text-mute); font-style: italic;
+  margin-bottom: 12px;
+}
+
+.block-specs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 6px; padding: 10px 0;
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+}
+.spec {
+  font-family: var(--fd); font-size: 0.7rem;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.spec .k { color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-size: 0.62rem; font-weight: 600; }
+.spec .v { color: var(--text); font-weight: 700; }
+
+.block-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0;
+  border-top: 1px solid var(--line-bright);
+  background: var(--bg-soft);
+  font-family: var(--fd); font-size: 10px;
+  color: var(--text-mute);
+}
+.block-foot .state-pill { margin: 10px 14px; }
+.block-foot-actions {
+  display: flex; align-items: stretch;
+}
+.foot-btn {
+  background: transparent; border: none;
+  border-left: 1px solid var(--line-bright);
+  color: var(--text-mute);
+  padding: 10px 14px;
+  font-family: var(--fd); font-weight: 700; font-size: 10px;
+  letter-spacing: 1.2px; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  text-transform: uppercase;
+}
+.foot-btn:hover { color: var(--cyan); background: rgba(77,208,225,0.06); }
+.foot-btn.compare-btn { color: var(--text); }
+.foot-btn.compare-btn .icon {
+  width: 16px; height: 16px;
+  border: 1px solid currentColor;
+  display: grid; place-items: center;
+  font-size: 12px; line-height: 1;
+}
+.block.selected .foot-btn.compare-btn {
+  color: var(--amber); background: rgba(255,179,0,0.1);
+}
+.block.selected .foot-btn.compare-btn .icon::after { content: "✓"; }
+.block:not(.selected) .foot-btn.compare-btn .icon::after { content: "+"; }
+.state-pill {
+  padding: 2px 8px; border-radius: 0;
+  font-weight: 700; letter-spacing: 1px;
+  border: 1px solid currentColor;
+}
+.state-pill.gas { color: #66BB6A; }
+.state-pill.liquido { color: var(--cyan); }
+.state-pill.solido { color: var(--amber); }
+.state-pill.semisolido { color: #FF9800; }
+
+.click-hint { color: var(--cyan-dim); }
+.click-hint::after { content: " ▸"; color: var(--amber); }
+
+/* ============================================================
+   TABLA COMPARATIVA
+   ============================================================ */
+.section-title {
+  font-family: var(--fd); font-weight: 800;
+  font-size: 1.1rem; letter-spacing: 1px;
+  color: var(--text); margin: 28px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line-bright);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.section-title .stamp {
+  font-size: 0.72rem; color: var(--cyan); font-weight: 600;
+  letter-spacing: 1.5px;
+}
+.section-title .stamp::before { content: "// "; color: var(--amber); }
+
+.view { display: none; }
+.view.active { display: block; }
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line-bright);
+  background: var(--panel);
+  position: relative;
+}
+.table-wrap::before, .table-wrap::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 32px;
+  pointer-events: none; z-index: 2;
+}
+.table-wrap::before { left: 0; background: linear-gradient(90deg, var(--panel), transparent); }
+.table-wrap::after { right: 0; background: linear-gradient(-90deg, var(--panel), transparent); }
+
+table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--fd); font-size: 0.78rem;
+  min-width: 1100px;
+}
+thead {
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--line-bright);
+}
+th {
+  padding: 12px 14px; text-align: left;
+  font-weight: 700; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--cyan); white-space: nowrap;
+  border-right: 1px dashed var(--line);
+}
+th:first-child {
+  position: sticky; left: 0; background: var(--bg-soft);
+  z-index: 1;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px dashed var(--line);
+  border-right: 1px dashed var(--line);
+  color: var(--text);
+  vertical-align: top;
+}
+td:first-child {
+  position: sticky; left: 0; background: var(--panel);
+  font-weight: 700; color: var(--cyan);
+  z-index: 1;
+}
+tbody tr:hover td:not(:first-child) { background: rgba(77,208,225,0.04); }
+tbody tr:hover td:first-child { background: var(--panel-2); color: var(--amber); }
+
+/* ============================================================
+   MODO COMPARACIÓN
+   ============================================================ */
+.compare-banner {
+  background: var(--panel);
+  border: 1px solid var(--amber);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 10px;
+  font-family: var(--fd); font-size: 0.78rem;
+}
+.compare-banner .info { color: var(--amber); font-weight: 700; letter-spacing: 1.5px; }
+
+.compare-grid {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: 20px;
+}
+.compare-col {
+  background: var(--panel);
+  border: 1px solid var(--line-bright);
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.compare-col .block-corners::before,
+.compare-col .block-corners::after,
+.compare-col::before, .compare-col::after {
+  content: "✚"; position: absolute; font-family: var(--fd);
+  font-size: 12px; color: var(--cyan-dim);
+}
+.compare-col::before { top: -6px; left: -6px; }
+.compare-col::after  { top: -6px; right: -6px; }
+.compare-col .block-corners::before { bottom: -6px; left: -6px; }
+.compare-col .block-corners::after  { bottom: -6px; right: -6px; }
+
+.compare-col h4 {
+  padding: 12px 14px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--line-bright);
+  font-family: var(--fd); font-weight: 800;
+  font-size: 0.95rem; color: var(--text);
+}
+.compare-col h4 .tag {
+  font-size: 0.7rem; color: var(--cyan);
+  margin-left: 8px; font-weight: 600;
+}
+.compare-row {
+  padding: 10px 14px;
+  border-bottom: 1px dashed var(--line);
+  font-family: var(--fd); font-size: 0.78rem;
+  display: flex; justify-content: space-between; gap: 10px;
+}
+.compare-row:last-child { border-bottom: none; }
+.compare-row .k { color: var(--text-dim); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.compare-row .v { color: var(--text); font-weight: 600; text-align: right; }
+.compare-row.best .v { color: var(--green); }
+.compare-row.worst .v { color: var(--red); }
+.compare-row.best .v::before { content: "▲ "; color: var(--green); }
+.compare-row.worst .v::before { content: "▼ "; color: var(--red); }
+
+.compare-empty {
+  text-align: center; padding: 60px 24px;
+  border: 1px dashed var(--line-bright);
+  font-family: var(--fd); font-size: 0.85rem;
+  color: var(--text-mute); letter-spacing: 1px;
+}
+.compare-empty::before { content: "// "; color: var(--amber); }
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+.quiz-frame {
+  background: var(--panel);
+  border: 1px solid var(--line-bright);
+  padding: 28px 32px;
+  position: relative;
+  max-width: 880px;
+}
+.quiz-frame::before, .quiz-frame::after,
+.quiz-frame .block-corners::before, .quiz-frame .block-corners::after {
+  content: "✚"; position: absolute; color: var(--cyan-dim); font-size: 14px; font-family: var(--fd);
+}
+.quiz-frame::before { top: -7px; left: -7px; }
+.quiz-frame::after  { top: -7px; right: -7px; }
+.quiz-frame .block-corners::before { bottom: -7px; left: -7px; }
+.quiz-frame .block-corners::after { bottom: -7px; right: -7px; }
+
+.quiz-progress {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 22px;
+  font-family: var(--fd); font-size: 0.8rem; color: var(--text-mute);
+  font-weight: 700; letter-spacing: 1.5px;
+}
+.quiz-progress-bar { flex: 1; height: 2px; background: var(--line); position: relative; }
+.quiz-progress-bar > div { position: absolute; inset: 0 auto 0 0; background: var(--amber); transition: width 0.4s; }
+
+.quiz-q {
+  font-family: var(--fd); font-weight: 700;
+  font-size: 1.1rem; line-height: 1.45;
+  color: var(--text); margin-bottom: 4px;
+}
+.quiz-q .num { color: var(--cyan); margin-right: 8px; }
+.quiz-q::before { content: "// QUESTION"; display: block; font-size: 0.68rem; color: var(--amber); letter-spacing: 2px; margin-bottom: 6px; font-weight: 600; }
+
+.quiz-options { display: grid; gap: 10px; margin: 22px 0; }
+.quiz-opt {
+  background: transparent;
+  border: 1px solid var(--line-bright);
+  color: var(--text); text-align: left;
+  padding: 14px 18px;
+  font-family: var(--fb); font-size: 0.95rem; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 14px;
+}
+.quiz-opt:hover:not(.correct):not(.wrong):not(:disabled) {
+  border-color: var(--cyan); color: var(--cyan);
+  background: rgba(77,208,225,0.05);
+}
+.quiz-opt .marker {
+  width: 22px; height: 22px;
+  border: 1px solid currentColor;
+  display: grid; place-items: center;
+  font-family: var(--fd); font-weight: 700; font-size: 0.78rem;
+  color: var(--text-dim); flex-shrink: 0;
+}
+.quiz-opt:hover:not(.correct):not(.wrong):not(:disabled) .marker { color: var(--cyan); }
+.quiz-opt.correct {
+  background: rgba(0,230,118,0.1);
+  border-color: var(--green); color: var(--green);
+}
+.quiz-opt.correct .marker { color: var(--green); border-color: var(--green); }
+.quiz-opt.correct .marker::after { content: " ✓"; }
+.quiz-opt.wrong {
+  background: rgba(255,82,82,0.1);
+  border-color: var(--red); color: var(--red);
+}
+.quiz-opt.wrong .marker { color: var(--red); border-color: var(--red); }
+.quiz-opt.wrong .marker::after { content: " ✕"; }
+.quiz-opt:disabled { cursor: default; }
+
+.quiz-feedback {
+  background: var(--bg-soft);
+  border-left: 3px solid var(--cyan);
+  padding: 12px 16px;
+  font-family: var(--fd); font-size: 0.82rem;
+  color: var(--text); margin-bottom: 14px;
+  display: none;
+}
+.quiz-feedback.show { display: block; }
+.quiz-feedback::before { content: "// INFO "; color: var(--amber); font-weight: 700; }
+
+.quiz-result {
+  text-align: center; padding: 30px 0;
+}
+.quiz-result .score {
+  font-family: var(--fd); font-weight: 800;
+  font-size: 4rem; line-height: 1;
+  color: var(--cyan-bright); letter-spacing: -0.04em;
+  margin-bottom: 8px;
+}
+.quiz-result .score .of { color: var(--text-dim); font-size: 2rem; }
+.quiz-result .level {
+  font-family: var(--fd); font-size: 0.9rem;
+  color: var(--amber); letter-spacing: 2px;
+  margin-bottom: 24px; text-transform: uppercase;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(5,12,24,0.85);
+  backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100; padding: 24px;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--cyan);
+  max-width: 760px; width: 100%; max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modIn 0.3s cubic-bezier(0.2,0.8,0.2,1);
+}
+@keyframes modIn { from{ opacity:0; transform:scale(0.96); } to{ opacity:1; transform:scale(1); } }
+.modal::before, .modal::after,
+.modal .block-corners::before, .modal .block-corners::after {
+  content: "✚"; position: absolute; font-family: var(--fd);
+  font-size: 16px; color: var(--amber);
+}
+.modal::before { top: -9px; left: -9px; }
+.modal::after  { top: -9px; right: -9px; }
+.modal .block-corners::before { bottom: -9px; left: -9px; }
+.modal .block-corners::after  { bottom: -9px; right: -9px; }
+
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 22px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--cyan);
+  font-family: var(--fd); font-size: 0.78rem;
+  font-weight: 700; letter-spacing: 1.5px;
+}
+.modal-head .tag { color: var(--cyan); }
+.modal-head .tag::before { content: "["; color: var(--text-dim); }
+.modal-head .tag::after  { content: "]"; color: var(--text-dim); }
+.modal-close {
+  background: transparent; border: 1px solid var(--line-bright);
+  color: var(--text); cursor: pointer;
+  width: 28px; height: 28px;
+  font-family: var(--fd); font-weight: 800; font-size: 0.95rem;
+  display: grid; place-items: center;
+  transition: border-color 0.18s, color 0.18s;
+}
+.modal-close:hover { border-color: var(--red); color: var(--red); }
+
+.modal-hero {
+  width: 100%; aspect-ratio: 16 / 7;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--cyan);
+  position: relative;
+  overflow: hidden;
+}
+.modal-hero img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.modal-hero::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(10,22,40,0.85) 100%);
+}
+.modal-hero .hero-tag {
+  position: absolute; top: 12px; left: 12px;
+  font-family: var(--fd); font-size: 10px; font-weight: 800;
+  letter-spacing: 2px; color: var(--cyan);
+  background: rgba(10,22,40,0.85);
+  border: 1px solid var(--cyan);
+  padding: 3px 10px;
+  z-index: 2;
+}
+.modal-body { padding: 0 0 24px; }
+.modal-body > .modal-section,
+.modal-body > .modal-specs { margin-left: 28px; margin-right: 28px; }
+
+.modal-title-row {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 18px;
+}
+.modal-blob {
+  width: 72px; height: 72px;
+  border: 1px solid var(--line-bright);
+  display: grid; place-items: center;
+  background: var(--bg-soft);
+  flex-shrink: 0;
+  position: relative;
+}
+.modal-blob::before {
+  content: ""; position: absolute; inset: -4px;
+  border: 1px dashed var(--cyan-dim);
+}
+.modal-blob .blob {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: var(--product-color);
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: inset 0 -10px 18px rgba(0,0,0,0.4), inset 0 5px 10px rgba(255,255,255,0.15);
+}
+.modal-title {
+  font-family: var(--fd); font-weight: 800;
+  font-size: 1.7rem; letter-spacing: -0.02em; line-height: 1.05;
+  color: var(--text);
+}
+.modal-alt {
+  font-family: var(--fd); font-size: 0.82rem;
+  color: var(--text-mute); font-style: italic;
+  margin-top: 2px;
+}
+
+.modal-specs {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0; border: 1px solid var(--line-bright);
+  background: var(--bg-soft); margin-bottom: 22px;
+}
+.modal-spec {
+  padding: 12px 16px;
+  border-right: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+}
+.modal-spec .k {
+  font-family: var(--fd); font-size: 0.65rem; font-weight: 700;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+.modal-spec .v {
+  font-family: var(--fd); font-weight: 700; font-size: 0.95rem;
+  color: var(--text);
+}
+
+.modal-section { margin-bottom: 20px; }
+.modal-section h4 {
+  font-family: var(--fd); font-weight: 700;
+  font-size: 0.78rem; color: var(--amber);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 6px;
+}
+.modal-section h4::before { content: "▸ "; color: var(--cyan); }
+.use-list { list-style: none; padding: 0; }
+.use-list li {
+  font-family: var(--fb); font-size: 0.92rem;
+  color: var(--text); padding: 6px 0;
+  display: flex; gap: 10px;
+}
+.use-list li::before {
+  content: "▸"; color: var(--cyan); font-family: var(--fd); font-weight: 700;
+  flex-shrink: 0;
+}
+.process-box {
+  background: var(--bg-soft);
+  border-left: 3px solid var(--cyan);
+  padding: 12px 16px;
+  font-family: var(--fd); font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  margin-top: 50px;
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--fd); font-size: 0.7rem;
+  color: var(--text-dim);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+  letter-spacing: 1.5px;
+}
+footer .right { color: var(--cyan); }
+footer .left::before { content: "◇ "; color: var(--amber); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 720px) {
+  .wrap { padding: 0 14px; }
+  .hdr-main { grid-template-columns: 1fr; gap: 12px; }
+  .hdr-corner { display: none; }
+  .toolbar { gap: 8px; }
+  .btn { font-size: 10px; padding: 6px 10px; }
+  .grid { grid-template-columns: 1fr; }
+  .modal-title { font-size: 1.3rem; }
+  .modal-body { padding: 18px 18px; }
+  .block-foot { flex-direction: column; align-items: stretch; }
+  .block-foot .state-pill { margin: 10px 14px 0; align-self: flex-start; }
+  .block-foot-actions { width: 100%; border-top: 1px dashed var(--line); margin-top: 10px; }
+  .foot-btn { flex: 1; justify-content: center; padding: 12px 10px; }
+  .foot-btn:first-child { border-left: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header>
+  <div class="wrap">
+    <div class="hdr-top">
+      <span class="hdr-tag">UNIPAZ // PROC-IND-002</span>
+      <span class="hdr-stamp">DOC: REFINACION_DERIVADOS · REV 01</span>
+    </div>
+    <div class="hdr-main">
+      <div class="hdr-corner">PLT-A<br>SHT 1/1</div>
+      <div>
+        <h1 class="hdr-title">Procesos Industriales I — Refinación del Petróleo</h1>
+        <div class="hdr-sub">Crudo y diez derivados · análisis comparativo</div>
+      </div>
+      <div class="hdr-corner">N=11<br>UND-PRD</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     TOOLBAR
+     ============================================================ -->
+<div class="wrap">
+  <div class="toolbar">
+    <div class="tool-group">
+      <span class="lbl">Vista</span>
+      <button class="btn active" data-view="cards" onclick="switchView('cards', this)">Tarjetas</button>
+      <button class="btn" data-view="table" onclick="switchView('table', this)">Tabla</button>
+      <button class="btn" data-view="compare" onclick="switchView('compare', this)">Comparar</button>
+      <button class="btn" data-view="quiz" onclick="switchView('quiz', this)">Quiz</button>
+    </div>
+    <div class="tool-group" id="filterGroup">
+      <span class="lbl">Filtros</span>
+      <select class="btn" id="filterState" onchange="renderCards()">
+        <option value="">Estado: Todos</option>
+        <option value="Gas">Gas</option>
+        <option value="Líquido">Líquido</option>
+        <option value="Sólido">Sólido</option>
+        <option value="Semisólido">Semisólido</option>
+      </select>
+      <select class="btn" id="sortBy" onchange="renderCards()">
+        <option value="default">Orden: Por defecto</option>
+        <option value="bp-asc">Ebullición ↑</option>
+        <option value="bp-desc">Ebullición ↓</option>
+        <option value="density-asc">Densidad ↑</option>
+        <option value="density-desc">Densidad ↓</option>
+        <option value="name">Nombre A-Z</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     VISTA 1: TARJETAS
+     ============================================================ -->
+<div class="wrap">
+  <div class="view active" id="view-cards">
+    <div class="grid" id="cardsGrid"></div>
+  </div>
+
+  <!-- ============================================================
+       VISTA 2: TABLA COMPARATIVA
+       ============================================================ -->
+  <div class="view" id="view-table">
+    <h2 class="section-title">
+      Tabla comparativa de productos
+      <span class="stamp">11 productos · 10 propiedades</span>
+    </h2>
+    <div class="table-wrap">
+      <table id="compTable">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Tag</th>
+            <th>Estado</th>
+            <th>T. Ebull. (°C)</th>
+            <th>Densidad (kg/m³)</th>
+            <th>°API</th>
+            <th>Color</th>
+            <th>Viscosidad</th>
+            <th>Azufre</th>
+            <th>Proceso</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VISTA 3: MODO COMPARACIÓN
+       ============================================================ -->
+  <div class="view" id="view-compare">
+    <h2 class="section-title">
+      Modo comparación
+      <span class="stamp" id="compareCount">0 / 3 seleccionados</span>
+    </h2>
+    <div class="compare-banner">
+      <span class="info">▸ Ve a "Tarjetas" y toca el botón [+ COMPARAR] de 2 o 3 productos. Verde = mejor · Rojo = peor.</span>
+      <button class="btn danger" onclick="clearSelection()">Limpiar selección</button>
+    </div>
+    <div id="compareArea">
+      <div class="compare-empty">// Selecciona productos para comparar</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       VISTA 4: QUIZ
+       ============================================================ -->
+  <div class="view" id="view-quiz">
+    <h2 class="section-title">
+      Quiz · evaluación de conocimiento
+      <span class="stamp">10 preguntas · MC</span>
+    </h2>
+    <div class="quiz-frame">
+      <span class="block-corners"></span>
+      <div id="quizArea"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL
+     ============================================================ -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal">
+    <span class="block-corners"></span>
+    <div class="modal-head">
+      <span class="tag" id="modalTag">P-000</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="wrap">
+  <span class="left">Universidad de la Paz · UNIPAZ · Ingeniería de Producción</span>
+  <span class="right">PROCESOS INDUSTRIALES I // 2026</span>
+</footer>
+
+<script>
+/* ============================================================
+   DATOS · 11 PRODUCTOS
+   ============================================================ */
+const IMG_DIR = 'imagenes derivados de petroleo/';
+const PRODUCTS = [
+  {
+    tag: 'F-001',
+    name: 'Crudo',
+    alt: 'Petróleo bruto · materia prima',
+    color: '#1A0F08',
+    image: IMG_DIR + 'Crudo.jpeg',
+    state: 'Líquido',
+    bp_min: 30, bp_max: 600, bp_label: 'mezcla (<50 a >550)',
+    density: '800–950',
+    api: '10–45',
+    appearance: 'Negro a marrón muy oscuro, viscoso y oleoso',
+    viscosity: 'Alta (variable)',
+    sulfur: 'Medio–Alto',
+    sulfur_pct: '0.5–5.0 %',
+    uses: [
+      'Materia prima de la refinería',
+      'No tiene uso final directo',
+      'Su composición determina el rendimiento de cada derivado',
+      'Se clasifica por °API y % S (dulce/agrio, ligero/pesado)'
+    ],
+    process: 'Extracción directa del yacimiento. Llega a la refinería sin procesar; pasa por el desalador y luego a la unidad de destilación atmosférica (CDU).'
+  },
+  {
+    tag: 'P-002',
+    name: 'GLP',
+    alt: 'Gas Licuado de Petróleo (propano + butano)',
+    color: '#E0E8F5',
+    image: IMG_DIR + 'Glp.jpeg',
+    state: 'Gas',
+    bp_min: -42, bp_max: 0, bp_label: '-42 a 0 °C',
+    density: '510–580 (líq.)',
+    api: '> 70',
+    appearance: 'Incoloro, sin olor (se odoriza con mercaptanos)',
+    viscosity: 'Muy baja',
+    sulfur: 'Bajo',
+    sulfur_pct: '< 50 ppm',
+    uses: [
+      'Cocción doméstica y calefacción',
+      'GLP automotor (Autogas)',
+      'Materia prima petroquímica (propileno)',
+      'Combustible industrial'
+    ],
+    process: 'Sale por la cabeza de la CDU como gas; se separa en la unidad de estabilización (LPG recovery) y se almacena licuado bajo presión.'
+  },
+  {
+    tag: 'P-003',
+    name: 'Gasolina',
+    alt: 'Combustible para motores Otto',
+    color: '#FFD86B',
+    image: IMG_DIR + 'gasolina.jpeg',
+    state: 'Líquido',
+    bp_min: 30, bp_max: 200, bp_label: '30–200 °C',
+    density: '720–780',
+    api: '50–65',
+    appearance: 'Incolora a amarillo pálido (verde por colorantes)',
+    viscosity: 'Baja',
+    sulfur: 'Bajo',
+    sulfur_pct: '≤ 10 ppm (ULSG)',
+    uses: [
+      'Combustible de motores de combustión interna (autos)',
+      'Aviación general (Avgas 100LL)',
+      'Solvente industrial ligero',
+      'Mezcla con etanol (E10, E15)'
+    ],
+    process: 'Pool de gasolinas: nafta ligera + reformado catalítico + FCC + alquilato + isomerizado. Mezcla controlada para alcanzar el octanaje (RON ≥ 91).'
+  },
+  {
+    tag: 'P-004',
+    name: 'Nafta',
+    alt: 'Materia prima petroquímica',
+    color: '#F4F0E6',
+    image: IMG_DIR + 'Nafta.jpeg',
+    state: 'Líquido',
+    bp_min: 30, bp_max: 200, bp_label: '30–200 °C',
+    density: '700–770',
+    api: '55–75',
+    appearance: 'Incolora, traslúcida, volátil',
+    viscosity: 'Muy baja',
+    sulfur: 'Bajo',
+    sulfur_pct: '< 1 ppm (tras HDT)',
+    uses: [
+      'Materia prima para etileno y propileno (steam cracker)',
+      'Alimentación del reformado catalítico',
+      'Producción de BTX (benceno, tolueno, xilenos)',
+      'Solvente y diluyente industrial'
+    ],
+    process: 'Corte de cabeza de la CDU (30–200 °C). Pasa por hidrotratamiento (HDT) para eliminar S y N, y se envía al reformado o al petroquímico.'
+  },
+  {
+    tag: 'P-005',
+    name: 'Queroseno',
+    alt: 'Jet A-1 · combustible de aviación',
+    color: '#F2E8AA',
+    image: IMG_DIR + 'queroseno.jpeg',
+    state: 'Líquido',
+    bp_min: 150, bp_max: 275, bp_label: '150–275 °C',
+    density: '775–840',
+    api: '37–51',
+    appearance: 'Incoloro a amarillo pálido, aceitoso',
+    viscosity: 'Baja',
+    sulfur: 'Bajo',
+    sulfur_pct: '≤ 3000 ppm Jet A-1',
+    uses: [
+      'Combustible para turbinas de aviación (Jet A-1)',
+      'Calefacción doméstica e industrial',
+      'Solvente para tintas e insecticidas',
+      'Lámparas de iluminación rurales'
+    ],
+    process: 'Corte intermedio de la CDU. Pasa por hidrotratamiento o proceso Merox para reducir mercaptanos y azufre, cumpliendo norma ASTM D1655.'
+  },
+  {
+    tag: 'P-006',
+    name: 'Diésel',
+    alt: 'ACPM · combustible para transporte pesado',
+    color: '#D9A55A',
+    image: IMG_DIR + 'Diesel.jpeg',
+    state: 'Líquido',
+    bp_min: 180, bp_max: 360, bp_label: '180–360 °C',
+    density: '820–870',
+    api: '30–40',
+    appearance: 'Amarillo claro a ámbar, ligeramente aceitoso',
+    viscosity: 'Media',
+    sulfur: 'Bajo',
+    sulfur_pct: '≤ 15 ppm (ULSD)',
+    uses: [
+      'Combustible de camiones, buses y locomotoras',
+      'Generación eléctrica de respaldo (gen-set)',
+      'Maquinaria agrícola y de construcción',
+      'Marino (MGO / DMA)'
+    ],
+    process: 'Corte de la CDU + hidrodesulfuración profunda (HDS). El número de cetano ≥ 49 se logra ajustando la mezcla y con aditivos cetanizantes.'
+  },
+  {
+    tag: 'P-007',
+    name: 'Fuel Oil',
+    alt: 'Combustóleo · uso industrial y marino',
+    color: '#0E0A07',
+    image: IMG_DIR + 'Fuel oil.jpeg',
+    state: 'Líquido',
+    bp_min: 350, bp_max: 500, bp_label: '350–500 °C',
+    density: '940–1010',
+    api: '8–14',
+    appearance: 'Negro, denso, muy viscoso (puede solidificar a baja T)',
+    viscosity: 'Muy alta',
+    sulfur: 'Alto',
+    sulfur_pct: '0.5–3.5 %',
+    uses: [
+      'Combustible marino (bunker IFO 180 / 380)',
+      'Calderas y hornos industriales',
+      'Generación eléctrica (termoeléctricas)',
+      'Cementeras y refinerías (consumo interno)'
+    ],
+    process: 'Fondo de la destilación atmosférica + residuos. Se mezcla con cortes pesados y se ajusta viscosidad. Requiere precalentamiento para bombearlo.'
+  },
+  {
+    tag: 'P-008',
+    name: 'Lubricantes',
+    alt: 'Aceites base · grupos I–III API',
+    color: '#C68A2E',
+    image: IMG_DIR + 'Base lubricante.jpeg',
+    state: 'Líquido',
+    bp_min: 300, bp_max: 500, bp_label: '300–500 °C',
+    density: '850–910',
+    api: '24–32',
+    appearance: 'Ámbar dorado a marrón, viscoso y transparente',
+    viscosity: 'Alta (variable por grado SAE)',
+    sulfur: 'Bajo',
+    sulfur_pct: '< 300 ppm (tras HDT)',
+    uses: [
+      'Aceite de motor (gasolina, diésel)',
+      'Aceites de transmisión y caja',
+      'Hidráulica industrial y de aviación',
+      'Engranajes y compresores'
+    ],
+    process: 'Cortes de la unidad de vacío (VDU) → extracción con solvente (NMP/furfural) → desparafinado (MEK) → hidroterminado. Se aditiva según aplicación.'
+  },
+  {
+    tag: 'P-009',
+    name: 'Parafinas y ceras',
+    alt: 'Slack wax · cera microcristalina',
+    color: '#F5EFD6',
+    image: IMG_DIR + 'parafinas.jpeg',
+    state: 'Sólido',
+    bp_min: 350, bp_max: 500, bp_label: 'Fusión 50–70 °C',
+    density: '880–920',
+    api: '20–32',
+    appearance: 'Blanco translúcido, sólido cristalino, inodoro',
+    viscosity: 'Alta (fundida)',
+    sulfur: 'Bajo',
+    sulfur_pct: '< 100 ppm',
+    uses: [
+      'Velas, recubrimientos y selladores',
+      'Cosmética y productos farmacéuticos',
+      'Empaques alimentarios (food-grade)',
+      'Tratamiento de textiles y papeles'
+    ],
+    process: 'Subproducto del desparafinado de los lubricantes. Se filtra el "slack wax" y se purifica por sudoración o hidroacabado.'
+  },
+  {
+    tag: 'P-010',
+    name: 'Asfalto',
+    alt: 'Betún · ligante hidrocarbonado',
+    color: '#050201',
+    image: IMG_DIR + 'asfalto + betun .jpeg',
+    state: 'Semisólido',
+    bp_min: 500, bp_max: 999, bp_label: '> 500 °C (no destila)',
+    density: '1000–1100',
+    api: '5–10',
+    appearance: 'Negro intenso, semisólido pegajoso',
+    viscosity: 'Extremadamente alta',
+    sulfur: 'Alto',
+    sulfur_pct: '2–7 %',
+    uses: [
+      'Pavimentación de carreteras (mezclas asfálticas)',
+      'Impermeabilización de cubiertas y techos',
+      'Sellantes y juntas industriales',
+      'Pinturas anticorrosivas'
+    ],
+    process: 'Fondo de la unidad de vacío (VDU). Para asfaltos modificados, se sopla con aire (oxidación) o se mezcla con polímeros (SBS).'
+  },
+  {
+    tag: 'P-011',
+    name: 'Coque de petróleo',
+    alt: 'Pet-coke · carbón residual sólido',
+    color: '#1C1815',
+    image: IMG_DIR + 'coque .jpeg',
+    state: 'Sólido',
+    bp_min: null, bp_max: null, bp_label: 'N/A (sólido)',
+    density: '1300–1700',
+    api: 'N/A',
+    appearance: 'Negro a gris oscuro, granular o esponjoso',
+    viscosity: 'N/A (sólido)',
+    sulfur: 'Medio–Alto',
+    sulfur_pct: '2–7 %',
+    uses: [
+      'Combustible para cementeras y termoeléctricas',
+      'Electrodos para la industria del aluminio y acero',
+      'Producción de grafito sintético',
+      'Materia prima para carbón activado'
+    ],
+    process: 'Coquización retardada: residuos de vacío se calientan a ~500 °C en tambores donde el cracking térmico produce coque sólido y destilados ligeros.'
+  }
+];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const state = {
+  view: 'cards',
+  filter: '',
+  sort: 'default',
+  selection: [],
+  quizIdx: 0,
+  quizScore: 0,
+  quizAnswered: false
+};
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+function bpKey(p) {
+  if (p.bp_min === null) return 9999;
+  return (p.bp_min + p.bp_max) / 2;
+}
+function densKey(p) {
+  const m = String(p.density).match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+function stateClass(s) {
+  return s.toLowerCase().replace('ó', 'o').replace('í', 'i');
+}
+
+/* ============================================================
+   RENDER CARDS
+   ============================================================ */
+function getFilteredProducts() {
+  let list = [...PRODUCTS];
+  if (state.filter) list = list.filter(p => p.state === state.filter);
+  switch (state.sort) {
+    case 'bp-asc':       list.sort((a,b) => bpKey(a) - bpKey(b)); break;
+    case 'bp-desc':      list.sort((a,b) => bpKey(b) - bpKey(a)); break;
+    case 'density-asc':  list.sort((a,b) => densKey(a) - densKey(b)); break;
+    case 'density-desc': list.sort((a,b) => densKey(b) - densKey(a)); break;
+    case 'name':         list.sort((a,b) => a.name.localeCompare(b.name)); break;
+  }
+  return list;
+}
+
+function renderCards() {
+  state.filter = $('filterState').value;
+  state.sort = $('sortBy').value;
+  const list = getFilteredProducts();
+  const grid = $('cardsGrid');
+  grid.innerHTML = '';
+  list.forEach((p, idx) => {
+    const selected = state.selection.includes(p.tag);
+    const card = document.createElement('div');
+    card.className = 'block' + (selected ? ' selected' : '');
+    card.style.setProperty('--product-color', p.color);
+    card.innerHTML = `
+      <span class="block-corners"></span>
+      <div class="block-head">
+        <span class="block-tag">${p.tag}</span>
+        <span class="block-rev">01</span>
+      </div>
+      <div class="block-body">
+        <div class="block-icon" data-tag="${p.tag}">
+          <img src="${encodeURI(p.image)}" alt="${p.name}" loading="lazy"
+               onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'blob',style:'background:${p.color}'}))">
+        </div>
+        <div class="block-name">${p.name}</div>
+        <div class="block-alt">${p.alt}</div>
+        <div class="block-specs">
+          <div class="spec"><span class="k">T. ebull.</span><span class="v">${p.bp_label}</span></div>
+          <div class="spec"><span class="k">Densidad</span><span class="v">${p.density} kg/m³</span></div>
+          <div class="spec"><span class="k">Viscosidad</span><span class="v">${p.viscosity}</span></div>
+          <div class="spec"><span class="k">Azufre</span><span class="v">${p.sulfur}</span></div>
+        </div>
+      </div>
+      <div class="block-foot">
+        <span class="state-pill ${stateClass(p.state)}">${p.state.toUpperCase()}</span>
+        <div class="block-foot-actions">
+          <button class="foot-btn compare-btn" data-action="select" aria-label="Añadir a comparación">
+            <span class="icon"></span>
+            <span>${selected ? 'EN COMPARACIÓN' : 'COMPARAR'}</span>
+          </button>
+          <button class="foot-btn" data-action="detail" aria-label="Ver detalle">
+            DETALLE ▸
+          </button>
+        </div>
+      </div>
+    `;
+    // Botón "Comparar" → seleccionar sin abrir modal
+    card.querySelector('[data-action="select"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSelection(p.tag);
+    });
+    // Botón "Detalle" → abrir modal
+    card.querySelector('[data-action="detail"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openModal(p);
+    });
+    // Cuerpo de la tarjeta → también abre modal (excepto en los botones)
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.foot-btn')) return;
+      if (e.shiftKey || e.ctrlKey || e.metaKey) {
+        toggleSelection(p.tag);
+      } else {
+        openModal(p);
+      }
+    });
+    card.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      toggleSelection(p.tag);
+    });
+    grid.appendChild(card);
+  });
+  updateCompareCount();
+}
+
+/* ============================================================
+   SELECCIÓN PARA COMPARAR
+   ============================================================ */
+function toggleSelection(tag) {
+  const i = state.selection.indexOf(tag);
+  if (i >= 0) {
+    state.selection.splice(i, 1);
+  } else {
+    if (state.selection.length >= 3) state.selection.shift();
+    state.selection.push(tag);
+  }
+  renderCards();
+  renderCompare();
+}
+function clearSelection() {
+  state.selection = [];
+  renderCards();
+  renderCompare();
+}
+function updateCompareCount() {
+  $('compareCount').textContent = `${state.selection.length} / 3 seleccionados`;
+}
+
+function renderCompare() {
+  updateCompareCount();
+  const area = $('compareArea');
+  if (state.selection.length < 2) {
+    const falta = Math.max(0, 2 - state.selection.length);
+    area.innerHTML = `<div class="compare-empty">// Selecciona ${falta} producto${falta === 1 ? '' : 's'} más tocando [+ COMPARAR] en las tarjetas</div>`;
+    return;
+  }
+  const products = state.selection.map(t => PRODUCTS.find(p => p.tag === t));
+
+  // métricas para colorear "mejor/peor" según campo
+  // - T. ebullición: no hay mejor; sólo info
+  // - Densidad: no hay mejor; sólo info
+  // - Azufre: bajo = mejor (verde)
+  // - Viscosidad: no hay mejor (depende del uso); sólo info
+  const sulfRank = { 'Bajo': 1, 'Medio–Alto': 2, 'Alto': 3 };
+  const sulfBest = Math.min(...products.map(p => sulfRank[p.sulfur] || 99));
+  const sulfWorst = Math.max(...products.map(p => sulfRank[p.sulfur] || 0));
+
+  const apiVals = products.map(p => {
+    const m = String(p.api).match(/(\d+)/);
+    return m ? Number(m[1]) : 0;
+  });
+  const apiBest = Math.max(...apiVals);  // más API = más ligero = más valioso típicamente
+  const apiWorst = Math.min(...apiVals.filter(v => v > 0));
+
+  let html = '<div class="compare-grid">';
+  products.forEach((p, idx) => {
+    const sulfState = sulfRank[p.sulfur] === sulfBest ? 'best' : sulfRank[p.sulfur] === sulfWorst ? 'worst' : '';
+    const apiState = apiVals[idx] === apiBest && apiBest > 0 ? 'best' : apiVals[idx] === apiWorst ? 'worst' : '';
+    html += `
+      <div class="compare-col">
+        <span class="block-corners"></span>
+        <h4>${p.name}<span class="tag">${p.tag}</span></h4>
+        <div class="compare-row"><span class="k">Estado</span><span class="v">${p.state}</span></div>
+        <div class="compare-row"><span class="k">T. ebull.</span><span class="v">${p.bp_label}</span></div>
+        <div class="compare-row"><span class="k">Densidad</span><span class="v">${p.density} kg/m³</span></div>
+        <div class="compare-row ${apiState}"><span class="k">°API</span><span class="v">${p.api}</span></div>
+        <div class="compare-row"><span class="k">Viscosidad</span><span class="v">${p.viscosity}</span></div>
+        <div class="compare-row ${sulfState}"><span class="k">Azufre</span><span class="v">${p.sulfur} (${p.sulfur_pct})</span></div>
+        <div class="compare-row"><span class="k">Apariencia</span><span class="v">${p.appearance}</span></div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+/* ============================================================
+   TABLA COMPARATIVA
+   ============================================================ */
+function renderTable() {
+  const tbody = $('compTable').querySelector('tbody');
+  tbody.innerHTML = '';
+  PRODUCTS.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.name}</td>
+      <td>${p.tag}</td>
+      <td><span class="state-pill ${stateClass(p.state)}">${p.state.toUpperCase()}</span></td>
+      <td>${p.bp_label}</td>
+      <td>${p.density}</td>
+      <td>${p.api}</td>
+      <td>${p.appearance}</td>
+      <td>${p.viscosity}</td>
+      <td>${p.sulfur} (${p.sulfur_pct})</td>
+      <td>${p.process.slice(0, 60)}…</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function openModal(p) {
+  $('modalTag').textContent = p.tag;
+  const body = $('modalBody');
+  body.style.setProperty('--product-color', p.color);
+  body.innerHTML = `
+    <div class="modal-hero">
+      <span class="hero-tag">${p.tag}</span>
+      <img src="${encodeURI(p.image)}" alt="${p.name}"
+           onerror="this.style.display='none'">
+    </div>
+    <div style="padding: 22px 28px 0">
+      <div class="modal-title-row">
+        <div class="modal-blob"><div class="blob"></div></div>
+        <div>
+          <div class="modal-title">${p.name}</div>
+          <div class="modal-alt">${p.alt}</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-specs">
+      <div class="modal-spec"><div class="k">Estado físico</div><div class="v">${p.state}</div></div>
+      <div class="modal-spec"><div class="k">Rango ebullición</div><div class="v">${p.bp_label}</div></div>
+      <div class="modal-spec"><div class="k">Densidad</div><div class="v">${p.density} kg/m³</div></div>
+      <div class="modal-spec"><div class="k">°API</div><div class="v">${p.api}</div></div>
+      <div class="modal-spec"><div class="k">Viscosidad</div><div class="v">${p.viscosity}</div></div>
+      <div class="modal-spec"><div class="k">Azufre</div><div class="v">${p.sulfur} (${p.sulfur_pct})</div></div>
+    </div>
+    <div class="modal-section">
+      <h4>Apariencia y color</h4>
+      <div class="process-box">${p.appearance}</div>
+    </div>
+    <div class="modal-section">
+      <h4>Principales usos industriales</h4>
+      <ul class="use-list">
+        ${p.uses.map(u => `<li>${u}</li>`).join('')}
+      </ul>
+    </div>
+    <div class="modal-section">
+      <h4>Proceso de obtención</h4>
+      <div class="process-box">${p.process}</div>
+    </div>
+  `;
+  $('modalBackdrop').classList.add('show');
+}
+function closeModal() { $('modalBackdrop').classList.remove('show'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+const QUIZ = [
+  {
+    q: '¿Cuál de estos derivados tiene el MENOR punto de ebullición?',
+    opts: ['GLP', 'Gasolina', 'Nafta', 'Diésel'], correct: 0,
+    info: 'El GLP (propano + butano) ebulle entre −42 °C y 0 °C; por eso sale gaseoso en la cabeza de la CDU.'
+  },
+  {
+    q: '¿Cuál derivado se obtiene como FONDO de la unidad de vacío (VDU)?',
+    opts: ['Gasolina', 'Asfalto', 'Queroseno', 'Nafta'], correct: 1,
+    info: 'El asfalto es el residuo más pesado: no se evapora ni siquiera al vacío profundo.'
+  },
+  {
+    q: '¿Cuál es el principal combustible de aviación comercial?',
+    opts: ['Gasolina', 'Diésel', 'Queroseno (Jet A-1)', 'Fuel oil'], correct: 2,
+    info: 'El Jet A-1 es un queroseno tratado con norma ASTM D1655: bajo punto de congelación y alta seguridad térmica.'
+  },
+  {
+    q: '¿Qué derivado del petróleo se usa principalmente como MATERIA PRIMA petroquímica?',
+    opts: ['Asfalto', 'Coque', 'Nafta', 'Fuel oil'], correct: 2,
+    info: 'La nafta alimenta los crackers de etileno/propileno y el reformado catalítico para producir BTX.'
+  },
+  {
+    q: '¿Cuál de estos productos tiene el contenido de azufre TÍPICAMENTE más alto?',
+    opts: ['Gasolina (ULSG)', 'Asfalto', 'GLP', 'Queroseno'], correct: 1,
+    info: 'El asfalto puede tener 2–7 % de azufre porque concentra los compuestos más pesados del crudo.'
+  },
+  {
+    q: '¿Qué proceso convierte los residuos pesados en coque sólido y destilados ligeros?',
+    opts: ['Reformado catalítico', 'Coquización retardada', 'Alquilación', 'Isomerización'], correct: 1,
+    info: 'La coquización retardada usa cracking térmico a ~500 °C en tambores. El sólido que queda es el pet-coke.'
+  },
+  {
+    q: '¿Cuál es el rango de ebullición típico del DIÉSEL (ACPM)?',
+    opts: ['−42 a 0 °C', '30–200 °C', '180–360 °C', '> 500 °C'], correct: 2,
+    info: 'El corte de diésel está entre la lateral de queroseno y los gasóleos de vacío.'
+  },
+  {
+    q: '¿Qué proceso elimina el azufre del diésel para llegar a ULSD (≤ 15 ppm)?',
+    opts: ['Reformado catalítico', 'Hidrodesulfuración (HDS)', 'FCC', 'Desalación'], correct: 1,
+    info: 'La HDS usa H₂ a alta presión y catalizador Ni-Mo o Co-Mo para romper enlaces C–S y formar H₂S.'
+  },
+  {
+    q: '¿Cuál derivado se obtiene del desparafinado de los lubricantes y se usa en velas y cosmética?',
+    opts: ['Coque', 'Fuel oil', 'Parafinas y ceras', 'Nafta'], correct: 2,
+    info: 'El "slack wax" es subproducto del proceso MEK de desparafinado; se purifica por sudoración o hidroacabado.'
+  },
+  {
+    q: '¿Qué grado API corresponde típicamente al CRUDO?',
+    opts: ['< 10', '10–45', '50–65', '> 70'], correct: 1,
+    info: 'El crudo se clasifica entre pesado (10–22), medio (22–32) y ligero (32–45). Por debajo de 10 hablamos de bitumen.'
+  }
+];
+
+function renderQuiz() {
+  const area = $('quizArea');
+  if (state.quizIdx >= QUIZ.length) {
+    renderQuizResult();
+    return;
+  }
+  const q = QUIZ[state.quizIdx];
+  state.quizAnswered = false;
+  area.innerHTML = `
+    <div class="quiz-progress">
+      <span>Pregunta ${state.quizIdx + 1} / ${QUIZ.length}</span>
+      <div class="quiz-progress-bar"><div style="width:${((state.quizIdx) / QUIZ.length) * 100}%"></div></div>
+      <span>Score: ${state.quizScore}</span>
+    </div>
+    <div class="quiz-q"><span class="num">Q${String(state.quizIdx + 1).padStart(2, '0')}</span>${q.q}</div>
+    <div class="quiz-options" id="quizOpts">
+      ${q.opts.map((opt, i) => `
+        <button class="quiz-opt" onclick="answerQuiz(${i})">
+          <span class="marker">${String.fromCharCode(65 + i)}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="quiz-feedback" id="quizFb">${q.info}</div>
+    <button class="btn primary" id="quizNext" style="display:none" onclick="nextQuiz()">Siguiente →</button>
+  `;
+}
+
+function answerQuiz(idx) {
+  if (state.quizAnswered) return;
+  state.quizAnswered = true;
+  const q = QUIZ[state.quizIdx];
+  const opts = document.querySelectorAll('#quizOpts .quiz-opt');
+  opts.forEach((o, i) => {
+    o.disabled = true;
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === idx) o.classList.add('wrong');
+  });
+  if (idx === q.correct) state.quizScore++;
+  $('quizFb').classList.add('show');
+  $('quizNext').style.display = 'inline-flex';
+  if (state.quizIdx === QUIZ.length - 1) {
+    $('quizNext').textContent = 'Ver resultado →';
+  }
+}
+
+function nextQuiz() {
+  state.quizIdx++;
+  renderQuiz();
+}
+
+function renderQuizResult() {
+  const area = $('quizArea');
+  const pct = (state.quizScore / QUIZ.length) * 100;
+  let level = 'EN PROCESO';
+  let levelColor = 'var(--red)';
+  if (pct >= 90) { level = 'EXCELENTE'; levelColor = 'var(--green)'; }
+  else if (pct >= 70) { level = 'BUENO'; levelColor = 'var(--cyan)'; }
+  else if (pct >= 50) { level = 'ACEPTABLE'; levelColor = 'var(--amber)'; }
+  area.innerHTML = `
+    <div class="quiz-result">
+      <div class="quiz-progress">
+        <span>Evaluación finalizada</span>
+        <div class="quiz-progress-bar"><div style="width:100%"></div></div>
+        <span>${QUIZ.length}/${QUIZ.length}</span>
+      </div>
+      <div class="score">${state.quizScore}<span class="of">/${QUIZ.length}</span></div>
+      <div class="level" style="color:${levelColor}">// ${level} · ${pct.toFixed(0)} %</div>
+      <button class="btn primary" onclick="restartQuiz()">Reiniciar quiz</button>
+    </div>
+  `;
+}
+
+function restartQuiz() {
+  state.quizIdx = 0;
+  state.quizScore = 0;
+  state.quizAnswered = false;
+  renderQuiz();
+}
+
+/* ============================================================
+   NAVEGACIÓN ENTRE VISTAS
+   ============================================================ */
+function switchView(view, btn) {
+  state.view = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $('view-' + view).classList.add('active');
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  $('filterGroup').style.display = (view === 'cards') ? 'flex' : 'none';
+  if (view === 'table') renderTable();
+  if (view === 'compare') renderCompare();
+  if (view === 'quiz' && state.quizIdx === 0) renderQuiz();
+}
+
+/* ============================================================
+   INICIALIZACIÓN
+   ============================================================ */
+renderCards();
+</script>
+
+<!-- ============================================================
+     IMÁGENES UTILIZADAS
+     ------------------------------------------------------------
+     Las imágenes se cargan desde la carpeta local "imagenes
+     derivados de petroleo/". Para que la actividad funcione,
+     el HTML y la carpeta deben mantenerse juntos.
+
+     01. Crudo            → Crudo.jpeg
+     02. GLP              → Glp.jpeg
+     03. Gasolina         → gasolina.jpeg
+     04. Nafta            → Nafta.jpeg
+     05. Queroseno        → queroseno.jpeg
+     06. Diésel           → Diesel.jpeg
+     07. Fuel oil         → Fuel oil.jpeg
+     08. Lubricantes      → Base lubricante.jpeg
+     09. Parafinas        → parafinas.jpeg
+     10. Asfalto          → asfalto + betun .jpeg
+     11. Coque petróleo   → coque .jpeg
+
+     Si la imagen no carga, el archivo cae a una "gota" de color
+     CSS del color real del producto (fallback automático).
+     ============================================================ -->
+</body>
+</html>
