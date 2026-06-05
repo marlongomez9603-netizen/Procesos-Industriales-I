@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Sopa de Letras | Desafío Extremo</title>
+  <meta name="description" content="Juego interactivo y educativo de sopa de letras con 5 categorías, cards educativas y 3 niveles de dificultad.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #07071a;
+      --bg-secondary: #0e0e2a;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-card-hover: rgba(255,255,255,0.08);
+      --border-card: rgba(255,255,255,0.08);
+      --text-primary: #f0f0f8;
+      --text-secondary: rgba(240,240,248,0.6);
+      --text-muted: rgba(240,240,248,0.35);
+      --accent-1: #667eea;
+      --accent-2: #764ba2;
+      --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --glow-accent: rgba(102,126,234,0.4);
+      --cell-bg: rgba(255,255,255,0.03);
+      --cell-border: rgba(255,255,255,0.06);
+      --cell-hover: rgba(102,126,234,0.15);
+      --cell-selecting: rgba(102,126,234,0.35);
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --shadow-card: 0 8px 32px rgba(0,0,0,0.3);
+      --transition-fast: 0.15s ease;
+      --transition-med: 0.3s cubic-bezier(0.4,0,0.2,1);
+      --transition-slow: 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== BG EFFECTS ===== */
+    .bg-effects { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .bg-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.15; animation: float 20s ease-in-out infinite; }
+    .bg-orb-1 { width: 600px; height: 600px; background: #667eea; top: -200px; left: -100px; }
+    .bg-orb-2 { width: 500px; height: 500px; background: #764ba2; bottom: -150px; right: -100px; animation-delay: -7s; }
+    .bg-orb-3 { width: 400px; height: 400px; background: #4ecdc4; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -14s; opacity: 0.08; }
+    @keyframes float {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(30px,-30px) scale(1.05); }
+      66% { transform: translate(-20px,20px) scale(0.95); }
+    }
+
+    /* ===== SCREENS ===== */
+    .screen {
+      position: fixed; inset: 0; z-index: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px; opacity: 0; visibility: hidden;
+      transition: opacity var(--transition-slow), visibility var(--transition-slow);
+    }
+    .screen.active { opacity: 1; visibility: visible; }
+
+    /* ===== MENU ===== */
+    #menu-screen .logo-container { text-align: center; margin-bottom: 48px; }
+    #menu-screen .logo-icon { font-size: 4rem; margin-bottom: 16px; animation: pulse-glow 3s ease-in-out infinite; }
+    @keyframes pulse-glow {
+      0%,100% { filter: drop-shadow(0 0 10px rgba(102,126,234,0.4)); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 25px rgba(102,126,234,0.7)); transform: scale(1.05); }
+    }
+    #menu-screen h1 {
+      font-size: clamp(2rem,6vw,3.5rem); font-weight: 900;
+      background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; letter-spacing: -1px; line-height: 1.1;
+    }
+    #menu-screen .subtitle {
+      font-size: clamp(0.9rem,2.5vw,1.1rem); color: var(--text-secondary);
+      margin-top: 8px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase;
+    }
+    #menu-screen .tagline {
+      margin-top: 16px; font-size: 0.8rem; color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-primary {
+      background: var(--accent-gradient); color: white; border: none;
+      padding: 16px 48px; border-radius: 50px; font-family: inherit;
+      font-size: 1rem; font-weight: 700; cursor: pointer; letter-spacing: 1px;
+      text-transform: uppercase; position: relative; overflow: hidden;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+      box-shadow: 0 4px 20px var(--glow-accent);
+    }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 30px var(--glow-accent); }
+    .btn-primary:active { transform: translateY(0) scale(0.98); }
+    .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transform: translateX(-100%); transition: transform 0.6s;
+    }
+    .btn-primary:hover::after { transform: translateX(100%); }
+
+    .btn-secondary {
+      background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-card);
+      padding: 12px 28px; border-radius: 50px; font-family: inherit;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      transition: all var(--transition-fast); backdrop-filter: blur(10px);
+    }
+    .btn-secondary:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.15); transform: translateY(-1px); }
+
+    .btn-back {
+      position: absolute; top: 20px; left: 20px; z-index: 10;
+      background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-card);
+      width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px); transition: all var(--transition-fast);
+    }
+    .btn-back:hover { background: var(--bg-card-hover); color: var(--text-primary); transform: scale(1.1); }
+
+    /* ===== SECTIONS ===== */
+    .section-title { font-size: clamp(1.3rem,4vw,2rem); font-weight: 800; text-align: center; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .section-subtitle { color: var(--text-secondary); text-align: center; margin-bottom: 36px; font-size: 0.9rem; font-weight: 400; }
+
+    /* ===== CATEGORY CARDS ===== */
+    .categories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 16px; width: 100%; max-width: 800px; }
+    .category-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: 28px 20px; text-align: center;
+      cursor: pointer; transition: all var(--transition-med);
+      backdrop-filter: blur(10px); position: relative; overflow: hidden;
+    }
+    .category-card::before { content: ''; position: absolute; inset: 0; border-radius: var(--radius-lg); background: var(--accent-gradient); opacity: 0; transition: opacity var(--transition-med); }
+    .category-card:hover { transform: translateY(-6px) scale(1.02); border-color: rgba(102,126,234,0.3); box-shadow: 0 12px 40px rgba(102,126,234,0.15); }
+    .category-card:hover::before { opacity: 0.08; }
+    .category-card .card-icon { font-size: 2.5rem; margin-bottom: 12px; position: relative; z-index: 1; }
+    .category-card .card-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; position: relative; z-index: 1; }
+    .category-card .card-count { font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; position: relative; z-index: 1; }
+
+    /* ===== DIFFICULTY CARDS ===== */
+    .difficulty-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 20px; width: 100%; max-width: 750px; }
+    .difficulty-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: 32px 24px; text-align: center;
+      cursor: pointer; transition: all var(--transition-med); backdrop-filter: blur(10px); position: relative; overflow: hidden;
+    }
+    .difficulty-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+    .difficulty-card .diff-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .difficulty-card .diff-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .difficulty-card .diff-desc { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5; }
+    .difficulty-card.alta { border-color: rgba(255,193,7,0.2); }
+    .difficulty-card.alta:hover { border-color: rgba(255,193,7,0.5); box-shadow: 0 12px 40px rgba(255,193,7,0.1); }
+    .difficulty-card.muy-alta { border-color: rgba(255,87,34,0.2); }
+    .difficulty-card.muy-alta:hover { border-color: rgba(255,87,34,0.5); box-shadow: 0 12px 40px rgba(255,87,34,0.1); }
+    .difficulty-card.imposible { border-color: rgba(244,67,54,0.2); }
+    .difficulty-card.imposible:hover { border-color: rgba(244,67,54,0.5); box-shadow: 0 12px 40px rgba(244,67,54,0.1); }
+
+    /* ===== GAME SCREEN ===== */
+    #game-screen { justify-content: flex-start; padding: 0; overflow-y: auto; overflow-x: hidden; }
+
+    .game-header {
+      width: 100%; padding: 14px 20px;
+      background: rgba(7,7,26,0.85); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-card);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-shrink: 0; z-index: 5; position: sticky; top: 0;
+    }
+    .game-header-left, .game-header-center, .game-header-right { display: flex; align-items: center; gap: 12px; }
+
+    .header-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      padding: 8px 14px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+    }
+    .header-badge .badge-icon { font-size: 1rem; }
+    .header-badge.timer-badge { font-variant-numeric: tabular-nums; min-width: 100px; justify-content: center; }
+
+    .progress-bar-container { flex: 1; max-width: 200px; min-width: 80px; background: rgba(255,255,255,0.06); border-radius: 50px; height: 8px; overflow: hidden; display: none; }
+    .progress-bar-fill { height: 100%; border-radius: 50px; background: var(--accent-gradient); transition: width var(--transition-med); width: 0%; }
+
+    .btn-surrender {
+      background: rgba(244,67,54,0.12); color: #f44336; border: 1px solid rgba(244,67,54,0.25);
+      padding: 8px 18px; border-radius: 50px; font-family: inherit;
+      font-size: 0.75rem; font-weight: 700; cursor: pointer; text-transform: uppercase;
+      letter-spacing: 0.5px; transition: all var(--transition-fast); white-space: nowrap;
+    }
+    .btn-surrender:hover { background: rgba(244,67,54,0.2); border-color: rgba(244,67,54,0.5); transform: scale(1.05); }
+
+    .btn-menu-small {
+      background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-card);
+      width: 38px; height: 38px; border-radius: 50%; font-size: 1rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .btn-menu-small:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+    .game-content {
+      display: flex; gap: 24px; padding: 20px; width: 100%; max-width: 1200px; margin: 0 auto;
+      flex: 1; align-items: flex-start; justify-content: center;
+    }
+
+    /* ===== GRID ===== */
+    .grid-wrapper {
+      flex-shrink: 0; position: relative;
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: 12px;
+      backdrop-filter: blur(10px); box-shadow: var(--shadow-card);
+    }
+    .grid { display: grid; gap: 2px; user-select: none; -webkit-user-select: none; touch-action: none; }
+    .cell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      background: var(--cell-bg); border: 1px solid var(--cell-border);
+      border-radius: 3px; font-weight: 700; cursor: pointer;
+      transition: background var(--transition-fast), transform var(--transition-fast),
+                  border-color var(--transition-fast), box-shadow var(--transition-fast);
+      position: relative; font-size: clamp(0.55rem,1.8vw,1rem); color: var(--text-secondary);
+    }
+    .cell:hover { background: var(--cell-hover); color: var(--text-primary); }
+    .cell.selecting {
+      background: var(--cell-selecting) !important; border-color: rgba(102,126,234,0.5) !important;
+      color: white !important; transform: scale(1.08); z-index: 2; box-shadow: 0 0 12px var(--glow-accent);
+    }
+    .cell.found { color: white !important; font-weight: 800; border-color: transparent !important; animation: cell-found 0.4s ease-out; }
+    @keyframes cell-found { 0% { transform: scale(1.3); } 50% { transform: scale(0.9); } 100% { transform: scale(1); } }
+    .cell.revealed { border-color: rgba(255,255,255,0.15) !important; animation: cell-reveal 0.5s ease-out; }
+    @keyframes cell-reveal { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* ===== WORD LIST ===== */
+    .word-panel {
+      flex: 1; max-width: 280px; min-width: 200px;
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg); padding: 24px;
+      backdrop-filter: blur(10px); box-shadow: var(--shadow-card);
+      position: sticky; top: 80px;
+    }
+    .word-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-card); }
+    .word-panel-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .word-panel-count { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+    .word-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .word-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: var(--radius-sm);
+      font-size: 0.82rem; font-weight: 600; letter-spacing: 1.5px;
+      color: var(--text-secondary); transition: all var(--transition-med);
+      background: transparent; border: 1px solid transparent; text-transform: uppercase;
+      cursor: default;
+    }
+    .word-item .word-status {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid var(--border-card); display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 0.6rem; transition: all var(--transition-med);
+    }
+    .word-item.found .word-status { border-color: transparent; animation: check-pop 0.4s ease-out; }
+    @keyframes check-pop { 0% { transform: scale(0); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+    .word-item.found { text-decoration: line-through; text-decoration-thickness: 2px; }
+    .word-item .word-text { flex: 1; }
+
+    /* ===== INFO CARD (NEW!) ===== */
+    .info-overlay {
+      position: fixed; inset: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(7,7,26,0.8); backdrop-filter: blur(12px);
+      opacity: 0; visibility: hidden; transition: all 0.4s ease; padding: 20px;
+    }
+    .info-overlay.active { opacity: 1; visibility: visible; }
+
+    .info-card {
+      background: linear-gradient(145deg, rgba(20,20,50,0.95), rgba(10,10,30,0.98));
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-xl); padding: 0; max-width: 420px; width: 100%;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 40px rgba(102,126,234,0.1);
+      transform: scale(0.85) translateY(30px);
+      transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+      overflow: hidden;
+    }
+    .info-overlay.active .info-card { transform: scale(1) translateY(0); }
+
+    .info-card-top {
+      padding: 28px 28px 20px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .info-card-top::before {
+      content: ''; position: absolute; inset: 0;
+      opacity: 0.08; z-index: 0;
+    }
+
+    .info-card-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      padding: 5px 14px; border-radius: 50px; font-size: 0.7rem; font-weight: 600;
+      color: var(--text-secondary); margin-bottom: 16px; position: relative; z-index: 1;
+    }
+    .info-card-number {
+      background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; font-weight: 800;
+    }
+
+    .info-card-emoji {
+      font-size: 3.5rem; margin-bottom: 12px; position: relative; z-index: 1;
+      animation: emoji-bounce 0.6s ease-out;
+    }
+    @keyframes emoji-bounce {
+      0% { transform: scale(0) rotate(-20deg); }
+      60% { transform: scale(1.2) rotate(5deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+
+    .info-card-word {
+      font-size: 1.6rem; font-weight: 900; letter-spacing: 3px;
+      position: relative; z-index: 1; margin-bottom: 4px;
+    }
+
+    .info-card-body { padding: 0 28px 28px; }
+
+    .info-card-desc {
+      font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6;
+      margin-bottom: 16px; text-align: center;
+    }
+
+    .info-card-fact {
+      background: rgba(102,126,234,0.08); border: 1px solid rgba(102,126,234,0.15);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 24px;
+    }
+    .info-card-fact-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .info-card-fact-text { font-size: 0.82rem; color: var(--text-primary); line-height: 1.5; font-weight: 500; }
+
+    .info-card-btn {
+      width: 100%; padding: 14px; border: none; border-radius: var(--radius-md);
+      font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      text-transform: uppercase; letter-spacing: 1px;
+      transition: all var(--transition-fast);
+    }
+    .info-card-btn-continue {
+      background: var(--accent-gradient); color: white;
+      box-shadow: 0 4px 20px var(--glow-accent);
+    }
+    .info-card-btn-continue:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow-accent); }
+
+    .info-card-progress {
+      height: 3px; background: rgba(255,255,255,0.06); border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+      overflow: hidden;
+    }
+    .info-card-progress-fill {
+      height: 100%; border-radius: 2px;
+      background: var(--accent-gradient);
+      transition: width 0.3s ease;
+    }
+
+    /* ===== OVERLAYS ===== */
+    .overlay {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(7,7,26,0.9); backdrop-filter: blur(20px);
+      opacity: 0; visibility: hidden; transition: all var(--transition-slow); padding: 20px;
+    }
+    .overlay.active { opacity: 1; visibility: visible; }
+
+    .victory-content { text-align: center; max-width: 420px; transform: scale(0.8); transition: transform var(--transition-slow); }
+    .overlay.active .victory-content { transform: scale(1); }
+    .victory-icon { font-size: 5rem; margin-bottom: 16px; animation: trophy-bounce 1s ease-in-out infinite; }
+    @keyframes trophy-bounce { 0%,100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-10px) rotate(-5deg); } 75% { transform: translateY(-10px) rotate(5deg); } }
+    .victory-title {
+      font-size: 2.5rem; font-weight: 900;
+      background: linear-gradient(135deg, #ffd700, #ffaa00, #ff8c00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
+    }
+    .victory-subtitle { color: var(--text-secondary); margin-bottom: 24px; font-size: 1rem; }
+    .victory-stats { display: flex; gap: 24px; justify-content: center; margin-bottom: 32px; }
+    .victory-stat { text-align: center; }
+    .victory-stat-value { font-size: 1.8rem; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .victory-stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    .victory-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    .surrender-content { text-align: center; max-width: 380px; }
+    .surrender-icon { font-size: 4rem; margin-bottom: 16px; }
+    .surrender-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+    .surrender-subtitle { color: var(--text-secondary); margin-bottom: 28px; font-size: 0.9rem; }
+
+    #confetti-canvas { position: fixed; inset: 0; z-index: 99; pointer-events: none; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .game-content { flex-direction: column; align-items: center; padding: 12px; gap: 16px; }
+      .word-panel { max-width: 100%; min-width: unset; width: 100%; position: static; order: -1; padding: 16px; }
+      .word-list { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+      .word-item { padding: 5px 10px; font-size: 0.7rem; letter-spacing: 1px; }
+      .word-item .word-status { width: 16px; height: 16px; }
+      .grid-wrapper { width: 100%; max-width: 500px; padding: 8px; }
+      .game-header { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+      .game-header-left, .game-header-center, .game-header-right { gap: 8px; }
+      .header-badge { padding: 6px 10px; font-size: 0.7rem; }
+      .progress-bar-container { display: none; }
+      .categories-grid { grid-template-columns: repeat(3,1fr); gap: 10px; }
+      .difficulty-grid { grid-template-columns: 1fr; max-width: 300px; }
+      .btn-surrender { padding: 6px 12px; font-size: 0.65rem; }
+      .info-card { max-width: 360px; }
+      .info-card-top { padding: 20px 20px 16px; }
+      .info-card-body { padding: 0 20px 20px; }
+    }
+    @media (max-width: 400px) {
+      .cell { font-size: clamp(0.4rem,3.5vw,0.7rem); border-radius: 2px; }
+      .grid { gap: 1px; }
+      .grid-wrapper { padding: 6px; }
+      .word-item { font-size: 0.6rem; padding: 4px 6px; }
+    }
+    @media (min-width: 769px) { .progress-bar-container { display: block; } }
+
+    @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: fade-in-up 0.5s ease-out both; }
+    .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.1s; }
+    .delay-3 { animation-delay: 0.15s; } .delay-4 { animation-delay: 0.2s; } .delay-5 { animation-delay: 0.25s; } .delay-6 { animation-delay: 0.3s; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <div class="bg-effects">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- MENU -->
+  <div id="menu-screen" class="screen active">
+    <div class="logo-container animate-in">
+      <div class="logo-icon">🔍</div>
+      <h1>Sopa de Letras</h1>
+      <p class="subtitle">Desafío Extremo</p>
+      <p class="tagline">📚 Encuentra palabras y aprende con cada hallazgo</p>
+    </div>
+    <button class="btn-primary animate-in delay-2" onclick="showScreen('category-screen')">Jugar</button>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div id="category-screen" class="screen">
+    <button class="btn-back" onclick="showScreen('menu-screen')">←</button>
+    <h2 class="section-title animate-in">Elige una Categoría</h2>
+    <p class="section-subtitle animate-in delay-1">Selecciona el tema de las palabras</p>
+    <div class="categories-grid" id="categories-grid"></div>
+  </div>
+
+  <!-- DIFFICULTY -->
+  <div id="difficulty-screen" class="screen">
+    <button class="btn-back" onclick="showScreen('category-screen')">←</button>
+    <h2 class="section-title animate-in">Nivel de Dificultad</h2>
+    <p class="section-subtitle animate-in delay-1">¿Cuánto te atreves?</p>
+    <div class="difficulty-grid">
+      <div class="difficulty-card alta animate-in delay-2" onclick="startGame('alta')">
+        <div class="diff-icon">🟡</div><div class="diff-title">Alta</div>
+        <div class="diff-desc">Grilla 15×15 · 8 palabras</div>
+      </div>
+      <div class="difficulty-card muy-alta animate-in delay-3" onclick="startGame('muy-alta')">
+        <div class="diff-icon">🔴</div><div class="diff-title">Muy Alta</div>
+        <div class="diff-desc">Grilla 20×20 · 12 palabras</div>
+      </div>
+      <div class="difficulty-card imposible animate-in delay-4" onclick="startGame('imposible')">
+        <div class="diff-icon">💀</div><div class="diff-title">Imposible</div>
+        <div class="diff-desc">Grilla 25×25 · 18 palabras</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game-screen" class="screen">
+    <div class="game-header">
+      <div class="game-header-left">
+        <button class="btn-menu-small" onclick="confirmExit()">☰</button>
+        <div class="header-badge"><span class="badge-icon" id="badge-cat-icon"></span><span id="badge-cat-name"></span></div>
+      </div>
+      <div class="game-header-center">
+        <div class="header-badge timer-badge"><span class="badge-icon">⏱</span><span id="timer-display">00:00</span></div>
+        <div class="header-badge"><span class="badge-icon">✅</span><span id="progress-display">0 / 0</span></div>
+        <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-bar"></div></div>
+      </div>
+      <div class="game-header-right">
+        <button class="btn-surrender" onclick="surrender()">🏳 Rendirse</button>
+      </div>
+    </div>
+    <div class="game-content">
+      <div class="grid-wrapper"><div class="grid" id="grid"></div></div>
+      <div class="word-panel" id="word-panel">
+        <div class="word-panel-header">
+          <span class="word-panel-title">Palabras</span>
+          <span class="word-panel-count" id="word-count"></span>
+        </div>
+        <ul class="word-list" id="word-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO CARD (opens on word found) -->
+  <div id="info-overlay" class="info-overlay" onclick="closeInfoCardOutside(event)">
+    <div class="info-card">
+      <div class="info-card-top" id="info-card-top">
+        <div class="info-card-badge">
+          <span id="info-cat-icon"></span>
+          <span id="info-cat-name"></span>
+          <span>·</span>
+          <span class="info-card-number" id="info-number"></span>
+        </div>
+        <div class="info-card-emoji" id="info-emoji"></div>
+        <div class="info-card-word" id="info-word"></div>
+      </div>
+      <div class="info-card-body">
+        <p class="info-card-desc" id="info-desc"></p>
+        <div class="info-card-fact">
+          <span class="info-card-fact-icon">💡</span>
+          <span class="info-card-fact-text" id="info-fact"></span>
+        </div>
+        <button class="info-card-btn info-card-btn-continue" onclick="closeInfoCard()">¡Entendido! ✨</button>
+      </div>
+      <div class="info-card-progress"><div class="info-card-progress-fill" id="info-progress"></div></div>
+    </div>
+  </div>
+
+  <!-- VICTORY -->
+  <div id="victory-overlay" class="overlay">
+    <div class="victory-content">
+      <div class="victory-icon">🏆</div>
+      <h2 class="victory-title">¡VICTORIA!</h2>
+      <p class="victory-subtitle">Has encontrado todas las palabras</p>
+      <div class="victory-stats">
+        <div class="victory-stat"><div class="victory-stat-value" id="v-time">00:00</div><div class="victory-stat-label">Tiempo</div></div>
+        <div class="victory-stat"><div class="victory-stat-value" id="v-words">0</div><div class="victory-stat-label">Palabras</div></div>
+        <div class="victory-stat"><div class="victory-stat-value" id="v-difficulty">Alta</div><div class="victory-stat-label">Dificultad</div></div>
+      </div>
+      <div class="victory-buttons">
+        <button class="btn-primary" onclick="playAgain()">Jugar de Nuevo</button>
+        <button class="btn-secondary" onclick="goToMenu()">Menú Principal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SURRENDER CONFIRM -->
+  <div id="surrender-overlay" class="overlay">
+    <div class="surrender-content">
+      <div class="surrender-icon">😔</div><h2 class="surrender-title">¿Rendirse?</h2>
+      <p class="surrender-subtitle">Se revelarán todas las palabras no encontradas</p>
+      <div class="victory-buttons">
+        <button class="btn-primary" onclick="confirmSurrender()">Sí, revelar</button>
+        <button class="btn-secondary" onclick="cancelSurrender()">Seguir jugando</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXIT CONFIRM -->
+  <div id="exit-overlay" class="overlay">
+    <div class="surrender-content">
+      <div class="surrender-icon">🚪</div><h2 class="surrender-title">¿Salir?</h2>
+      <p class="surrender-subtitle">Perderás el progreso de la partida actual</p>
+      <div class="victory-buttons">
+        <button class="btn-primary" onclick="goToMenu()">Salir</button>
+        <button class="btn-secondary" onclick="closeOverlay('exit-overlay')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ================================================================
+   SOPA DE LETRAS — Motor completo con Cards Educativas
+   ================================================================ */
+
+// ========== CATEGORIES + EDUCATIONAL DATA ==========
+const CATEGORIES = [
+  {
+    id: 'espacio', name: 'Espacio', icon: '🌌', emoji: '🪐',
+    words: [
+      { w:'GALAXIA', d:'Sistema masivo de estrellas, gas y polvo cósmico unidos por la gravedad.', f:'La Vía Láctea contiene más de 200 mil millones de estrellas.', e:'🌀' },
+      { w:'NEBULOSA', d:'Nube gigante de gas y polvo interestelar donde nacen nuevas estrellas.', f:'La Nebulosa de Orión es visible a simple vista en el cielo nocturno.', e:'🌫️' },
+      { w:'ASTEROIDE', d:'Cuerpo rocoso que orbita el Sol, más pequeño que un planeta pero potencialmente peligroso.', f:'El cinturón de asteroides se encuentra entre las órbitas de Marte y Júpiter.', e:'☄️' },
+      { w:'COMETA', d:'Cuerpo de hielo, roca y polvo que desarrolla una brillante cola al acercarse al Sol.', f:'El cometa Halley nos visita cada 76 años; volverá en 2061.', e:'☄️' },
+      { w:'ESTRELLA', d:'Esfera de plasma que genera energía mediante reacciones de fusión nuclear en su interior.', f:'Nuestro Sol es una estrella de tamaño mediano de tipo G.', e:'⭐' },
+      { w:'PLANETA', d:'Cuerpo celeste que orbita una estrella, tiene suficiente masa para ser esférico y ha limpiado su órbita.', f:'Existen 8 planetas reconocidos en nuestro sistema solar.', e:'🪐' },
+      { w:'ORBITA', d:'Trayectoria curva que un cuerpo celeste sigue alrededor de otro debido a la gravedad.', f:'La Tierra viaja a 107,000 km/h en su órbita alrededor del Sol.', e:'🔄' },
+      { w:'SATELITE', d:'Objeto que orbita un planeta; puede ser natural como la Luna, o artificial como la ISS.', f:'Hay más de 7,000 satélites artificiales orbitando la Tierra actualmente.', e:'🛰️' },
+      { w:'UNIVERSO', d:'Todo el espacio, tiempo, materia y energía que existe; lo observable y lo que está más allá.', f:'El universo tiene aproximadamente 13,800 millones de años de antigüedad.', e:'✨' },
+      { w:'METEORITO', d:'Fragmento de roca o metal espacial que sobrevive al paso por la atmósfera y llega a la superficie.', f:'Cada día caen a la Tierra unas 100 toneladas de material cósmico.', e:'💥' },
+      { w:'SUPERNOVA', d:'Explosión colosal al final de la vida de una estrella masiva, liberando enorme energía.', f:'Una supernova puede brillar más que toda una galaxia durante semanas.', e:'💫' },
+      { w:'ECLIPSE', d:'Fenómeno donde un astro oculta a otro al interponerse en la línea de visión.', f:'Un eclipse solar total dura como máximo 7 minutos y 32 segundos.', e:'🌑' },
+      { w:'GRAVEDAD', d:'Fuerza fundamental de atracción entre todos los objetos que poseen masa.', f:'En la Luna pesarías solo 1/6 de lo que pesas en la Tierra.', e:'🍎' },
+      { w:'COSMOS', d:'El universo visto como un sistema complejo, ordenado y armonioso.', f:'El término fue popularizado por Carl Sagan en su famosa serie de TV en 1980.', e:'🌌' },
+      { w:'PLUTON', d:'Planeta enano en el cinturón de Kuiper, fue reclasificado en 2006 por la IAU.', f:'Un solo día en Plutón equivale a 6.4 días terrestres.', e:'❄️' },
+      { w:'JUPITER', d:'El planeta más grande del sistema solar; un colosal gigante gaseoso con más de 90 lunas.', f:'Su Gran Mancha Roja es una tormenta activa desde hace más de 350 años.', e:'🟤' },
+      { w:'MARTE', d:'El "planeta rojo", principal candidato para la futura colonización humana.', f:'Tiene el volcán más alto del sistema solar: Monte Olimpo, con 21.9 km de altura.', e:'🔴' },
+      { w:'VENUS', d:'El planeta más caliente del sistema solar con una densa atmósfera de CO₂.', f:'Un día en Venus (243 días terrestres) es más largo que su año (225 días).', e:'🟡' },
+      { w:'MERCURIO', d:'El planeta más pequeño y cercano al Sol, con temperaturas extremas.', f:'Las temperaturas oscilan entre -180°C de noche y 430°C de día.', e:'⚪' },
+      { w:'LUNAR', d:'Relativo a la Luna, el único satélite natural de la Tierra.', f:'La Luna se aleja de la Tierra 3.8 centímetros cada año.', e:'🌙' }
+    ]
+  },
+  {
+    id: 'cocina', name: 'Cocina', icon: '🍳', emoji: '👨‍🍳',
+    words: [
+      { w:'SARTEN', d:'Utensilio plano con mango usado para freír y saltear alimentos a fuego directo.', f:'La sartén antiadherente fue inventada accidentalmente en 1954 con teflón.', e:'🍳' },
+      { w:'CUCHILLO', d:'Herramienta esencial de corte en la cocina, disponible en múltiples formas y tamaños.', f:'Un cuchillo bien afilado es más seguro que uno sin filo, pues requiere menos fuerza.', e:'🔪' },
+      { w:'RECETA', d:'Conjunto de instrucciones detalladas para preparar un plato con ingredientes específicos.', f:'La receta escrita más antigua conocida tiene más de 4,000 años y es mesopotámica.', e:'📜' },
+      { w:'HORNO', d:'Aparato que cocina alimentos con calor envolvente, ideal para hornear y asar.', f:'Los hornos de convección cocinan hasta 25% más rápido que los convencionales.', e:'🫕' },
+      { w:'ESPECIAS', d:'Sustancias aromáticas de origen vegetal utilizadas para sazonar y dar sabor.', f:'El azafrán es la especia más costosa del mundo: hasta $10,000 por kilogramo.', e:'🌶️' },
+      { w:'MEZCLAR', d:'Acción de combinar dos o más ingredientes hasta lograr una mezcla homogénea.', f:'Mezclar en exceso una masa con harina puede desarrollar demasiado gluten y endurecerla.', e:'🥣' },
+      { w:'HERVIR', d:'Cocinar un alimento sumergiéndolo en agua a punto de ebullición (100°C al nivel del mar).', f:'A mayor altitud, el agua hierve a menor temperatura por la baja presión atmosférica.', e:'♨️' },
+      { w:'HORNEAR', d:'Cocinar alimentos mediante calor seco dentro de un horno cerrado.', f:'El pan fue uno de los primeros alimentos horneados por la humanidad, hace 14,000 años.', e:'🍞' },
+      { w:'AMASAR', d:'Trabajar una masa con las manos para desarrollar el gluten y lograr elasticidad.', f:'10 minutos de amasado suele ser suficiente para la mayoría de masas de pan.', e:'🤲' },
+      { w:'BATIR', d:'Agitar vigorosamente una mezcla para incorporar aire y lograr volumen.', f:'Batir claras a punto de nieve puede multiplicar su volumen original hasta 8 veces.', e:'🥚' },
+      { w:'GRATINAR', d:'Dorar la superficie de un plato aplicando calor intenso desde arriba.', f:'Se suele usar queso rallado o bechamel en la superficie para lograr la costra dorada.', e:'🧀' },
+      { w:'SALTEAR', d:'Cocinar rápidamente a fuego alto con poco aceite, moviendo los ingredientes constantemente.', f:'La técnica viene del francés "sauter" (saltar), por cómo brincan los alimentos.', e:'🥘' },
+      { w:'MARINAR', d:'Sumergir un alimento en un líquido aromático para ablandarlo y darle sabor.', f:'Los ácidos de la marinada (limón, vinagre) ayudan a desnaturalizar las proteínas de la carne.', e:'🫙' },
+      { w:'COCINAR', d:'Arte y ciencia de transformar alimentos crudos mediante calor para consumo humano.', f:'El ser humano cocina sus alimentos desde hace al menos 1 millón de años.', e:'👩‍🍳' },
+      { w:'GUISAR', d:'Cocinar lentamente alimentos en un líquido a fuego bajo durante tiempo prolongado.', f:'Es ideal para cortes de carne duros: el colágeno se convierte en gelatina, ablandándolos.', e:'🍲' },
+      { w:'PICAR', d:'Cortar alimentos en trozos pequeños con cuchillo de forma precisa.', f:'El corte "brunoise" produce cubos perfectos de solo 2 milímetros de lado.', e:'🧅' },
+      { w:'LICUADORA', d:'Electrodoméstico con cuchillas giratorias a alta velocidad para triturar y mezclar.', f:'Fue inventada en 1922 por Stephen Poplawski para preparar bebidas malteadas.', e:'🫗' },
+      { w:'CACEROLA', d:'Recipiente profundo con tapa y asas, ideal para cocinar sopas y guisos.', f:'Las cacerolas de hierro fundido pueden durar generaciones si se cuidan bien.', e:'🫕' },
+      { w:'ESPATULA', d:'Utensilio plano y flexible usado para voltear, mezclar o servir alimentos.', f:'Existen de silicona (calor), metal (plancha) y madera (antiadherentes), según el uso.', e:'🥄' },
+      { w:'CUCHARON', d:'Utensilio cóncavo y grande con mango largo, ideal para servir sopas y líquidos.', f:'Su capacidad típica es de 100 a 200 ml, perfecto para porcionar.', e:'🥄' }
+    ]
+  },
+  {
+    id: 'musica', name: 'Música', icon: '🎵', emoji: '🎶',
+    words: [
+      { w:'MELODIA', d:'Sucesión organizada de notas musicales que forman una frase reconocible y memorable.', f:'El cerebro humano puede recordar melodías durante toda la vida, incluso con Alzheimer.', e:'🎼' },
+      { w:'RITMO', d:'Patrón organizado de sonidos y silencios que da movimiento y pulso a la música.', f:'El ritmo es considerado el elemento más primitivo y fundamental de toda la música.', e:'🥁' },
+      { w:'ARMONIA', d:'Combinación simultánea de notas que producen sonidos agradables y consonantes.', f:'Se basa en relaciones matemáticas entre las frecuencias de las ondas sonoras.', e:'🎹' },
+      { w:'GUITARRA', d:'Instrumento de cuerdas pulsadas, el más popular y versátil del mundo moderno.', f:'La guitarra estándar tiene 6 cuerdas afinadas en Mi-La-Re-Sol-Si-Mi (EADGBE).', e:'🎸' },
+      { w:'BATERIA', d:'Conjunto de tambores, platillos y percusiones tocados con baquetas y pedales.', f:'La batería moderna como kit completo existe desde los años 1930.', e:'🥁' },
+      { w:'VIOLIN', d:'Instrumento de cuerdas frotadas con arco; el más agudo y expresivo de su familia.', f:'Un violín profesional tiene más de 70 piezas de madera cuidadosamente ensambladas.', e:'🎻' },
+      { w:'TROMPETA', d:'Instrumento de viento-metal con sonido brillante, potente y penetrante.', f:'La trompeta tiene una historia que se remonta a más de 3,500 años.', e:'🎺' },
+      { w:'SAXOFON', d:'Instrumento de viento-madera con cuerpo de metal, inventado por Adolphe Sax.', f:'Fue patentado en París en 1846 y revolucionó el jazz y la música popular.', e:'🎷' },
+      { w:'ACORDE', d:'Tres o más notas musicales tocadas simultáneamente creando armonía.', f:'Los acordes mayores suenan "alegres" y los menores suenan "tristes" al oído humano.', e:'🎵' },
+      { w:'PARTITURA', d:'Documento escrito que contiene toda la notación musical de una obra.', f:'Las partituras modernas usan el pentagrama de 5 líneas, estandarizado en el siglo XI.', e:'📄' },
+      { w:'ORQUESTA', d:'Conjunto grande de músicos con instrumentos de cuerda, viento, metal y percusión.', f:'Una orquesta sinfónica completa puede tener más de 100 músicos.', e:'🎼' },
+      { w:'SOPRANO', d:'La voz femenina más aguda en la clasificación vocal clásica.', f:'Una soprano puede alcanzar notas por encima del Do6, ¡casi inaudibles para algunos!', e:'🎤' },
+      { w:'TEMPO', d:'Velocidad a la que se interpreta una pieza musical, marca su carácter.', f:'Se mide en BPM (pulsos por minuto): un vals tiene ~90, el techno supera los 140.', e:'⏱️' },
+      { w:'FLAUTA', d:'Uno de los instrumentos más antiguos de la humanidad, de la familia viento-madera.', f:'Se han encontrado flautas de hueso de 40,000 años de antigüedad en cuevas europeas.', e:'🪈' },
+      { w:'PIANO', d:'Instrumento de teclas percutidas con martillos; tiene 88 teclas (52 blancas, 36 negras).', f:'Abarca casi todo el rango audible: desde frecuencias muy graves hasta muy agudas.', e:'🎹' },
+      { w:'TAMBOR', d:'Instrumento de percusión con una membrana tensada que vibra al ser golpeada.', f:'Es considerado el instrumento musical más antiguo de la humanidad.', e:'🪘' },
+      { w:'CANTANTE', d:'Artista que usa su voz como instrumento musical para interpretar canciones.', f:'Las cuerdas vocales vibran entre 100 y 1,000 veces por segundo al cantar.', e:'🎤' },
+      { w:'DIRECTOR', d:'Líder musical que coordina, guía e interpreta la obra para toda la orquesta.', f:'Usa una batuta para marcar el compás, las entradas y la dinámica de cada sección.', e:'🎩' },
+      { w:'SOLISTA', d:'Músico destacado que interpreta una parte principal de forma individual.', f:'En un concierto clásico, el solista toca acompañado por toda la orquesta.', e:'🌟' },
+      { w:'CORO', d:'Grupo de cantantes que interpretan obras vocales de forma colectiva y coordinada.', f:'Los coros existen desde la antigua Grecia, donde eran parte esencial del teatro.', e:'🎶' }
+    ]
+  },
+  {
+    id: 'animales', name: 'Animales Exóticos', icon: '🐾', emoji: '🦎',
+    words: [
+      { w:'AXOLOTE', d:'Anfibio mexicano acuático que puede regenerar extremidades, órganos y hasta partes del cerebro.', f:'Permanece en estado larval toda su vida (neotenia) y nunca se transforma completamente.', e:'🦎' },
+      { w:'QUETZAL', d:'Ave sagrada de Centroamérica con espectacular plumaje verde iridiscente y cola larga.', f:'Era símbolo de libertad para mayas y aztecas; morían en cautiverio.', e:'🐦' },
+      { w:'NARVAL', d:'Cetáceo ártico conocido como el "unicornio del mar" por su largo colmillo en espiral.', f:'Su colmillo es en realidad un diente canino que puede alcanzar los 3 metros.', e:'🦄' },
+      { w:'CAMALEON', d:'Reptil famoso por sus ojos independientes y su capacidad de cambiar de color.', f:'Cambia color principalmente por temperatura y emociones, ¡no para camuflarse!', e:'🦎' },
+      { w:'TUCAN', d:'Ave tropical reconocida por su enorme pico colorido y llamativo.', f:'Su pico puede medir hasta 20 cm, un tercio de la longitud total de su cuerpo.', e:'🐦' },
+      { w:'JAGUAR', d:'El felino más grande de América y el tercero del mundo, tras el tigre y el león.', f:'Tiene la mordida más potente de todos los felinos, capaz de perforar caparazones.', e:'🐆' },
+      { w:'IGUANA', d:'Reptil herbívoro de gran tamaño, común en las regiones tropicales de América.', f:'Pueden caer desde árboles de 15 metros de altura sin sufrir lesiones.', e:'🦎' },
+      { w:'COCODRILO', d:'Reptil semiacuático que ha sobrevivido prácticamente sin cambios por 200 millones de años.', f:'Su mordida ejerce más de 3,700 libras de presión, la más fuerte del reino animal.', e:'🐊' },
+      { w:'ANACONDA', d:'La serpiente más pesada del mundo, habita en ríos y pantanos de Sudamérica.', f:'Puede pesar más de 200 kg, medir 9 metros y tragarse presas enteras.', e:'🐍' },
+      { w:'TARANTULA', d:'Araña grande y peluda; la mayoría de sus especies son inofensivas para humanos.', f:'Algunas tarantulas pueden vivir más de 25 años en cautiverio.', e:'🕷️' },
+      { w:'ARMADILLO', d:'Mamífero acorazado con caparazón óseo que se enrolla en bola para protegerse.', f:'El armadillo de nueve bandas siempre tiene cuatrillizos genéticamente idénticos.', e:'🛡️' },
+      { w:'FLAMINGO', d:'Ave zancuda que obtiene su icónico color rosado de los crustáceos que consume.', f:'Nacen completamente blancos o grises; el rosa aparece gradualmente con su dieta.', e:'🦩' },
+      { w:'COLIBRI', d:'El ave más pequeña del mundo, la única capaz de volar hacia atrás y quedarse suspendida.', f:'Su corazón late hasta 1,200 veces por minuto durante el vuelo.', e:'🐦' },
+      { w:'PANGOLIN', d:'El mamífero más traficado ilegalmente del mundo, cubierto de escamas protectoras.', f:'Es el único mamífero que posee escamas de queratina (como nuestras uñas).', e:'🦔' },
+      { w:'DELFIN', d:'Mamífero marino altamente inteligente, social y con sofisticadas habilidades de comunicación.', f:'Duerme con medio cerebro a la vez para poder seguir respirando en la superficie.', e:'🐬' },
+      { w:'TORTUGA', d:'Reptil con caparazón protector que puede vivir más de 100 años.', f:'Las tortugas marinas navegan miles de kilómetros para volver a anidar donde nacieron.', e:'🐢' },
+      { w:'AGUILA', d:'Ave rapaz de gran envergadura con vista extraordinariamente aguda.', f:'Puede detectar un conejo a más de 3 kilómetros de distancia.', e:'🦅' },
+      { w:'MEDUSA', d:'Animal marino gelatinoso sin cerebro ni corazón que existe desde hace 500 millones de años.', f:'La especie Turritopsis dohrnii es biológicamente inmortal: puede rejuvenecerse.', e:'🪼' },
+      { w:'PULPO', d:'Molusco cefalópodo con 8 tentáculos, 3 corazones y sangre de color azul.', f:'Su sangre es azul porque usa cobre (hemocianina) en lugar de hierro para transportar oxígeno.', e:'🐙' },
+      { w:'CONDOR', d:'El ave voladora más grande del hemisferio occidental, símbolo de los Andes.', f:'Su envergadura puede superar los 3.2 metros y planea a más de 5,000 metros de altitud.', e:'🦅' }
+    ]
+  },
+  {
+    id: 'ciencia', name: 'Ciencia', icon: '⚗️', emoji: '🔬',
+    words: [
+      { w:'MOLECULA', d:'Grupo de dos o más átomos unidos por enlaces químicos; la unidad más pequeña de un compuesto.', f:'Una sola gota de agua contiene aproximadamente 1.5 sextillones de moléculas.', e:'⚛️' },
+      { w:'ATOMO', d:'La unidad básica de toda la materia, compuesta por protones, neutrones y electrones.', f:'Un átomo es 99.9% espacio vacío; si fuera del tamaño de un estadio, el núcleo sería una canica.', e:'⚛️' },
+      { w:'ELECTRON', d:'Partícula subatómica con carga negativa que orbita el núcleo del átomo.', f:'Fue descubierto por J.J. Thomson en 1897 mediante rayos catódicos.', e:'⚡' },
+      { w:'PROTON', d:'Partícula con carga positiva ubicada en el núcleo del átomo.', f:'El número de protones define qué elemento químico es: hidrógeno tiene 1, oro tiene 79.', e:'➕' },
+      { w:'NEUTRON', d:'Partícula sin carga eléctrica en el núcleo que da estabilidad al átomo.', f:'Un neutrón libre (fuera del núcleo) se desintegra espontáneamente en ~15 minutos.', e:'⭕' },
+      { w:'CELULA', d:'Unidad fundamental estructural y funcional de todos los seres vivos.', f:'El cuerpo humano contiene aproximadamente 37.2 billones de células.', e:'🧫' },
+      { w:'GRAVEDAD', d:'Fuerza fundamental que atrae mutuamente a todos los objetos que poseen masa.', f:'Fue descrita por Newton con la manzana y redefinida por Einstein con la relatividad.', e:'🍎' },
+      { w:'ENERGIA', d:'Capacidad de realizar trabajo; se transforma pero nunca se crea ni se destruye.', f:'El Sol produce 3.8 × 10²⁶ watts de energía cada segundo mediante fusión nuclear.', e:'⚡' },
+      { w:'DENSIDAD', d:'Relación entre la masa y el volumen de una sustancia (masa/volumen).', f:'El osmio es el elemento más denso que existe: 22.59 g/cm³.', e:'📊' },
+      { w:'VOLUMEN', d:'Cantidad de espacio tridimensional que ocupa un cuerpo u objeto.', f:'Se mide en metros cúbicos (m³) o litros (L); 1 m³ = 1,000 litros.', e:'📦' },
+      { w:'REACCION', d:'Proceso donde unas sustancias se transforman en otras con propiedades diferentes.', f:'Pueden ser exotérmicas (liberan calor, como el fuego) o endotérmicas (absorben calor).', e:'💥' },
+      { w:'ELEMENTO', d:'Sustancia pura que no puede descomponerse en sustancias más simples por métodos químicos.', f:'La tabla periódica contiene 118 elementos, de los cuales 94 son naturales.', e:'🧪' },
+      { w:'COMPUESTO', d:'Sustancia formada por la combinación química de dos o más elementos diferentes.', f:'El agua (H₂O) es el compuesto más abundante en la superficie de la Tierra.', e:'🔗' },
+      { w:'FORMULA', d:'Representación simbólica que muestra la composición química de una sustancia.', f:'H₂SO₄ (ácido sulfúrico) es una de las fórmulas más importantes en la industria.', e:'📝' },
+      { w:'QUIMICA', d:'Ciencia que estudia la composición, estructura y transformaciones de la materia.', f:'Se le conoce como "la ciencia central" porque conecta física, biología y geología.', e:'⚗️' },
+      { w:'FISICA', d:'Ciencia fundamental que estudia la materia, energía, espacio, tiempo y sus interacciones.', f:'Las tres leyes de Newton publicadas en 1687 son la base de la mecánica clásica.', e:'🔭' },
+      { w:'BIOLOGIA', d:'Ciencia que estudia los seres vivos, su origen, evolución y procesos vitales.', f:'Se estima que existen 8.7 millones de especies en la Tierra, la mayoría sin descubrir.', e:'🧬' },
+      { w:'HIPOTESIS', d:'Explicación tentativa y verificable que se propone como punto de partida para una investigación.', f:'Es el primer paso del método científico: observar, preguntar, hipotetizar, experimentar.', e:'🤔' },
+      { w:'MICROSCOPIO', d:'Instrumento óptico que permite observar objetos demasiado pequeños para el ojo humano.', f:'Los microscopios electrónicos pueden amplificar hasta 2 millones de veces.', e:'🔬' },
+      { w:'LABORATORIO', d:'Espacio especialmente equipado para realizar investigaciones y experimentos controlados.', f:'El primer laboratorio de enseñanza moderno fue creado por Justus von Liebig en 1839.', e:'🏗️' }
+    ]
+  },
+  {
+    id: 'industria', name: 'Refinación y Gas', icon: '🏭', emoji: '🛢️',
+    words: [
+      { w:'CRUDO', d:'Petróleo en su estado natural sin procesar, una mezcla compleja de hidrocarburos extraída del subsuelo.', f:'En Colombia, crudos pesados como el de Rubiales (12° API) representan un gran reto y requieren tecnologías avanzadas de conversión en refinería.', e:'🛢️' },
+      { w:'REFINACION', d:'Conjunto de procesos físicos y químicos que transforman el petróleo crudo en productos derivados útiles de alto valor comercial.', f:'Las refinerías no solo separan el crudo, sino que reestructuran sus moléculas para maximizar la producción de combustibles limpios.', e:'🏭' },
+      { w:'GAS', d:'Gas natural, compuesto principalmente por metano, que es un recurso energético limpio clave en la transición energética.', f:'En Colombia, la cadena del gas incluye transporte por gasoductos desde campos históricos como Cusiana, Cupiagua o Chuchupa.', e:'🔥' },
+      { w:'GLP', d:'Gas Licuado de Petróleo, mezcla de propano y butano que se licúa a presiones moderadas para facilitar su transporte en cilindros.', f:'Se produce tanto en el fraccionamiento del gas natural (LGN) como en el tope de la torre de destilación atmosférica de la refinería.', e:'🧪' },
+      { w:'AMINAS', d:'Soluciones químicas (como MEA, DEA o MDEA) utilizadas en la absorción química para retirar H₂S y CO₂ del gas natural húmedo.', f:'Este proceso es crucial porque el H₂S es altamente tóxico y corrosivo para los gasoductos de transporte.', e:'🧫' },
+      { w:'ENDULZAMIENTO', d:'Proceso de tratamiento que remueve gases ácidos (H₂S y CO₂) del gas natural húmedo para cumplir con especificaciones comerciales.', f:'Se le llama "endulzamiento" porque el gas sin estos componentes corrosivos pierde su olor y sabor ácido característico.', e:'🍯' },
+      { w:'CRIOGENICO', d:'Proceso de separación a temperaturas extremadamente bajas (debajo de -100°C) utilizado para recuperar líquidos del gas natural.', f:'En las plantas criogénicas se utiliza un turboexpandor para enfriar el gas mediante expansión abrupta de presión.', e:'❄️' },
+      { w:'FRACCIONAMIENTO', d:'Separación física de una mezcla de hidrocarburos líquidos en sus componentes puros mediante destilación consecutiva.', f:'En la industria del gas, el fraccionamiento de LGN produce etano, propano (GLP), butano y gasolina natural.', e:'📊' },
+      { w:'CDU', d:'Destilación Atmosférica (Crude Distillation Unit), primer paso de la refinación física que separa el crudo a presión ambiental.', f:'El crudo se calienta a unos 370°C antes de entrar a la torre, donde las fracciones más ligeras suben y las pesadas caen al fondo.', e:'🗼' },
+      { w:'VDU', d:'Destilación al Vacío (Vacuum Distillation Unit), proceso que opera a presiones bajas para destilar el residuo atmosférico sin dañar las moléculas.', f:'Reducir la presión permite que las fracciones pesadas hiervan a temperaturas mucho menores, evitando el cracking térmico.', e:'🌀' },
+      { w:'NAFTA', d:'Fracción intermedia de la destilación atmosférica que sirve como materia prima principal para petroquímica y producción de gasolina.', f:'La nafta directa tiene bajo octanaje (RON), por lo que requiere reformado catalítico antes de usarse en motores.', e:'⛽' },
+      { w:'QUEROSENO', d:'Hidrocarburo líquido intermedio utilizado como base para fabricar Jet A-1 (combustible para turbinas de aviación).', f:'El queroseno de aviación debe tener un punto de congelación extremadamente bajo (menos de -47°C) para soportar las alturas de vuelo.', e:'✈️' },
+      { w:'ACPM', d:'Aceite Combustible Para Motores, nombre común en Colombia para el diésel, destilado medio usado en transporte pesado.', f:'El parámetro crítico del ACPM es el índice de cetano, que mide la facilidad de autoignición bajo compresión.', e:'🚚' },
+      { w:'ASFALTO', d:'Sólido o semisólido altamente viscoso derivado del residuo de vacío de la torre VDU, utilizado para pavimentar vías.', f:'Representa el aprovechamiento del fondo del barril, las moléculas más pesadas que no se evaporan ni con vacío.', e:'🛣️' },
+      { w:'FCC', d:'Craqueo Catalítico Fluido (Fluid Catalytic Cracking), proceso que rompe moléculas pesadas de VGO en gasolina de alto octanaje.', f:'Es el "corazón económico" de muchas refinerías porque maximiza la producción de gasolina a partir de residuos pesados.', e:'💥' },
+      { w:'HYDROCRACKING', d:'Proceso de craqueo catalítico con hidrógeno a alta presión, ideal para convertir crudos pesados en diésel y jet fuel ultra limpios.', f:'Es una tecnología altamente compleja, clave en refinerías modernas como Reficar para procesar crudos pesados.', e:'💧' },
+      { w:'REFORMADO', d:'Proceso catalítico que reestructura las moléculas lineales de la nafta en compuestos ramificados de alto octanaje (RON).', f:'Produce grandes cantidades de hidrógeno como subproducto, usado luego para el hidrotratamiento de combustibles.', e:'🔄' },
+      { w:'ALQUILACION', d:'Proceso químico que une moléculas gaseosas ligeras (butenos e isobutano) para formar alquilato, una gasolina premium pura.', f:'Utiliza catalizadores ácidos muy fuertes (ácido fluorhídrico o sulfúrico) y opera a bajas temperaturas.', e:'🧪' },
+      { w:'REFICAR', d:'Refinería de Cartagena, complejo moderno configurado para procesar crudos pesados colombianos con alto factor de conversión.', f:'Su diseño de alta complejidad le permite obtener un factor de conversión del 97%, aprovechando casi todo el barril.', e:'🇨🇴' },
+      { w:'BARRANCABERMEJA', d:'Refinería de Barrancabermeja (GRB), el complejo industrial de refinación de petróleo más grande e histórico de Colombia.', f:'Fundada en 1922, ha crecido junto a la historia petrolera nacional, integrando refinación, petroquímica y lubricantes.', e:'🏭' }
+    ]
+  }
+];
+
+const DIFFICULTY = {
+  'alta':      { gridSize: 15, wordCount: 8,  label: 'Alta' },
+  'muy-alta':  { gridSize: 20, wordCount: 12, label: 'Muy Alta' },
+  'imposible': { gridSize: 25, wordCount: 18, label: 'Imposible' }
+};
+
+const WORD_COLORS = [
+  '#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#A29BFE',
+  '#FD79A8','#6C5CE7','#00CEC9','#E17055','#55EFC4',
+  '#74B9FF','#FDCB6E','#E84393','#00B894','#636E72',
+  '#D63031','#0984E3','#F8A5C2','#778BEB','#F3A683'
+];
+
+const DIRECTIONS = [
+  {dr:0,dc:1},{dr:0,dc:-1},{dr:1,dc:0},{dr:-1,dc:0},
+  {dr:1,dc:1},{dr:-1,dc:-1},{dr:1,dc:-1},{dr:-1,dc:1}
+];
+
+// ========== STATE ==========
+let state = {
+  category: null, difficulty: null, grid: [], gridSize: 0,
+  words: [],         // [{w, d, f, e}]
+  placedWords: [],   // [{word, cells, colorIndex, data}]
+  foundWords: new Set(), timerInterval: null, seconds: 0,
+  isSelecting: false, startCell: null, currentCells: [], gameOver: false,
+  infoCardQueue: [], showingCard: false
+};
+
+// ========== NAVIGATION ==========
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function closeOverlay(id) { document.getElementById(id).classList.remove('active'); }
+
+// ========== RENDER CATEGORIES ==========
+function renderCategories() {
+  const grid = document.getElementById('categories-grid');
+  grid.innerHTML = '';
+  CATEGORIES.forEach((cat, i) => {
+    const card = document.createElement('div');
+    card.className = `category-card animate-in delay-${i + 1}`;
+    card.onclick = () => { state.category = cat; showScreen('difficulty-screen'); };
+    card.innerHTML = `<div class="card-icon">${cat.icon}</div><div class="card-title">${cat.name}</div><div class="card-count">${cat.words.length} palabras</div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ========== START GAME ==========
+function startGame(diffKey) {
+  const diff = DIFFICULTY[diffKey];
+  state.difficulty = diffKey;
+  state.gridSize = diff.gridSize;
+  state.foundWords = new Set();
+  state.seconds = 0;
+  state.gameOver = false;
+  state.infoCardQueue = [];
+  state.showingCard = false;
+
+  const shuffled = [...state.category.words].sort(() => Math.random() - 0.5);
+  state.words = shuffled.slice(0, diff.wordCount);
+
+  generateGrid();
+
+  document.getElementById('badge-cat-icon').textContent = state.category.icon;
+  document.getElementById('badge-cat-name').textContent = state.category.name;
+  updateProgress();
+  updateTimerDisplay();
+  renderGrid();
+  renderWordList();
+
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => { state.seconds++; updateTimerDisplay(); }, 1000);
+  showScreen('game-screen');
+}
+
+// ========== GRID GENERATION ==========
+function generateGrid() {
+  const size = state.gridSize;
+  state.grid = Array.from({length:size}, () => Array(size).fill(''));
+  state.placedWords = [];
+  const sorted = [...state.words].sort((a,b) => b.w.length - a.w.length);
+  const placed = [];
+
+  for (const wordData of sorted) {
+    const result = placeWord(wordData.w, size);
+    if (result) placed.push({ word: result.word, cells: result.cells, colorIndex: placed.length, data: wordData });
+  }
+  state.placedWords = placed;
+  state.words = placed.map(p => p.data);
+
+  const fill = getFillChars();
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++)
+      if (state.grid[r][c] === '') state.grid[r][c] = fill[Math.floor(Math.random() * fill.length)];
+}
+
+function placeWord(word, size) {
+  for (let attempt = 0; attempt < 300; attempt++) {
+    const dir = DIRECTIONS[Math.floor(Math.random() * 8)];
+    let sr = dir.dr > 0 ? Math.floor(Math.random()*(size-word.length+1))
+           : dir.dr < 0 ? word.length-1+Math.floor(Math.random()*(size-word.length+1))
+           : Math.floor(Math.random()*size);
+    let sc = dir.dc > 0 ? Math.floor(Math.random()*(size-word.length+1))
+           : dir.dc < 0 ? word.length-1+Math.floor(Math.random()*(size-word.length+1))
+           : Math.floor(Math.random()*size);
+    let ok = true; const cells = [];
+    for (let i = 0; i < word.length; i++) {
+      const r = sr + i*dir.dr, c = sc + i*dir.dc;
+      if (r<0||r>=size||c<0||c>=size) { ok=false; break; }
+      const ex = state.grid[r][c];
+      if (ex !== '' && ex !== word[i]) { ok=false; break; }
+      cells.push({r,c});
+    }
+    if (ok) {
+      for (let i = 0; i < word.length; i++) state.grid[cells[i].r][cells[i].c] = word[i];
+      return { word, cells };
+    }
+  }
+  return null;
+}
+
+function getFillChars() {
+  if (state.difficulty === 'imposible' || state.difficulty === 'muy-alta') {
+    const letters = state.words.map(w=>w.w).join('').split('');
+    return [...letters, ...'AEIOULNRSTDCMPBGFHVJKWXYZQ'.split('')];
+  }
+  return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+}
+
+// ========== RENDER ==========
+function renderGrid() {
+  const g = document.getElementById('grid');
+  const size = state.gridSize;
+  g.style.gridTemplateColumns = `repeat(${size},1fr)`;
+  g.innerHTML = '';
+  const wr = document.querySelector('.grid-wrapper');
+  wr.style.width = '100%';
+  wr.style.maxWidth = (size<=15?480:size<=20?560:620)+'px';
+  for (let r=0;r<size;r++) for (let c=0;c<size;c++) {
+    const cell = document.createElement('div');
+    cell.className='cell'; cell.dataset.row=r; cell.dataset.col=c;
+    cell.textContent=state.grid[r][c]; cell.id=`cell-${r}-${c}`;
+    g.appendChild(cell);
+  }
+  setupGridInteraction(g);
+}
+
+function renderWordList() {
+  const ul = document.getElementById('word-list');
+  ul.innerHTML = '';
+  state.words.forEach(wd => {
+    const li = document.createElement('li');
+    li.className='word-item'; li.id=`word-${wd.w}`;
+    li.innerHTML = `<span class="word-status" id="ws-${wd.w}"></span><span class="word-text">${wd.w}</span>`;
+    ul.appendChild(li);
+  });
+  document.getElementById('word-count').textContent = `0 / ${state.words.length}`;
+}
+
+// ========== INTERACTION ==========
+function setupGridInteraction(g) {
+  g.addEventListener('touchstart', onDown, {passive:false});
+  g.addEventListener('touchmove', onMove, {passive:false});
+  g.addEventListener('touchend', onUp, {passive:false});
+  g.addEventListener('touchcancel', onUp, {passive:false});
+  g.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+}
+
+function getCell(e) {
+  const p = e.touches ? e.touches[0]||e.changedTouches[0] : e;
+  const el = document.elementFromPoint(p.clientX, p.clientY);
+  return el && el.classList.contains('cell') ? {row:+el.dataset.row, col:+el.dataset.col} : null;
+}
+
+function onDown(e) {
+  if (state.gameOver || state.showingCard) return;
+  e.preventDefault();
+  const c = getCell(e);
+  if (!c) return;
+  state.isSelecting = true; state.startCell = c;
+  state.currentCells = [c]; highlightTemp([c]);
+}
+
+function onMove(e) {
+  if (!state.isSelecting || state.gameOver) return;
+  e.preventDefault();
+  const c = getCell(e);
+  if (!c) return;
+  const s = state.startCell;
+  const dr = c.row-s.row, dc = c.col-s.col;
+  if (dr!==0 && dc!==0 && Math.abs(dr)!==Math.abs(dc)) return;
+  const steps = Math.max(Math.abs(dr),Math.abs(dc));
+  const sR = steps===0?0:dr/steps, sC = steps===0?0:dc/steps;
+  const cells = [];
+  for (let i=0;i<=steps;i++) cells.push({row:s.row+i*sR, col:s.col+i*sC});
+  clearTemp(); state.currentCells = cells; highlightTemp(cells);
+}
+
+function onUp(e) {
+  if (!state.isSelecting || state.gameOver) return;
+  state.isSelecting = false;
+  const sel = state.currentCells.map(c=>state.grid[c.row][c.col]).join('');
+  const rev = sel.split('').reverse().join('');
+  let match = null;
+  for (const pw of state.placedWords) {
+    if (state.foundWords.has(pw.word)) continue;
+    if ((pw.word===sel||pw.word===rev) && pw.cells.length===state.currentCells.length) {
+      const ok = pw.cells.every((pc,i) => {
+        const sc = pw.word===sel ? state.currentCells[i] : state.currentCells[state.currentCells.length-1-i];
+        return pc.r===sc.row && pc.c===sc.col;
+      });
+      if (ok) { match=pw; break; }
+    }
+  }
+  clearTemp();
+  if (match) markWordAsFound(match);
+}
+
+function highlightTemp(cells) { cells.forEach(c => { const el=document.getElementById(`cell-${c.row}-${c.col}`); if(el&&!el.classList.contains('found')) el.classList.add('selecting'); }); }
+function clearTemp() { document.querySelectorAll('.cell.selecting').forEach(el=>el.classList.remove('selecting')); }
+
+// ========== MARK FOUND + SHOW INFO CARD ==========
+function markWordAsFound(placement) {
+  const ci = state.foundWords.size % WORD_COLORS.length;
+  const color = WORD_COLORS[ci];
+  state.foundWords.add(placement.word);
+
+  // Highlight cells permanently
+  placement.cells.forEach((c,i) => {
+    const el = document.getElementById(`cell-${c.r}-${c.c}`);
+    if (el) {
+      el.classList.add('found');
+      el.style.background = hexRgba(color,0.3);
+      el.style.borderColor = hexRgba(color,0.5);
+      el.style.color = color;
+      el.style.boxShadow = `0 0 10px ${hexRgba(color,0.25)}, inset 0 0 8px ${hexRgba(color,0.1)}`;
+      el.style.animationDelay = `${i*0.03}s`;
+    }
+  });
+
+  // Mark in word list
+  const wi = document.getElementById(`word-${placement.word}`);
+  if (wi) {
+    wi.classList.add('found');
+    wi.style.color = color;
+    wi.style.background = hexRgba(color,0.08);
+    wi.style.borderColor = hexRgba(color,0.2);
+    wi.style.textDecorationColor = color;
+    const ws = document.getElementById(`ws-${placement.word}`);
+    if (ws) { ws.textContent='✓'; ws.style.background=hexRgba(color,0.2); ws.style.borderColor=color; ws.style.color=color; }
+  }
+
+  updateProgress();
+
+  // Show info card with delay
+  setTimeout(() => showInfoCard(placement.data, color, state.foundWords.size, state.words.length), 400);
+}
+
+// ========== INFO CARD ==========
+function showInfoCard(wordData, color, found, total) {
+  state.showingCard = true;
+
+  const overlay = document.getElementById('info-overlay');
+  const top = document.getElementById('info-card-top');
+
+  document.getElementById('info-cat-icon').textContent = state.category.icon;
+  document.getElementById('info-cat-name').textContent = state.category.name;
+  document.getElementById('info-number').textContent = `${found} de ${total}`;
+  document.getElementById('info-emoji').textContent = wordData.e || state.category.emoji;
+  document.getElementById('info-word').textContent = wordData.w;
+  document.getElementById('info-word').style.color = color;
+  document.getElementById('info-desc').textContent = wordData.d;
+  document.getElementById('info-fact').textContent = wordData.f;
+  document.getElementById('info-progress').style.width = `${(found/total)*100}%`;
+
+  top.style.background = `linear-gradient(145deg, ${hexRgba(color,0.08)}, transparent)`;
+
+  overlay.classList.add('active');
+}
+
+function closeInfoCard() {
+  document.getElementById('info-overlay').classList.remove('active');
+  state.showingCard = false;
+
+  // Check victory after closing card
+  if (state.foundWords.size === state.words.length) {
+    setTimeout(victory, 300);
+  }
+}
+
+function closeInfoCardOutside(e) {
+  if (e.target === e.currentTarget) closeInfoCard();
+}
+
+// ========== PROGRESS & TIMER ==========
+function updateProgress() {
+  const f=state.foundWords.size, t=state.words.length;
+  document.getElementById('progress-display').textContent = `${f} / ${t}`;
+  document.getElementById('word-count').textContent = `${f} / ${t}`;
+  const bar = document.getElementById('progress-bar');
+  if (bar) bar.style.width = (t>0?(f/t)*100:0)+'%';
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(state.seconds/60).toString().padStart(2,'0');
+  const s = (state.seconds%60).toString().padStart(2,'0');
+  document.getElementById('timer-display').textContent = `${m}:${s}`;
+}
+
+function fmtTime(s) { return Math.floor(s/60).toString().padStart(2,'0')+':'+(s%60).toString().padStart(2,'0'); }
+
+// ========== VICTORY ==========
+function victory() {
+  state.gameOver = true;
+  clearInterval(state.timerInterval);
+  document.getElementById('v-time').textContent = fmtTime(state.seconds);
+  document.getElementById('v-words').textContent = state.words.length;
+  document.getElementById('v-difficulty').textContent = DIFFICULTY[state.difficulty].label;
+  document.getElementById('victory-overlay').classList.add('active');
+  launchConfetti();
+}
+
+// ========== SURRENDER ==========
+function surrender() { document.getElementById('surrender-overlay').classList.add('active'); }
+function cancelSurrender() { closeOverlay('surrender-overlay'); }
+function confirmSurrender() {
+  closeOverlay('surrender-overlay');
+  state.gameOver = true;
+  clearInterval(state.timerInterval);
+  state.placedWords.forEach((pw,idx) => {
+    if (!state.foundWords.has(pw.word)) {
+      const color = '#636E72';
+      pw.cells.forEach((c,i) => {
+        const el = document.getElementById(`cell-${c.r}-${c.c}`);
+        if (el && !el.classList.contains('found')) {
+          el.classList.add('found','revealed');
+          el.style.background=hexRgba(color,0.2); el.style.borderColor=hexRgba(color,0.3);
+          el.style.color=color; el.style.animationDelay=`${i*0.03+idx*0.1}s`;
+        }
+      });
+      const wi = document.getElementById(`word-${pw.word}`);
+      if (wi) {
+        wi.classList.add('found'); wi.style.color=color; wi.style.opacity='0.6';
+        const ws = document.getElementById(`ws-${pw.word}`);
+        if (ws) { ws.textContent='✗'; ws.style.borderColor=color; ws.style.color=color; }
+      }
+    }
+  });
+}
+
+// ========== NAV ==========
+function confirmExit() { document.getElementById('exit-overlay').classList.add('active'); }
+function goToMenu() {
+  closeOverlay('victory-overlay'); closeOverlay('exit-overlay');
+  clearInterval(state.timerInterval);
+  showScreen('menu-screen');
+}
+function playAgain() { closeOverlay('victory-overlay'); clearInterval(state.timerInterval); startGame(state.difficulty); }
+
+// ========== CONFETTI ==========
+function launchConfetti() {
+  const cv = document.getElementById('confetti-canvas');
+  const ctx = cv.getContext('2d');
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  const P = [], cols = ['#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#A29BFE','#FD79A8','#6C5CE7','#00CEC9','#FFD700'];
+  for (let i=0;i<150;i++) P.push({
+    x:Math.random()*cv.width, y:Math.random()*cv.height-cv.height,
+    w:Math.random()*10+5, h:Math.random()*6+3,
+    color:cols[Math.floor(Math.random()*cols.length)],
+    vx:(Math.random()-0.5)*4, vy:Math.random()*3+2,
+    rot:Math.random()*360, rs:(Math.random()-0.5)*10, op:1
+  });
+  let fr=0;
+  (function anim() {
+    ctx.clearRect(0,0,cv.width,cv.height);
+    let alive=false;
+    P.forEach(p => {
+      if(p.op<=0) return; alive=true;
+      p.x+=p.vx; p.vy+=0.05; p.y+=p.vy; p.rot+=p.rs;
+      if(fr>120) p.op-=0.01;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha=Math.max(0,p.op); ctx.fillStyle=p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+    });
+    fr++;
+    if(alive&&fr<300) requestAnimationFrame(anim);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+// ========== UTILS ==========
+function hexRgba(hex, a) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ========== KEYBOARD ==========
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (state.showingCard) closeInfoCard();
+    else if (document.getElementById('surrender-overlay').classList.contains('active')) cancelSurrender();
+    else if (document.getElementById('exit-overlay').classList.contains('active')) closeOverlay('exit-overlay');
+  }
+  if (e.key === 'Enter' && state.showingCard) closeInfoCard();
+});
+
+// ========== INIT ==========
+renderCategories();
+</script>
+</body>
+</html>
