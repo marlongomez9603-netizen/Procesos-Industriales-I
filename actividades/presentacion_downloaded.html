@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Procesos Industriales de Refinación — Presentación</title>
+<style>
+  :root{
+    --bg:#0e1320; --bg2:#161d2e; --panel:#1b2436; --border:#2c3850;
+    --text:#e9eef6; --muted:#9aa6bd; --accent:#ea580c; --accent2:#4aa3ff;
+    --c-des:#0ea5e9; --c-cdu:#2563eb; --c-vdu:#7c3aed; --c-fcc:#dc2626;
+    --c-hck:#0d9488; --c-ref:#d97706; --c-alk:#db2777; --c-iso:#65a30d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:radial-gradient(ellipse at top,#1a2336,#0b1020 70%);
+    color:var(--text);
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    overflow:hidden;
+  }
+  #deck{position:fixed;inset:0;}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    padding:clamp(24px,4vw,64px) clamp(28px,6vw,110px);
+    opacity:0;transition:opacity .35s ease;
+    overflow:auto;
+  }
+  .slide.active{display:flex;opacity:1;}
+  .slide h1{font-size:clamp(28px,5.2vw,58px);line-height:1.08;letter-spacing:.5px;}
+  .slide h2{font-size:clamp(22px,3.6vw,40px);line-height:1.12;margin-bottom:.4em;}
+  .slide h3{font-size:clamp(16px,2.1vw,24px);color:var(--accent2);margin:.2em 0 .35em;}
+  .slide p,.slide li{font-size:clamp(14px,1.75vw,21px);line-height:1.5;color:#dbe3f0;}
+  .muted{color:var(--muted)!important;}
+  .tag{
+    display:inline-block;padding:4px 14px;border-radius:999px;
+    font-size:clamp(11px,1.3vw,15px);font-weight:600;letter-spacing:.5px;
+    background:rgba(255,255,255,.08);border:1px solid var(--border);
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .chip{
+    background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:6px 12px;font-size:clamp(12px,1.5vw,17px);
+  }
+  ul{padding-left:1.1em;}
+  li{margin:.32em 0;}
+  .center{justify-content:center;align-items:center;text-align:center;}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,46px);flex:1;min-height:0;}
+  @media(max-width:760px){.cols{grid-template-columns:1fr;gap:16px;}}
+  .card{
+    background:rgba(27,36,54,.7);border:1px solid var(--border);
+    border-radius:14px;padding:clamp(14px,2vw,24px);
+  }
+  .kicker{font-size:clamp(13px,1.6vw,18px);font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px;}
+  .flow .node{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-weight:600;font-size:clamp(13px,1.6vw,19px);}
+  .flow .arrow{color:var(--accent);font-size:clamp(18px,2.4vw,28px);}
+  .pill{display:inline-flex;align-items:center;gap:8px;}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+  table{border-collapse:collapse;width:100%;font-size:clamp(12px,1.5vw,18px);margin-top:10px;}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;}
+  th{background:#22304a;}
+  tr:nth-child(even) td{background:rgba(255,255,255,.03);}
+  .accentbar{height:6px;border-radius:6px;width:90px;margin:14px 0 22px;}
+  /* HUD */
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--accent);width:0;z-index:50;transition:width .3s;}
+  #hud{position:fixed;bottom:14px;right:18px;display:flex;gap:8px;align-items:center;z-index:50;}
+  #hud button{
+    background:var(--panel);color:var(--text);border:1px solid var(--border);
+    border-radius:8px;width:40px;height:40px;font-size:18px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  #hud button:hover{border-color:var(--accent);color:var(--accent);}
+  #count{position:fixed;bottom:20px;left:20px;color:var(--muted);font-size:14px;z-index:50;}
+  #hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:var(--muted);font-size:12px;z-index:50;}
+  /* impresión / overview */
+  body.print{overflow:auto;}
+  body.print #deck{position:static;}
+  body.print .slide{position:relative;display:flex;opacity:1;page-break-after:always;height:100vh;border-bottom:1px solid var(--border);}
+  body.print #hud,body.print #count,body.print #hint,body.print #bar{display:none;}
+  @media print{
+    body{background:#fff;color:#111;}
+    .slide{height:auto;min-height:96vh;}
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="deck"></div>
+<div id="count"></div>
+<div id="hint">← →  espacio · F pantalla completa · P impresión</div>
+<div id="hud">
+  <button id="prev" title="Anterior">‹</button>
+  <button id="next" title="Siguiente">›</button>
+  <button id="full" title="Pantalla completa">⤢</button>
+  <button id="print" title="Modo impresión">⎙</button>
+</div>
+
+<script>
+const UNITS = [
+  {
+    key:'des', color:'var(--c-des)', name:'Desalador de Crudo', role:'Acondicionamiento',
+    what:'Quita la sal y el agua al crudo antes de destilarlo. Es la primera operación del proceso.',
+    feed:'Crudo', prod:'Crudo desalado (+ salmuera al tratamiento de efluentes)',
+    inside:[
+      'El crudo se precalienta y se mezcla con agua de lavado en la <b>válvula de mezcla</b>.',
+      'La emulsión entra a recipientes con un <b>campo eléctrico de alto voltaje</b>.',
+      'El campo une las gotas de agua salada (coalescencia) y decantan como <b>salmuera</b>.',
+      'El crudo desalado sale por arriba; suele haber <b>dos etapas</b> en serie.'
+    ],
+    equip:['Bombas de carga','Precalentadores','Válvula de mezcla','Desaladores electrostáticos','Sistema de salmuera'],
+    why:'La sal causa corrosión y ensucia la columna: hay que quitarla primero.'
+  },
+  {
+    key:'cdu', color:'var(--c-cdu)', name:'Destilación Atmosférica (CDU)', role:'Separación',
+    what:'Separa el crudo en sus grandes familias de productos según su punto de ebullición, a presión cercana a la atmosférica.',
+    feed:'Crudo desalado', prod:'Gases, naftas, kerosene, LGO, HGO y residuo atmosférico',
+    inside:[
+      'El <b>horno</b> calienta el crudo a ~360 °C; entra a la <b>zona de flasheo</b>.',
+      'El vapor sube y se enfría: cada nivel condensa un <b>corte</b> distinto.',
+      'Los cortes pasan por <b>side strippers</b> que ajustan su calidad con vapor.',
+      'Los <b>pumparounds</b> retiran calor; el <b>reflujo</b> sostiene la separación.'
+    ],
+    equip:['Horno de carga','Columna + platos','Side strippers','Sistema de cabeza','Pumparounds'],
+    why:'Separación física (sin reacción). Todo lo demás de la refinería depende de ella.'
+  },
+  {
+    key:'vdu', color:'var(--c-vdu)', name:'Destilación al Vacío (VDU)', role:'Separación',
+    what:'Recupera gasóleos valiosos del residuo atmosférico destilándolo al vacío.',
+    feed:'Residuo atmosférico', prod:'LVGO, HVGO (carga a FCC/HCK) y residuo de vacío (asfalto)',
+    inside:[
+      'Trabajar <b>al vacío</b> baja el punto de ebullición y evita el coquizado.',
+      'Un <b>sistema de eyectores de vapor</b> genera el vacío (25–50 mm Hg).',
+      'La torre es <b>swaged</b> (ancha arriba) por el gran volumen de vapor.',
+      'Los <b>intercondensadores</b> condensan y descargan al <b>sump</b>.'
+    ],
+    equip:['Horno','Torre swaged','Eyectores de vapor','Intercondensadores','Sump'],
+    why:'La clave no es química sino de presión: el vacío permite separar sin degradar.'
+  },
+  {
+    key:'fcc', color:'var(--c-fcc)', name:'Craqueo Catalítico (FCC)', role:'Conversión',
+    what:'Rompe gasóleos pesados de bajo valor en productos ligeros, sobre todo gasolina. La "fábrica de gasolina".',
+    feed:'Gasóleo pesado de vacío (HVGO)', prod:'GLP, gasolina, LCO (≈diésel) y slurry',
+    inside:[
+      'La carga sube por el <b>riser</b> con catalizador caliente: craquea en <b>2–4 s</b>.',
+      'Los <b>ciclones</b> separan el catalizador de los vapores de producto.',
+      'El catalizador con <b>coque</b> pasa al <b>regenerador</b>, que lo quema.',
+      'Ese calor reactiva el catalizador y alimenta la reacción: se autoabastece.'
+    ],
+    equip:['Riser','Reactor/ciclones','Regenerador','Líneas de catalizador','Fraccionadora'],
+    why:'Conversión catalítica sin hidrógeno. El catalizador circula en lazo continuo.'
+  },
+  {
+    key:'hck', color:'var(--c-hck)', name:'Hidrocraqueo (Hydrocracking)', role:'Conversión',
+    what:'Rompe e hidrogena moléculas pesadas con hidrógeno a muy alta presión. Da los combustibles más limpios.',
+    feed:'Gasóleos de vacío (VGO)', prod:'Diésel y jet de alta calidad, naftas, GLP',
+    inside:[
+      '<b>R-1</b> hace hidrotratamiento (quita azufre y nitrógeno).',
+      '<b>R-2</b> hidrocraquea: rompe y el H₂ satura los fragmentos.',
+      'Se inyecta H₂ frío (<b>quench</b>) entre lechos para controlar la temperatura.',
+      'El H₂ se separa, se limpia en <b>aminas</b> y se recircula con compresor.'
+    ],
+    equip:['Reactores R-1/R-2','Quench','Separadores HP/LP','Absorbedor de aminas','Compresores de H₂'],
+    why:'Conversión con hidrógeno a 150–175 bar. Exotérmica: por eso el quench.'
+  },
+  {
+    key:'ref', color:'var(--c-ref)', name:'Reformado Catalítico (CCR)', role:'Conversión',
+    what:'Convierte nafta pesada de bajo octanaje en reformado de alto octanaje y produce hidrógeno.',
+    feed:'Nafta pesada (de la CDU)', prod:'Reformado (RON 95–102) e hidrógeno',
+    inside:[
+      'La nafta pasa por <b>4 reactores apilados</b> de lecho móvil en serie.',
+      'La reacción es <b>endotérmica</b>: hay un <b>horno</b> antes de cada reactor.',
+      'Un <b>regenerador continuo</b> quema el coque y reactiva el catalizador.',
+      'Genera el <b>hidrógeno</b> que usan el hidrotratamiento y el hidrocraqueo.'
+    ],
+    equip:['Reactores apilados','Hornos intermedios','Regenerador CCR','Separador de H₂','Estabilizador'],
+    why:'Eleva el octanaje (aromáticos) y es la principal fuente de H₂ de la refinería.'
+  },
+  {
+    key:'alk', color:'var(--c-alk)', name:'Alquilación (H₂SO₄)', role:'Conversión',
+    what:'Une isobutano con olefinas ligeras usando ácido sulfúrico para producir alquilato: gasolina premium.',
+    feed:'Isobutano + olefinas (C3/C4 del FCC)', prod:'Alquilato (gasolina de alto octanaje)',
+    inside:[
+      'Se emulsionan olefinas, isobutano y <b>ácido sulfúrico</b> en el <b>contactor</b>.',
+      'La reacción es muy exotérmica: se opera <b>en frío (4–10 °C)</b>.',
+      'El <b>decantador</b> separa el ácido (vuelve) del hidrocarburo.',
+      'El <b>desisobutanizador</b> recupera el alquilato y recicla isobutano.'
+    ],
+    equip:['Contactor','Decantador de ácido','Ciclo de refrigeración','Desisobutanizador','Tanques de ácido'],
+    why:'Alquilato sin azufre, aromáticos ni olefinas: una base de gasolina ideal.'
+  },
+  {
+    key:'iso', color:'var(--c-iso)', name:'Isomerización (C5/C6)', role:'Conversión',
+    what:'Reordena n-pentano y n-hexano en sus isómeros ramificados, que tienen mucho más octanaje.',
+    feed:'Nafta ligera (C5/C6)', prod:'Isomerato de alto octanaje',
+    inside:[
+      'Catalizador de <b>alúmina clorada</b>, muy sensible al agua.',
+      'Los <b>secadores</b> dejan la carga casi seca (el agua es veneno).',
+      'Reactores <b>lead-lag</b> a baja temperatura (favorece los ramificados).',
+      'Se dosifica <b>cloruro orgánico</b> para mantener la acidez del catalizador.'
+    ],
+    equip:['Secadores','Reactores lead-lag','Inyección de cloruro','Estabilizador','Desisohexanizador'],
+    why:'A baja temperatura el equilibrio favorece los isómeros de mayor octanaje.'
+  },
+];
+
+const slides = [];
+
+// Portada
+slides.push(`
+  <div class="slide center">
+    <div class="kicker muted">Simulador 3D · Material de aula</div>
+    <h1 style="margin:.2em 0">Procesos Industriales<br>de Refinación</h1>
+    <div class="accentbar" style="background:var(--accent);margin:18px auto;"></div>
+    <p class="muted" style="max-width:760px">Un recorrido por las unidades clave de una refinería, pensado para acompañar
+    el visor 3D interactivo donde cada equipo se puede explorar, seleccionar y "explosionar".</p>
+    <div class="chips" style="justify-content:center;margin-top:26px;max-width:820px">
+      ${UNITS.map(u=>`<span class="chip"><span class="dot" style="background:${u.color}"></span> ${u.name}</span>`).join('')}
+    </div>
+  </div>`);
+
+// Idea central
+slides.push(`
+  <div class="slide">
+    <div class="kicker muted">La idea central</div>
+    <h1>Separar primero, transformar después</h1>
+    <div class="accentbar" style="background:var(--accent2)"></div>
+    <div class="cols">
+      <div class="card">
+        <h3>1 · Separación física</h3>
+        <p>No cambia las moléculas: solo ordena el crudo por punto de ebullición.</p>
+        <div class="chips"><span class="chip">Desalado</span><span class="chip">Destilación atmosférica</span><span class="chip">Destilación al vacío</span></div>
+      </div>
+      <div class="card">
+        <h3>2 · Conversión química</h3>
+        <p>Rompe o reordena moléculas para crear productos más valiosos y limpios.</p>
+        <div class="chips"><span class="chip">FCC</span><span class="chip">Hidrocraqueo</span><span class="chip">Reformado</span><span class="chip">Alquilación</span><span class="chip">Isomerización</span></div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:14px">Regla para recordar: cada hidrocarburo hierve a una temperatura distinta — cuanto más grande la molécula, mayor su punto de ebullición.</p>
+  </div>`);
+
+// Flujo
+slides.push(`
+  <div class="slide">
+    <div class="kicker muted">El recorrido del crudo</div>
+    <h1>¿Cómo encajan las unidades?</h1>
+    <div class="accentbar" style="background:var(--accent)"></div>
+    <div class="flow">
+      <span class="node" style="border-color:var(--c-des)">Crudo</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-des)">Desalador</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-cdu)">CDU</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-vdu)">VDU (residuo)</span>
+    </div>
+    <div class="flow">
+      <span class="node" style="border-color:var(--c-vdu)">HVGO / VGO</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-fcc)">FCC</span>
+      <span class="node" style="border-color:var(--c-hck)">Hidrocraqueo</span>
+      <span class="arrow">⇒</span><span class="node">Gasolina · Diésel · Jet</span>
+    </div>
+    <div class="flow">
+      <span class="node" style="border-color:var(--c-cdu)">Naftas</span><span class="arrow">→</span>
+      <span class="node" style="border-color:var(--c-ref)">Reformado</span>
+      <span class="node" style="border-color:var(--c-iso)">Isomerización</span>
+      <span class="node" style="border-color:var(--c-alk)">Alquilación</span>
+      <span class="arrow">⇒</span><span class="node">Gasolina de alto octanaje</span>
+    </div>
+    <p class="muted" style="margin-top:22px">El reformado además produce el <b>hidrógeno</b> que consumen el hidrotratamiento y el hidrocraqueo.</p>
+  </div>`);
+
+// Cómo usar el simulador
+slides.push(`
+  <div class="slide">
+    <div class="kicker muted">En el aula</div>
+    <h1>Cómo usar el simulador 3D</h1>
+    <div class="accentbar" style="background:var(--accent2)"></div>
+    <div class="cols">
+      <div class="card">
+        <h3>Navegación</h3>
+        <ul>
+          <li><b>Girar / acercar:</b> arrastrar, rueda o pellizco.</li>
+          <li><b>Seleccionar:</b> tocar una pieza → se resalta y muestra su ficha.</li>
+          <li><b>Lista de componentes:</b> recorrer todas las partes.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Para enseñar</h3>
+        <ul>
+          <li><b>Resaltar por color:</b> agrupa por categoría (columna, tubería…).</li>
+          <li><b>Vista explosionada:</b> separa las piezas para ver el interior.</li>
+          <li>Pide nombrar equipos antes de seleccionarlos.</li>
+        </ul>
+      </div>
+    </div>
+  </div>`);
+
+// Slide divisoria por categoría
+function divider(text, color){
+  return `<div class="slide center">
+    <div class="accentbar" style="background:${color};margin:0 auto 18px"></div>
+    <h1>${text}</h1>
+  </div>`;
+}
+slides.push(divider('Las unidades, una a una', 'var(--accent)'));
+
+// Una diapositiva por unidad
+UNITS.forEach((u, i)=>{
+  slides.push(`
+  <div class="slide">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="dot" style="background:${u.color};width:22px;height:22px"></span>
+      <h2 style="margin:0">${i+1}. ${u.name}</h2>
+      <span class="tag" style="border-color:${u.color};color:${u.color}">${u.role}</span>
+    </div>
+    <div class="accentbar" style="background:${u.color}"></div>
+    <p style="font-size:clamp(15px,2vw,23px);margin-bottom:14px">${u.what}</p>
+    <div class="cols">
+      <div class="card">
+        <h3>¿Qué pasa dentro?</h3>
+        <ul>${u.inside.map(x=>`<li>${x}</li>`).join('')}</ul>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <h3>Carga → Productos</h3>
+          <p><b>Entra:</b> ${u.feed}</p>
+          <p><b>Sale:</b> ${u.prod}</p>
+        </div>
+        <div class="card">
+          <h3>Equipos clave</h3>
+          <div class="chips">${u.equip.map(e=>`<span class="chip">${e}</span>`).join('')}</div>
+        </div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:14px"><b>Idea clave:</b> ${u.why}</p>
+  </div>`);
+});
+
+// Cuadro comparativo
+slides.push(`
+  <div class="slide">
+    <div class="kicker muted">Síntesis</div>
+    <h1>Cuadro comparativo</h1>
+    <div class="accentbar" style="background:var(--accent)"></div>
+    <table>
+      <tr><th></th><th>Tipo</th><th>¿Reacción?</th><th>Presión</th><th>Producto estrella</th></tr>
+      <tr><td><b>Desalador</b></td><td>Acondicion.</td><td>No</td><td>Media</td><td>Crudo limpio</td></tr>
+      <tr><td><b>CDU</b></td><td>Separación</td><td>No</td><td>~Atmosférica</td><td>Todos los cortes</td></tr>
+      <tr><td><b>VDU</b></td><td>Separación</td><td>No</td><td>Vacío</td><td>HVGO / LVGO</td></tr>
+      <tr><td><b>FCC</b></td><td>Conversión</td><td>Sí (catalítica)</td><td>Baja</td><td>Gasolina</td></tr>
+      <tr><td><b>Hidrocraqueo</b></td><td>Conversión</td><td>Sí (con H₂)</td><td>Muy alta</td><td>Diésel / jet</td></tr>
+      <tr><td><b>Reformado</b></td><td>Conversión</td><td>Sí (cat. + H₂)</td><td>Media</td><td>Reformado + H₂</td></tr>
+      <tr><td><b>Alquilación</b></td><td>Conversión</td><td>Sí (ácido)</td><td>Baja</td><td>Alquilato</td></tr>
+      <tr><td><b>Isomerización</b></td><td>Conversión</td><td>Sí (catalítica)</td><td>Media</td><td>Isomerato</td></tr>
+    </table>
+  </div>`);
+
+// Glosario
+const glos = [
+  ['Corte (fracción)','Grupo de hidrocarburos con punto de ebullición similar.'],
+  ['Reflujo','Líquido condensado que vuelve a la columna para mejorar la separación.'],
+  ['Pumparound','Corriente que se extrae, enfría y reinyecta para controlar la temperatura.'],
+  ['Catalizador','Sustancia que acelera una reacción sin consumirse.'],
+  ['Coque','Carbón que se forma sobre el catalizador y debe quemarse para reactivarlo.'],
+  ['Quench','Inyección de fluido frío entre lechos para controlar la temperatura.'],
+  ['Endo/Exotérmico','Reacción que consume calor / que libera calor.'],
+  ['HVGO / LVGO','Gasóleo pesado / ligero de vacío.'],
+];
+slides.push(`
+  <div class="slide">
+    <div class="kicker muted">Vocabulario</div>
+    <h1>Glosario</h1>
+    <div class="accentbar" style="background:var(--accent2)"></div>
+    <div class="cols">
+      <div>${glos.slice(0,4).map(([k,v])=>`<p style="margin:.5em 0"><b style="color:var(--accent2)">${k}:</b> ${v}</p>`).join('')}</div>
+      <div>${glos.slice(4).map(([k,v])=>`<p style="margin:.5em 0"><b style="color:var(--accent2)">${k}:</b> ${v}</p>`).join('')}</div>
+    </div>
+  </div>`);
+
+// Cierre
+slides.push(`
+  <div class="slide center">
+    <div class="accentbar" style="background:var(--accent);margin:0 auto 18px"></div>
+    <h1>Ahora, al simulador</h1>
+    <p class="muted" style="max-width:720px;margin-top:14px">Abre cada unidad, identifica los equipos que vimos, usa la <b>vista explosionada</b>
+    para ver su interior y sigue el camino del crudo de una unidad a la siguiente.</p>
+    <p class="muted" style="margin-top:26px">Visor 3D · Procesos Industriales de Refinación</p>
+  </div>`);
+
+// ---- Motor de presentación ----
+const deck = document.getElementById('deck');
+deck.innerHTML = slides.join('');
+const slideEls = [...document.querySelectorAll('.slide')];
+let idx = 0;
+
+function show(n){
+  idx = Math.max(0, Math.min(slideEls.length-1, n));
+  slideEls.forEach((s,i)=>s.classList.toggle('active', i===idx));
+  document.getElementById('bar').style.width = ((idx)/(slideEls.length-1)*100)+'%';
+  document.getElementById('count').textContent = (idx+1)+' / '+slideEls.length;
+  if(!document.body.classList.contains('print')) location.hash = idx+1;
+}
+function next(){ show(idx+1); }
+function prev(){ show(idx-1); }
+
+document.getElementById('next').onclick = next;
+document.getElementById('prev').onclick = prev;
+document.getElementById('full').onclick = ()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+};
+document.getElementById('print').onclick = ()=>{
+  document.body.classList.toggle('print');
+  if(!document.body.classList.contains('print')) show(idx);
+};
+
+window.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); next(); }
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); prev(); }
+  else if(e.key==='Home'){ show(0); }
+  else if(e.key==='End'){ show(slideEls.length-1); }
+  else if(e.key==='f'||e.key==='F'){ document.getElementById('full').click(); }
+  else if(e.key==='p'||e.key==='P'){ document.getElementById('print').click(); }
+});
+
+// click para avanzar (ignorando botones/enlaces)
+deck.addEventListener('click', e=>{ if(!e.target.closest('button,a')) next(); });
+
+// swipe en móvil
+let tx=0;
+deck.addEventListener('touchstart', e=>{ tx=e.changedTouches[0].clientX; }, {passive:true});
+deck.addEventListener('touchend', e=>{
+  const dx=e.changedTouches[0].clientX - tx;
+  if(Math.abs(dx)>50){ dx<0 ? next() : prev(); }
+}, {passive:true});
+
+// arranque desde hash
+const start = parseInt(location.hash.replace('#',''),10);
+show(Number.isFinite(start) && start>0 ? start-1 : 0);
+</script>
+</body>
+</html>
