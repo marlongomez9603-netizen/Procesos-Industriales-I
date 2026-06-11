@@ -363,17 +363,44 @@ header.exam-bar .inner {
 .modal-box p { color:var(--ink-soft); margin-bottom:20px; }
 .modal-box .row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 
-/* ============== TAB ALERT ============== */
-.tab-alert {
-  position:fixed; top:16px; left:50%; transform:translateX(-50%);
-  background:var(--warn); color:#fff;
-  padding:10px 20px; border-radius:10px;
-  font-weight:700; font-size:0.92rem;
-  box-shadow:0 8px 24px rgba(201,122,24,0.4);
-  z-index:200; display:none;
+/* ============== TAB ALERT / CONTADOR PERMANENTE ============== */
+.tab-counter {
+  position:fixed; top:80px; right:20px;
+  background:var(--paper); color:var(--ink);
+  border:2px solid var(--line);
+  border-radius:10px;
+  padding:8px 14px;
+  font-family:var(--fm); font-size:0.78rem; font-weight:700;
+  box-shadow:0 6px 18px rgba(27,19,8,0.18);
+  z-index:60; display:none;
+  letter-spacing:0.5px;
 }
-.tab-alert.show { display:block; animation:slideDown 0.35s; }
-@keyframes slideDown { from{ opacity:0; transform:translate(-50%,-20px); } to{ opacity:1; transform:translate(-50%,0); } }
+.tab-counter.show { display:block; }
+.tab-counter .num { color:var(--accent); font-size:1rem; }
+.tab-counter.warn { border-color:var(--warn); background:#fff8e7; }
+.tab-counter.warn .num { color:var(--warn); }
+.tab-counter.crit { border-color:var(--err); background:#fae7e7; animation:pulse 1s infinite; }
+.tab-counter.crit .num { color:var(--err); }
+
+.tab-overlay {
+  position:fixed; inset:0; background:rgba(199,44,44,0.96);
+  color:#fff; z-index:300;
+  display:none; align-items:center; justify-content:center;
+  flex-direction:column; padding:30px; text-align:center;
+}
+.tab-overlay.show { display:flex; animation:fadeIn 0.3s; }
+.tab-overlay .big { font-size:5rem; line-height:1; margin-bottom:14px; }
+.tab-overlay h2 {
+  font-family:var(--fd); font-weight:900;
+  font-size:clamp(1.8rem, 4vw, 2.6rem);
+  letter-spacing:-0.02em; margin-bottom:10px;
+}
+.tab-overlay p { font-size:1.05rem; max-width:520px; margin-bottom:8px; opacity:0.95; }
+.tab-overlay .countbig { font-family:var(--fm); font-weight:800; font-size:2rem; margin:14px 0; }
+
+@media (max-width: 640px) {
+  .tab-counter { top:70px; right:10px; font-size:0.7rem; padding:6px 10px; }
+}
 
 /* ============== RESPONSIVE ============== */
 @media (max-width: 640px) {
@@ -388,9 +415,18 @@ header.exam-bar .inner {
 <body>
 
 <!-- ============================================================
-     ALERTA DE PESTAÑA
+     ANTI-TRAMPA
      ============================================================ -->
-<div class="tab-alert" id="tabAlert">⚠ No salgas de la pestaña: cada salida queda registrada</div>
+<div class="tab-counter" id="tabCounter">
+  ⚠ Salidas registradas: <span class="num" id="tabNum">0</span> / 5
+</div>
+<div class="tab-overlay" id="tabOverlay">
+  <div class="big">🚫</div>
+  <h2 id="tabOverlayTitle">Salida detectada</h2>
+  <p id="tabOverlayText">No abandones la pestaña durante el parcial.</p>
+  <p class="countbig"><span id="tabOverlayNum">0</span> / 5 salidas</p>
+  <p>Al llegar a <b>5 salidas</b> el parcial se envía automáticamente con tus respuestas actuales.</p>
+</div>
 
 <!-- ============================================================
      PANTALLA 1 · BIENVENIDA
@@ -471,12 +507,14 @@ header.exam-bar .inner {
   <div class="screen" id="screen-finish">
     <div class="finish-card">
       <div class="icon">✓</div>
-      <h2>Parcial enviado</h2>
+      <h2>Parcial entregado</h2>
       <p class="meta" id="finishName">—</p>
-      <div class="grade" id="finishGrade">--<span class="of">/5.0</span></div>
-      <p class="meta">Aciertos: <b id="finishAciertos">--</b> de 25 · Tiempo usado: <b id="finishTime">--</b></p>
-      <p class="meta" style="margin-top:14px">Las respuestas correctas se publicarán después de la entrega oficial de notas.</p>
+      <p class="meta" style="margin-top:20px; max-width:520px; margin-left:auto; margin-right:auto;">
+        Tu evaluación fue registrada con éxito. La nota será publicada por el docente una vez se cierre la jornada y se realice la revisión correspondiente.
+      </p>
+      <p class="meta" style="margin-top:14px"><b>Tiempo usado:</b> <span id="finishTime">--</span></p>
       <div class="stamp">CÓDIGO DE ENVÍO · <span id="finishStamp">—</span></div>
+      <p class="meta" style="margin-top:24px; font-size:0.85rem; color:var(--muted)">Ya puedes cerrar esta pestaña.</p>
     </div>
   </div>
 </div>
@@ -546,8 +584,8 @@ const QUESTIONS = [
     opts:['150 °C','250 °C','350–370 °C','500 °C'],
     correct:2 },
   { id:7, type:'MC', bloque:3,
-    q:'En una CDU, ¿qué corte sale por la cabeza de la torre?',
-    opts:['Diésel','Nafta + gases ligeros','Crudo reducido (residuo atmosférico)','Gasóleo de vacío (VGO)'],
+    q:'¿Qué nombre reciben las bandejas horizontales internas de una torre de destilación, donde el vapor burbujea a través del líquido para separar fracciones por punto de ebullición?',
+    opts:['Etapas','Platos','Tabiques','Empaque estructurado'],
     correct:1 },
   { id:8, type:'SM', bloque:3,
     q:'Marca TODAS las afirmaciones correctas sobre la CDU:',
@@ -578,8 +616,8 @@ const QUESTIONS = [
     opts:['Operar sin catalizador','Operar a alta presión de hidrógeno (~150 atm) y producir destilados de bajo azufre','Producir mayoritariamente olefinas para petroquímica','No requerir hornos de precalentamiento'],
     correct:1 },
   { id:14, type:'MC', bloque:5,
-    q:'El coque de petróleo (pet-coke) se obtiene en la unidad:',
-    opts:['CDU','FCC','Coker (coquización retardada)','Alquilación'],
+    q:'El catalizador principal del cracking catalítico fluidizado (FCC) es:',
+    opts:['Ni-Mo soportado sobre alúmina','Ácido sulfúrico líquido','Zeolita Y (aluminosilicato microporoso)','Pt-Re sobre alúmina clorada'],
     correct:2 },
 
   // ===== BLOQUE 6 · REFORMADO + ALQUILACIÓN + ISOMERIZACIÓN =====
@@ -587,10 +625,10 @@ const QUESTIONS = [
     q:'¿Cuál es el principal objetivo del Reformado Catalítico (CCR)?',
     opts:['Eliminar el azufre del diésel','Aumentar el octanaje de la nafta convirtiéndola en aromáticos','Producir asfalto a partir del crudo reducido','Reducir la densidad del gas natural'],
     correct:1 },
-  { id:16, type:'VF', bloque:6,
-    q:'El Reformado Catalítico es el principal proceso productor de hidrógeno dentro de una refinería.',
-    opts:['Verdadero','Falso'],
-    correct:0 },
+  { id:16, type:'MC', bloque:6,
+    q:'El catalizador bimetálico del Reformado Catalítico contiene principalmente:',
+    opts:['Hierro y cromo soportados en sílice','Platino y renio sobre alúmina clorada','Cobalto y molibdeno sulfurados','Níquel y wolframio en zeolita'],
+    correct:1 },
   { id:17, type:'MC', bloque:6,
     q:'La Alquilación combina:',
     opts:['Olefinas (C3–C4) con isobutano usando H₂SO₄ o HF como catalizador','Aromáticos con olefinas para producir estireno','Parafinas pesadas con hidrógeno para hacer queroseno','Asfalto con polímeros para impermeabilizantes'],
@@ -1042,7 +1080,7 @@ async function doSubmit() {
       await supabaseINSERT('parcial1', payload);
       showFinish(aciertos, nota, tiempoMin);
     } catch (err2) {
-      alert('Error al enviar el parcial: ' + err2.message + '\n\nGuarda tu nota: ' + nota + '/5.0 (Aciertos: ' + aciertos + '/25) y avisa al docente.');
+      alert('Error al enviar el parcial: ' + err2.message + '\n\nAvisa al docente INMEDIATAMENTE y muéstrale este mensaje. Guarda esta pantalla.');
       state.submitted = false;
     }
   }
@@ -1077,8 +1115,6 @@ function showFinish(aciertos, nota, tiempoMin) {
   $('examBar').style.display = 'none';
   $('screen-finish').classList.add('active');
   $('finishName').textContent = state.student.nombre;
-  $('finishGrade').innerHTML = nota.toFixed(1) + '<span class="of">/5.0</span>';
-  $('finishAciertos').textContent = aciertos;
   $('finishTime').textContent = tiempoMin + ' min';
   $('finishStamp').textContent = state.student.codigo + '-' + Date.now().toString(36).toUpperCase();
   if (state.timerId) clearInterval(state.timerId);
@@ -1089,15 +1125,28 @@ function showFinish(aciertos, nota, tiempoMin) {
    TRACKING DE CAMBIO DE PESTAÑA
    ============================================================ */
 function registerTabTracking() {
+  // Mostrar contador permanente en la esquina
+  $('tabCounter').classList.add('show');
+  updateTabCounterUI();
+
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && !state.submitted) {
       state.tabChanges++;
-      const alert = $('tabAlert');
-      alert.textContent = `⚠ Salida ${state.tabChanges} registrada. Cada cambio de pestaña queda guardado.`;
-      alert.classList.add('show');
-      setTimeout(() => alert.classList.remove('show'), 4000);
+      updateTabCounterUI();
+      showTabOverlay();
+      // 5 salidas → auto-envío
+      if (state.tabChanges >= 5 && !state.submitted) {
+        state.submitted = true; // evitar dobles
+        autoSubmitPorTrampa();
+      }
+    } else if (!document.hidden) {
+      // Cuando vuelve, ocultamos el overlay (si aún no llegó al límite)
+      if (state.tabChanges < 5) {
+        setTimeout(() => $('tabOverlay').classList.remove('show'), 600);
+      }
     }
   });
+
   // Bloquea cerrar la pestaña accidentalmente
   window.addEventListener('beforeunload', e => {
     if (!state.submitted && state.startedAt) {
@@ -1106,6 +1155,81 @@ function registerTabTracking() {
       return '';
     }
   });
+
+  // ===== Anti-copia / Anti-pegado / Anti-tecla-prohibida =====
+  // Bloquea clic derecho
+  document.addEventListener('contextmenu', e => {
+    if (!state.submitted && state.startedAt) e.preventDefault();
+  });
+  // Bloquea copiar / cortar / pegar
+  ['copy','cut','paste'].forEach(ev => {
+    document.addEventListener(ev, e => {
+      if (!state.submitted && state.startedAt) e.preventDefault();
+    });
+  });
+  // Bloquea selección de texto en la zona del examen
+  document.addEventListener('selectstart', e => {
+    if (!state.submitted && state.startedAt) {
+      const inField = e.target.closest('input,textarea');
+      if (!inField) e.preventDefault();
+    }
+  });
+  // Bloquea F12 / Ctrl+Shift+I / Ctrl+U
+  document.addEventListener('keydown', e => {
+    if (state.submitted || !state.startedAt) return;
+    const k = e.key;
+    if (k === 'F12') { e.preventDefault(); return; }
+    if (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'i' || k === 'J' || k === 'j' || k === 'C' || k === 'c')) {
+      e.preventDefault(); return;
+    }
+    if (e.ctrlKey && (k === 'u' || k === 'U' || k === 's' || k === 'S' || k === 'p' || k === 'P')) {
+      e.preventDefault(); return;
+    }
+  });
+}
+
+function updateTabCounterUI() {
+  const tc = $('tabCounter');
+  $('tabNum').textContent = state.tabChanges;
+  tc.classList.toggle('warn', state.tabChanges >= 2 && state.tabChanges < 4);
+  tc.classList.toggle('crit', state.tabChanges >= 4);
+}
+
+function showTabOverlay() {
+  const ov = $('tabOverlay');
+  $('tabOverlayNum').textContent = state.tabChanges;
+  if (state.tabChanges <= 2) {
+    $('tabOverlayTitle').textContent = '⚠ No salgas de la pestaña';
+    $('tabOverlayText').textContent = 'Cada salida queda registrada y se reporta al docente.';
+  } else if (state.tabChanges < 5) {
+    $('tabOverlayTitle').textContent = '⚠ Advertencia seria';
+    $('tabOverlayText').textContent = `Te quedan ${5 - state.tabChanges} salida${5 - state.tabChanges === 1 ? '' : 's'} antes del envío automático del parcial.`;
+  } else {
+    $('tabOverlayTitle').textContent = '🚫 Límite alcanzado';
+    $('tabOverlayText').textContent = 'Tu parcial será enviado automáticamente ahora.';
+  }
+  ov.classList.add('show');
+}
+
+async function autoSubmitPorTrampa() {
+  const { aciertos, nota, bloques, respuestasDetalle } = calificar();
+  const tiempoMin = Math.round(((Date.now() - state.startedAt) / 60000) * 10) / 10;
+  try {
+    await supabaseINSERT('parcial1', {
+      codigo: state.student.codigo, nombre: state.student.nombre,
+      tiempo_usado_min: tiempoMin, nota, aciertos,
+      total_preguntas: QUESTIONS.length,
+      bloque1: bloques[1], bloque2: bloques[2], bloque3: bloques[3],
+      bloque4: bloques[4], bloque5: bloques[5], bloque6: bloques[6],
+      bloque7: bloques[7], bloque8: bloques[8], bloque9: bloques[9],
+      respuestas: respuestasDetalle,
+      navegador: navigator.userAgent, tab_changes: state.tabChanges,
+      status: 'envio_forzado_5_salidas'
+    });
+  } catch (err) {
+    console.error(err);
+  }
+  showFinish(aciertos, nota, tiempoMin);
 }
 
 /* ============================================================
