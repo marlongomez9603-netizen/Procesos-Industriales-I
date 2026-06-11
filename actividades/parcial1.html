@@ -418,14 +418,14 @@ header.exam-bar .inner {
      ANTI-TRAMPA
      ============================================================ -->
 <div class="tab-counter" id="tabCounter">
-  ⚠ Salidas registradas: <span class="num" id="tabNum">0</span> / 5
+  ⚠ Salidas: <span class="num" id="tabNum">0</span> / 1
 </div>
 <div class="tab-overlay" id="tabOverlay">
-  <div class="big">🚫</div>
-  <h2 id="tabOverlayTitle">Salida detectada</h2>
-  <p id="tabOverlayText">No abandones la pestaña durante el parcial.</p>
-  <p class="countbig"><span id="tabOverlayNum">0</span> / 5 salidas</p>
-  <p>Al llegar a <b>5 salidas</b> el parcial se envía automáticamente con tus respuestas actuales.</p>
+  <div class="big" id="tabOverlayIcon">⚠</div>
+  <h2 id="tabOverlayTitle">No salgas de la pestaña</h2>
+  <p id="tabOverlayText">Esta es tu única advertencia.</p>
+  <p class="countbig"><span id="tabOverlayCountdown">3</span> s</p>
+  <p id="tabOverlayHelp">Si tardas más de 3 segundos en volver, tu parcial será anulado automáticamente.</p>
 </div>
 
 <!-- ============================================================
@@ -445,6 +445,19 @@ header.exam-bar .inner {
         <div class="rule"><div class="k">Errores</div><div class="v">No restan</div></div>
         <div class="rule"><div class="k">Oportunidades</div><div class="v">Una sola</div></div>
         <div class="rule"><div class="k">Navegación</div><div class="v">Libre</div></div>
+      </div>
+
+      <div class="rule" style="--accent:#C72C2C; border-left-color:#C72C2C; background:#fef0ee; margin-bottom:20px">
+        <div class="k" style="color:#C72C2C">⚠ Reglas anti-trampa estrictas</div>
+        <div class="v" style="font-size:0.92rem; font-weight:500; line-height:1.5">
+          Una vez iniciado, <b>no salgas de la pestaña ni del navegador</b>. Si lo haces:
+          <ul style="margin:8px 0 0 20px; font-weight:500;">
+            <li>La <b>1ra salida</b> debe durar máximo <b>3 segundos</b>; si tardas más, tu parcial se <b>anula</b>.</li>
+            <li>La <b>2da salida</b> anula automáticamente tu parcial, sin importar la duración.</li>
+            <li>Cuentan como salida: cambiar de pestaña, abrir otra app, pantalla dividida, notificaciones.</li>
+            <li>Recomendado: usa <b>pantalla completa</b> y silencia notificaciones antes de iniciar.</li>
+          </ul>
+        </div>
       </div>
 
       <p class="desc" style="margin-bottom:20px"><b>Antes de iniciar:</b> escribe tu código de estudiante y la clave de acceso que te dará el docente.</p>
@@ -771,11 +784,14 @@ async function validateAndStart() {
       return;
     }
 
-    // 2. Verificar que no haya enviado antes (vía función RPC)
-    const yaEnvio = await supabaseRPC('codigo_ya_envio', { p_codigo: codigo });
-    if (yaEnvio === true) {
+    // 2. Crear registro 'iniciado' (rechazado si ya existe cualquier registro previo)
+    const initRes = await supabaseRPC('iniciar_parcial', {
+      p_codigo: codigo,
+      p_nombre: matricula[0].nombre
+    });
+    if (initRes === 'YA_EXISTE') {
       msg.className = 'validation-msg show err';
-      msg.textContent = 'Este código ya envió el parcial. No se permite reenvío. Si crees que es un error, contacta al docente.';
+      msg.textContent = 'Este código ya inició o entregó el parcial. No se permite un segundo intento. Si crees que es un error, contacta al docente.';
       btn.disabled = false;
       btn.textContent = 'Validar e iniciar parcial →';
       return;
@@ -785,7 +801,7 @@ async function validateAndStart() {
     state.student.codigo = matricula[0].codigo;
     state.student.nombre = matricula[0].nombre;
     msg.className = 'validation-msg show ok';
-    msg.textContent = `Bienvenido/a ${matricula[0].nombre}. Iniciando…`;
+    msg.textContent = `Bienvenido ${matricula[0].nombre}. Iniciando…`;
     setTimeout(startExam, 800);
   } catch (err) {
     msg.className = 'validation-msg show err';
@@ -866,6 +882,15 @@ function startExam() {
   startTimer();
   registerTabTracking();
   window.scrollTo(0, 0);
+
+  // Best-effort: pedir pantalla completa (móvil + desktop)
+  setTimeout(() => {
+    const el = document.documentElement;
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (fn) {
+      try { fn.call(el).catch(() => {}); } catch (e) {}
+    }
+  }, 300);
 }
 
 /* ============================================================
@@ -1055,29 +1080,22 @@ async function doSubmit() {
   const { aciertos, nota, bloques, respuestasDetalle } = calificar();
   const tiempoMin = Math.round(((Date.now() - state.startedAt) / 60000) * 10) / 10;
 
-  const payload = {
-    codigo: state.student.codigo,
-    nombre: state.student.nombre,
-    tiempo_usado_min: tiempoMin,
-    nota: nota,
-    aciertos: aciertos,
-    total_preguntas: QUESTIONS.length,
-    bloque1: bloques[1], bloque2: bloques[2], bloque3: bloques[3],
-    bloque4: bloques[4], bloque5: bloques[5], bloque6: bloques[6],
-    bloque7: bloques[7], bloque8: bloques[8], bloque9: bloques[9],
-    respuestas: respuestasDetalle,
-    navegador: navigator.userAgent,
-    tab_changes: state.tabChanges,
-    status: 'entregado'
+  const rpcArgs = {
+    p_codigo: state.student.codigo,
+    p_nota: nota, p_aciertos: aciertos, p_tiempo_min: tiempoMin,
+    p_b1: bloques[1], p_b2: bloques[2], p_b3: bloques[3], p_b4: bloques[4],
+    p_b5: bloques[5], p_b6: bloques[6], p_b7: bloques[7], p_b8: bloques[8], p_b9: bloques[9],
+    p_respuestas: respuestasDetalle,
+    p_navegador: navigator.userAgent,
+    p_tab_changes: state.tabChanges,
+    p_status: 'entregado'
   };
-
   try {
-    await supabaseINSERT('parcial1', payload);
+    await supabaseRPC('entregar_parcial', rpcArgs);
     showFinish(aciertos, nota, tiempoMin);
   } catch (err) {
-    // Reintentar una vez
     try {
-      await supabaseINSERT('parcial1', payload);
+      await supabaseRPC('entregar_parcial', rpcArgs);
       showFinish(aciertos, nota, tiempoMin);
     } catch (err2) {
       alert('Error al enviar el parcial: ' + err2.message + '\n\nAvisa al docente INMEDIATAMENTE y muéstrale este mensaje. Guarda esta pantalla.');
@@ -1093,20 +1111,17 @@ async function autoSubmit() {
   const { aciertos, nota, bloques, respuestasDetalle } = calificar();
   const tiempoMin = DURACION_MIN;
   try {
-    await supabaseINSERT('parcial1', {
-      codigo: state.student.codigo, nombre: state.student.nombre,
-      tiempo_usado_min: tiempoMin, nota, aciertos,
-      total_preguntas: QUESTIONS.length,
-      bloque1: bloques[1], bloque2: bloques[2], bloque3: bloques[3],
-      bloque4: bloques[4], bloque5: bloques[5], bloque6: bloques[6],
-      bloque7: bloques[7], bloque8: bloques[8], bloque9: bloques[9],
-      respuestas: respuestasDetalle,
-      navegador: navigator.userAgent, tab_changes: state.tabChanges,
-      status: 'tiempo_agotado'
+    await supabaseRPC('entregar_parcial', {
+      p_codigo: state.student.codigo,
+      p_nota: nota, p_aciertos: aciertos, p_tiempo_min: tiempoMin,
+      p_b1: bloques[1], p_b2: bloques[2], p_b3: bloques[3], p_b4: bloques[4],
+      p_b5: bloques[5], p_b6: bloques[6], p_b7: bloques[7], p_b8: bloques[8], p_b9: bloques[9],
+      p_respuestas: respuestasDetalle,
+      p_navegador: navigator.userAgent,
+      p_tab_changes: state.tabChanges,
+      p_status: 'tiempo_agotado'
     });
-  } catch (err) {
-    console.error(err);
-  }
+  } catch (err) { console.error(err); }
   showFinish(aciertos, nota, tiempoMin);
 }
 
@@ -1124,30 +1139,73 @@ function showFinish(aciertos, nota, tiempoMin) {
 /* ============================================================
    TRACKING DE CAMBIO DE PESTAÑA
    ============================================================ */
+// ============================================================
+// ANTI-TRAMPA ESTRICTO
+//  - 1ra salida: máx 3 segundos para volver → si no, anulación.
+//  - 2da salida (de cualquier duración): anulación inmediata.
+//  - Split-screen, blur, fullscreen exit cuentan como salida.
+//  - Bloqueo total de copy/paste/right-click/devtools/print.
+// ============================================================
+const ANTI = {
+  salidaActivaTs: null,       // timestamp de cuando empezó la salida actual
+  countdownId: null,          // setInterval del contador 3s
+  lastEventTs: 0,             // anti-rebote 1.5s entre eventos
+  baseSize: { w: 0, h: 0 },   // tamaño de ventana al iniciar
+  iniciado: false
+};
+const SALIDAS_MAX = 1;        // 1 salida permitida con condiciones, 2 = anulación
+const SEG_GRACIA = 3;         // segundos máximos en la 1ra salida
+
 function registerTabTracking() {
-  // Mostrar contador permanente en la esquina
   $('tabCounter').classList.add('show');
   updateTabCounterUI();
+  ANTI.baseSize = { w: window.innerWidth, h: window.innerHeight };
+  ANTI.iniciado = true;
 
+  // 1) Cambio de visibilidad (pestaña / app / pantalla bloqueada)
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && !state.submitted) {
-      state.tabChanges++;
-      updateTabCounterUI();
-      showTabOverlay();
-      // 5 salidas → auto-envío
-      if (state.tabChanges >= 5 && !state.submitted) {
-        state.submitted = true; // evitar dobles
-        autoSubmitPorTrampa();
-      }
-    } else if (!document.hidden) {
-      // Cuando vuelve, ocultamos el overlay (si aún no llegó al límite)
-      if (state.tabChanges < 5) {
-        setTimeout(() => $('tabOverlay').classList.remove('show'), 600);
-      }
+    if (!ANTI.iniciado || state.submitted) return;
+    if (document.hidden) onSalidaInicio('visibility');
+    else                onSalidaFin();
+  });
+
+  // 2) Pérdida de foco de ventana (otra app, notificaciones, split-screen)
+  window.addEventListener('blur', () => {
+    if (!ANTI.iniciado || state.submitted) return;
+    onSalidaInicio('blur');
+  });
+  window.addEventListener('focus', () => {
+    if (!ANTI.iniciado || state.submitted) return;
+    onSalidaFin();
+  });
+
+  // 3) Resize fuerte → posible split-screen / picture-in-picture
+  window.addEventListener('resize', () => {
+    if (!ANTI.iniciado || state.submitted) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    // Si el área se reduce más de 30 % respecto al inicial → split screen
+    const areaBase = ANTI.baseSize.w * ANTI.baseSize.h;
+    const areaNow = w * h;
+    if (areaNow < areaBase * 0.70) {
+      onSalidaInicio('split-screen');
+    } else {
+      // Cuando regresa al tamaño normal, equivale a regreso
+      onSalidaFin();
     }
   });
 
-  // Bloquea cerrar la pestaña accidentalmente
+  // 4) Salida de pantalla completa
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+    document.addEventListener(ev, () => {
+      if (!ANTI.iniciado || state.submitted) return;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        onSalidaInicio('fullscreen-exit');
+      }
+    })
+  );
+
+  // 5) Bloqueo de cerrar pestaña
   window.addEventListener('beforeunload', e => {
     if (!state.submitted && state.startedAt) {
       e.preventDefault();
@@ -1156,80 +1214,133 @@ function registerTabTracking() {
     }
   });
 
-  // ===== Anti-copia / Anti-pegado / Anti-tecla-prohibida =====
-  // Bloquea clic derecho
+  // 6) Bloqueo de clic derecho, copiar, cortar, pegar, selección
   document.addEventListener('contextmenu', e => {
     if (!state.submitted && state.startedAt) e.preventDefault();
   });
-  // Bloquea copiar / cortar / pegar
-  ['copy','cut','paste'].forEach(ev => {
+  ['copy', 'cut', 'paste', 'dragstart'].forEach(ev => {
     document.addEventListener(ev, e => {
       if (!state.submitted && state.startedAt) e.preventDefault();
     });
   });
-  // Bloquea selección de texto en la zona del examen
   document.addEventListener('selectstart', e => {
     if (!state.submitted && state.startedAt) {
-      const inField = e.target.closest('input,textarea');
-      if (!inField) e.preventDefault();
+      if (!e.target.closest('input,textarea')) e.preventDefault();
     }
   });
-  // Bloquea F12 / Ctrl+Shift+I / Ctrl+U
+
+  // 7) Teclas prohibidas: F12, DevTools, Ver código, Imprimir
   document.addEventListener('keydown', e => {
     if (state.submitted || !state.startedAt) return;
     const k = e.key;
     if (k === 'F12') { e.preventDefault(); return; }
-    if (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'i' || k === 'J' || k === 'j' || k === 'C' || k === 'c')) {
-      e.preventDefault(); return;
-    }
-    if (e.ctrlKey && (k === 'u' || k === 'U' || k === 's' || k === 'S' || k === 'p' || k === 'P')) {
-      e.preventDefault(); return;
-    }
+    if (e.ctrlKey && e.shiftKey && /^[IJC]$/i.test(k)) { e.preventDefault(); return; }
+    if (e.ctrlKey && /^[USP]$/i.test(k))             { e.preventDefault(); return; }
+    // Bloqueo en mac (cmd)
+    if (e.metaKey && /^[USP]$/i.test(k))             { e.preventDefault(); return; }
   });
+}
+
+// Llamado al perder el foco / esconder la pestaña / detectar split / etc.
+function onSalidaInicio(motivo) {
+  // Anti-rebote: si ya hay una salida activa o se disparó hace <1.5s, ignorar
+  const ahora = Date.now();
+  if (ANTI.salidaActivaTs) return;
+  if (ahora - ANTI.lastEventTs < 1500) return;
+  ANTI.lastEventTs = ahora;
+
+  state.tabChanges++;
+  ANTI.salidaActivaTs = ahora;
+  updateTabCounterUI();
+
+  // Si es la 2da salida (o más) → anulación inmediata
+  if (state.tabChanges >= 2) {
+    state.submitted = true;
+    anularParcial('anulado_2_salidas');
+    return;
+  }
+
+  // Es la 1ra: arrancar countdown de 3 s
+  showOverlayCountdown();
+  let s = SEG_GRACIA;
+  $('tabOverlayCountdown').textContent = s;
+  ANTI.countdownId = setInterval(() => {
+    s--;
+    $('tabOverlayCountdown').textContent = Math.max(0, s);
+    if (s <= 0) {
+      clearInterval(ANTI.countdownId);
+      ANTI.countdownId = null;
+      // Si NO ha vuelto, anular
+      if (ANTI.salidaActivaTs) {
+        state.submitted = true;
+        anularParcial('anulado_salida_larga');
+      }
+    }
+  }, 1000);
+}
+
+// Llamado al recuperar foco / volver a la pestaña / volver al tamaño normal
+function onSalidaFin() {
+  if (!ANTI.salidaActivaTs) return;
+  const dur = (Date.now() - ANTI.salidaActivaTs) / 1000;
+  ANTI.salidaActivaTs = null;
+  if (ANTI.countdownId) {
+    clearInterval(ANTI.countdownId);
+    ANTI.countdownId = null;
+  }
+  if (state.submitted) return;
+  if (dur > SEG_GRACIA) {
+    // Volvió tarde → anular
+    state.submitted = true;
+    anularParcial('anulado_salida_larga');
+    return;
+  }
+  // Volvió a tiempo → ocultar overlay (ya quedó la salida registrada)
+  setTimeout(() => $('tabOverlay').classList.remove('show'), 500);
 }
 
 function updateTabCounterUI() {
   const tc = $('tabCounter');
   $('tabNum').textContent = state.tabChanges;
-  tc.classList.toggle('warn', state.tabChanges >= 2 && state.tabChanges < 4);
-  tc.classList.toggle('crit', state.tabChanges >= 4);
+  tc.classList.toggle('warn', state.tabChanges === 1);
+  tc.classList.toggle('crit', state.tabChanges >= 2);
 }
 
-function showTabOverlay() {
-  const ov = $('tabOverlay');
-  $('tabOverlayNum').textContent = state.tabChanges;
-  if (state.tabChanges <= 2) {
-    $('tabOverlayTitle').textContent = '⚠ No salgas de la pestaña';
-    $('tabOverlayText').textContent = 'Cada salida queda registrada y se reporta al docente.';
-  } else if (state.tabChanges < 5) {
-    $('tabOverlayTitle').textContent = '⚠ Advertencia seria';
-    $('tabOverlayText').textContent = `Te quedan ${5 - state.tabChanges} salida${5 - state.tabChanges === 1 ? '' : 's'} antes del envío automático del parcial.`;
-  } else {
-    $('tabOverlayTitle').textContent = '🚫 Límite alcanzado';
-    $('tabOverlayText').textContent = 'Tu parcial será enviado automáticamente ahora.';
-  }
-  ov.classList.add('show');
+function showOverlayCountdown() {
+  $('tabOverlayIcon').textContent = '⚠';
+  $('tabOverlayTitle').textContent = 'Vuelve YA al parcial';
+  $('tabOverlayText').textContent = 'Esta es tu única advertencia. Si tardas más de 3 segundos, tu parcial se anula.';
+  $('tabOverlayHelp').textContent = 'Salidas registradas: ' + state.tabChanges + ' / ' + (SALIDAS_MAX + 1);
+  $('tabOverlay').classList.add('show');
 }
 
-async function autoSubmitPorTrampa() {
+async function anularParcial(motivo) {
+  if (ANTI.countdownId) { clearInterval(ANTI.countdownId); ANTI.countdownId = null; }
+  ANTI.iniciado = false;
+  // Pantalla "anulado"
+  $('tabOverlayIcon').textContent = '🚫';
+  $('tabOverlayTitle').textContent = 'Parcial anulado';
+  $('tabOverlayText').textContent = 'Tu parcial ha sido marcado como anulado por salir de la pestaña. Avisa al docente.';
+  $('tabOverlayCountdown').textContent = '';
+  $('tabOverlayHelp').textContent = 'Motivo: ' + motivo;
+  $('tabOverlay').classList.add('show');
+
   const { aciertos, nota, bloques, respuestasDetalle } = calificar();
   const tiempoMin = Math.round(((Date.now() - state.startedAt) / 60000) * 10) / 10;
   try {
-    await supabaseINSERT('parcial1', {
-      codigo: state.student.codigo, nombre: state.student.nombre,
-      tiempo_usado_min: tiempoMin, nota, aciertos,
-      total_preguntas: QUESTIONS.length,
-      bloque1: bloques[1], bloque2: bloques[2], bloque3: bloques[3],
-      bloque4: bloques[4], bloque5: bloques[5], bloque6: bloques[6],
-      bloque7: bloques[7], bloque8: bloques[8], bloque9: bloques[9],
-      respuestas: respuestasDetalle,
-      navegador: navigator.userAgent, tab_changes: state.tabChanges,
-      status: 'envio_forzado_5_salidas'
+    await supabaseRPC('entregar_parcial', {
+      p_codigo: state.student.codigo,
+      p_nota: nota, p_aciertos: aciertos, p_tiempo_min: tiempoMin,
+      p_b1: bloques[1], p_b2: bloques[2], p_b3: bloques[3], p_b4: bloques[4],
+      p_b5: bloques[5], p_b6: bloques[6], p_b7: bloques[7], p_b8: bloques[8], p_b9: bloques[9],
+      p_respuestas: respuestasDetalle,
+      p_navegador: navigator.userAgent,
+      p_tab_changes: state.tabChanges,
+      p_status: motivo
     });
-  } catch (err) {
-    console.error(err);
-  }
-  showFinish(aciertos, nota, tiempoMin);
+  } catch (err) { console.error(err); }
+  // Detener cronómetro
+  if (state.timerId) clearInterval(state.timerId);
 }
 
 /* ============================================================
