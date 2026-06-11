@@ -454,8 +454,9 @@ header.exam-bar .inner {
           <ul style="margin:8px 0 0 20px; font-weight:500;">
             <li>La <b>1ra salida</b> debe durar máximo <b>3 segundos</b>; si tardas más, tu parcial se <b>anula</b>.</li>
             <li>La <b>2da salida</b> anula automáticamente tu parcial, sin importar la duración.</li>
-            <li>Cuentan como salida: cambiar de pestaña, abrir otra app, pantalla dividida, notificaciones.</li>
-            <li>Recomendado: usa <b>pantalla completa</b> y silencia notificaciones antes de iniciar.</li>
+            <li>Cuentan como salida: cambiar de pestaña, abrir otra app, pantalla dividida, salir de pantalla completa.</li>
+            <li>Las <b>notificaciones (banner)</b> NO cuentan como salida, mientras no abras la app que las generó.</li>
+            <li>Recomendado: silencia notificaciones para no distraerte.</li>
           </ul>
         </div>
       </div>
@@ -1163,23 +1164,17 @@ function registerTabTracking() {
   ANTI.iniciado = true;
 
   // 1) Cambio de visibilidad (pestaña / app / pantalla bloqueada)
+  //    Este es el único detector "duro" de salida del parcial.
+  //    Las notificaciones push (WhatsApp, llamadas en banner, etc.) NO
+  //    cambian la visibilidad del documento, por lo que NO se cuentan
+  //    como salida — solo cuando el estudiante realmente abandona la app.
   document.addEventListener('visibilitychange', () => {
     if (!ANTI.iniciado || state.submitted) return;
-    if (document.hidden) onSalidaInicio('visibility');
+    if (document.hidden) onSalidaInicio('cambio_de_app');
     else                onSalidaFin();
   });
 
-  // 2) Pérdida de foco de ventana (otra app, notificaciones, split-screen)
-  window.addEventListener('blur', () => {
-    if (!ANTI.iniciado || state.submitted) return;
-    onSalidaInicio('blur');
-  });
-  window.addEventListener('focus', () => {
-    if (!ANTI.iniciado || state.submitted) return;
-    onSalidaFin();
-  });
-
-  // 3) Resize fuerte → posible split-screen / picture-in-picture
+  // 2) Resize fuerte → posible split-screen / picture-in-picture
   window.addEventListener('resize', () => {
     if (!ANTI.iniciado || state.submitted) return;
     const w = window.innerWidth;
@@ -1195,17 +1190,17 @@ function registerTabTracking() {
     }
   });
 
-  // 4) Salida de pantalla completa
+  // 3) Salida de pantalla completa
   ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
     document.addEventListener(ev, () => {
       if (!ANTI.iniciado || state.submitted) return;
       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        onSalidaInicio('fullscreen-exit');
+        onSalidaInicio('salio_pantalla_completa');
       }
     })
   );
 
-  // 5) Bloqueo de cerrar pestaña
+  // 4) Bloqueo de cerrar pestaña
   window.addEventListener('beforeunload', e => {
     if (!state.submitted && state.startedAt) {
       e.preventDefault();
@@ -1214,7 +1209,7 @@ function registerTabTracking() {
     }
   });
 
-  // 6) Bloqueo de clic derecho, copiar, cortar, pegar, selección
+  // 5) Bloqueo de clic derecho, copiar, cortar, pegar, selección
   document.addEventListener('contextmenu', e => {
     if (!state.submitted && state.startedAt) e.preventDefault();
   });
@@ -1229,7 +1224,7 @@ function registerTabTracking() {
     }
   });
 
-  // 7) Teclas prohibidas: F12, DevTools, Ver código, Imprimir
+  // 6) Teclas prohibidas: F12, DevTools, Ver código, Imprimir
   document.addEventListener('keydown', e => {
     if (state.submitted || !state.startedAt) return;
     const k = e.key;
