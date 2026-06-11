@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parcial 1 · Procesos Industriales I · UNIPAZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#F4EFE5; --paper:#FFFFFF; --ink:#1B1308; --ink-soft:#4A3826;
+  --muted:#8B7758; --line:#D9C9AA;
+  --primary:#9B2C2C; --primary-dark:#7A1F1F;
+  --accent:#0F6E64; --warn:#C97A18; --ok:#2BAE66; --err:#C72C2C;
+  --fd:'Fraunces',Georgia,serif;
+  --fb:'Inter',system-ui,sans-serif;
+  --fm:'JetBrains Mono',monospace;
+}
+html,body { height:100%; }
+body {
+  font-family:var(--fb); color:var(--ink);
+  background:var(--bg); line-height:1.55;
+  min-height:100vh; padding:0;
+}
+.wrap { max-width:880px; margin:0 auto; padding:24px 16px 80px; }
+
+/* ============== SCREENS ============== */
+.screen { display:none; }
+.screen.active { display:block; animation:fadeIn 0.35s; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+/* ============== HEADER ============== */
+header.exam-bar {
+  background:var(--ink); color:#fff;
+  padding:14px 0;
+  position:sticky; top:0; z-index:50;
+  box-shadow:0 4px 18px rgba(27,19,8,0.18);
+}
+header.exam-bar .inner {
+  max-width:880px; margin:0 auto; padding:0 16px;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:14px; flex-wrap:wrap;
+}
+.brand {
+  font-family:var(--fd); font-weight:800;
+  font-size:1.1rem; letter-spacing:-0.02em;
+}
+.brand .small { font-family:var(--fm); font-size:0.7rem; opacity:0.7; font-weight:600; letter-spacing:2px; }
+.timer {
+  font-family:var(--fm); font-weight:700;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.18);
+  padding:6px 14px; border-radius:8px;
+  font-size:1.05rem; letter-spacing:1.2px;
+  min-width:110px; text-align:center;
+}
+.timer.warn { background:#C97A18; border-color:#C97A18; animation:pulse 1.2s infinite; }
+.timer.crit { background:#C72C2C; border-color:#C72C2C; animation:pulse 0.6s infinite; }
+@keyframes pulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
+.student-tag {
+  font-size:0.78rem; opacity:0.88;
+  font-family:var(--fm); letter-spacing:0.5px;
+}
+
+/* ============== WELCOME ============== */
+.welcome-card {
+  background:var(--paper); border-radius:18px;
+  padding:44px 40px; margin-top:30px;
+  box-shadow:0 20px 50px rgba(27,19,8,0.10);
+  border-top:8px solid var(--primary);
+}
+.welcome-card .pill {
+  display:inline-block;
+  background:var(--primary); color:#fff;
+  padding:6px 14px; border-radius:999px;
+  font-size:0.7rem; font-weight:800;
+  text-transform:uppercase; letter-spacing:2.5px;
+  margin-bottom:18px;
+}
+.welcome-card h1 {
+  font-family:var(--fd); font-weight:900;
+  font-size:clamp(2rem,5vw,3rem);
+  line-height:1; letter-spacing:-0.03em;
+  margin-bottom:10px;
+}
+.welcome-card h1 .em {
+  font-style:italic; color:var(--primary);
+}
+.welcome-card .desc {
+  color:var(--ink-soft); font-size:1rem;
+  margin-bottom:24px; max-width:640px;
+}
+
+.rules-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px; margin-bottom:28px;
+}
+.rule {
+  background:#FAF3E5; border-radius:10px;
+  padding:14px 16px; border-left:4px solid var(--accent);
+}
+.rule .k {
+  font-size:0.66rem; font-weight:800;
+  text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--muted); margin-bottom:2px;
+}
+.rule .v {
+  font-weight:700; font-size:1.05rem;
+  color:var(--ink);
+}
+
+.welcome-form { display:grid; gap:16px; margin-bottom:18px; }
+.field { display:flex; flex-direction:column; gap:6px; }
+.field label {
+  font-size:0.78rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--ink-soft);
+}
+.field input {
+  background:#fff; border:1.5px solid var(--line);
+  border-radius:10px; padding:14px 16px;
+  font-family:inherit; font-size:1rem; font-weight:500;
+  color:var(--ink); outline:none;
+  transition:border-color 0.15s;
+}
+.field input:focus { border-color:var(--primary); }
+.field .hint { font-size:0.82rem; color:var(--muted); }
+
+.validation-msg {
+  padding:14px 18px; border-radius:10px;
+  font-size:0.92rem; font-weight:500;
+  margin-bottom:14px; display:none;
+}
+.validation-msg.show { display:block; }
+.validation-msg.ok {
+  background:#e7f5ec; color:#1a6a40;
+  border-left:4px solid var(--ok);
+}
+.validation-msg.err {
+  background:#fae7e7; color:#7a1818;
+  border-left:4px solid var(--err);
+}
+
+.btn {
+  background:var(--primary); color:#fff; border:none;
+  padding:16px 30px; border-radius:10px;
+  font-family:inherit; font-size:1rem; font-weight:700;
+  letter-spacing:0.5px; cursor:pointer;
+  transition:transform 0.18s, background 0.18s, opacity 0.18s;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn:hover:not(:disabled) {
+  background:var(--primary-dark);
+  transform:translateY(-1px);
+}
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+.btn.secondary {
+  background:transparent; color:var(--ink);
+  border:1.5px solid var(--line);
+}
+.btn.secondary:hover:not(:disabled) {
+  border-color:var(--ink); background:#fff;
+}
+
+/* ============== EXAM ============== */
+.progress {
+  background:var(--paper); border-radius:14px;
+  padding:14px 20px; margin:24px 0 16px;
+  display:flex; align-items:center; gap:18px;
+  box-shadow:0 4px 14px rgba(27,19,8,0.06);
+  flex-wrap:wrap;
+}
+.progress .label {
+  font-family:var(--fm); font-size:0.82rem; font-weight:700;
+  color:var(--ink); letter-spacing:1px;
+}
+.progress .label .num { color:var(--primary); }
+.progress-track {
+  flex:1; min-width:140px;
+  height:8px; background:#e9dfc9;
+  border-radius:999px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg, var(--primary), var(--accent));
+  transition:width 0.35s;
+}
+.progress .answered {
+  font-family:var(--fm); font-size:0.8rem;
+  font-weight:700; color:var(--accent);
+}
+
+.question-card {
+  background:var(--paper); border-radius:18px;
+  padding:36px 38px;
+  box-shadow:0 14px 36px rgba(27,19,8,0.10);
+  border-top:6px solid var(--primary);
+}
+.q-meta {
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--fm); font-size:0.72rem;
+  font-weight:700; letter-spacing:1.5px;
+  color:var(--muted); text-transform:uppercase;
+  margin-bottom:12px;
+}
+.q-meta .num {
+  background:var(--primary); color:#fff;
+  padding:3px 10px; border-radius:6px;
+  font-weight:800;
+}
+.q-meta .type {
+  background:var(--accent); color:#fff;
+  padding:3px 10px; border-radius:6px;
+  font-weight:800;
+}
+.q-meta .block { color:var(--ink-soft); }
+.q-text {
+  font-family:var(--fd); font-weight:700;
+  font-size:clamp(1.2rem, 2.8vw, 1.5rem);
+  line-height:1.4; color:var(--ink);
+  margin-bottom:22px;
+}
+.q-help {
+  font-size:0.82rem; color:var(--muted);
+  margin-bottom:14px; font-style:italic;
+}
+
+.options { display:grid; gap:10px; margin-bottom:20px; }
+.opt {
+  background:#fff; border:2px solid var(--line);
+  border-radius:12px; padding:14px 18px;
+  cursor:pointer; transition:all 0.15s;
+  display:flex; align-items:flex-start; gap:14px;
+  text-align:left; width:100%;
+  font-family:inherit; font-size:0.98rem;
+  color:var(--ink); line-height:1.45;
+}
+.opt:hover { border-color:var(--accent); background:#fafff7; }
+.opt .marker {
+  width:26px; height:26px; flex-shrink:0;
+  border:2px solid var(--line);
+  border-radius:50%;
+  display:grid; place-items:center;
+  font-family:var(--fm); font-weight:800; font-size:0.78rem;
+  color:var(--muted);
+  transition:all 0.15s;
+}
+.opt.sm .marker { border-radius:6px; }
+.opt.checked {
+  background:#e7f0ef; border-color:var(--accent);
+  font-weight:600;
+}
+.opt.checked .marker {
+  background:var(--accent); border-color:var(--accent);
+  color:#fff;
+}
+.opt.checked .marker::after {
+  content:""; display:block;
+  width:8px; height:14px;
+  border:solid #fff; border-width:0 2px 2px 0;
+  transform:rotate(45deg) translate(-1px, -2px);
+}
+.opt.sm.checked .marker::after {
+  content:"✓"; border:none;
+  transform:none; font-size:1rem; color:#fff; line-height:1;
+}
+
+.exam-nav {
+  display:flex; justify-content:space-between; gap:10px;
+  margin-top:18px;
+}
+.exam-nav .btn { padding:14px 24px; }
+
+.qjump {
+  background:var(--paper); border-radius:14px;
+  padding:18px; margin:18px 0;
+  box-shadow:0 4px 14px rgba(27,19,8,0.06);
+}
+.qjump h4 {
+  font-family:var(--fm); font-size:0.72rem; font-weight:800;
+  text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--muted); margin-bottom:10px;
+}
+.qjump-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(40px, 1fr));
+  gap:6px;
+}
+.qjump-btn {
+  background:#fff; border:1.5px solid var(--line);
+  border-radius:6px; padding:8px 4px;
+  font-family:var(--fm); font-weight:700; font-size:0.8rem;
+  color:var(--ink); cursor:pointer;
+  transition:all 0.15s;
+}
+.qjump-btn:hover { border-color:var(--accent); }
+.qjump-btn.answered {
+  background:var(--accent); color:#fff; border-color:var(--accent);
+}
+.qjump-btn.current {
+  border-color:var(--primary); border-width:3px;
+  color:var(--primary);
+}
+.qjump-btn.current.answered {
+  background:var(--primary); color:#fff; border-color:var(--primary);
+}
+
+/* ============== FINISH ============== */
+.finish-card {
+  background:var(--paper); border-radius:18px;
+  padding:50px 44px; margin-top:30px;
+  text-align:center;
+  box-shadow:0 20px 50px rgba(27,19,8,0.10);
+  border-top:8px solid var(--accent);
+}
+.finish-card .icon { font-size:4rem; margin-bottom:12px; }
+.finish-card h2 {
+  font-family:var(--fd); font-weight:900;
+  font-size:clamp(2rem, 5vw, 2.8rem);
+  letter-spacing:-0.02em; margin-bottom:8px;
+}
+.finish-card .grade {
+  display:inline-block;
+  background:var(--accent); color:#fff;
+  padding:18px 38px; border-radius:14px;
+  margin:18px 0 22px;
+  font-family:var(--fd); font-weight:900;
+  font-size:3.5rem; line-height:1;
+  letter-spacing:-0.04em;
+}
+.finish-card .grade .of { font-size:1.5rem; opacity:0.7; font-weight:700; }
+.finish-card .meta {
+  color:var(--ink-soft); font-size:0.95rem;
+  margin-bottom:8px;
+}
+.finish-card .stamp {
+  font-family:var(--fm); font-size:0.78rem;
+  color:var(--muted); margin-top:18px;
+  letter-spacing:1.5px;
+}
+
+/* ============== MODAL CONFIRM ============== */
+.modal-back {
+  position:fixed; inset:0; background:rgba(27,19,8,0.7);
+  display:none; align-items:center; justify-content:center;
+  z-index:100; padding:24px;
+}
+.modal-back.show { display:flex; }
+.modal-box {
+  background:var(--paper); border-radius:18px;
+  padding:34px 34px; max-width:480px; width:100%;
+  text-align:center;
+  animation:popIn 0.3s cubic-bezier(0.2,0.8,0.2,1);
+}
+@keyframes popIn { from{ opacity:0; transform:scale(0.94); } to{ opacity:1; transform:scale(1); } }
+.modal-box h3 {
+  font-family:var(--fd); font-weight:800;
+  font-size:1.6rem; line-height:1.1;
+  margin-bottom:10px;
+}
+.modal-box p { color:var(--ink-soft); margin-bottom:20px; }
+.modal-box .row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+/* ============== TAB ALERT ============== */
+.tab-alert {
+  position:fixed; top:16px; left:50%; transform:translateX(-50%);
+  background:var(--warn); color:#fff;
+  padding:10px 20px; border-radius:10px;
+  font-weight:700; font-size:0.92rem;
+  box-shadow:0 8px 24px rgba(201,122,24,0.4);
+  z-index:200; display:none;
+}
+.tab-alert.show { display:block; animation:slideDown 0.35s; }
+@keyframes slideDown { from{ opacity:0; transform:translate(-50%,-20px); } to{ opacity:1; transform:translate(-50%,0); } }
+
+/* ============== RESPONSIVE ============== */
+@media (max-width: 640px) {
+  .welcome-card, .question-card, .finish-card { padding:24px 18px; }
+  .exam-nav { flex-direction:column-reverse; }
+  .exam-nav .btn { width:100%; justify-content:center; }
+  .progress { padding:10px 14px; }
+  .qjump-grid { grid-template-columns:repeat(auto-fill, minmax(36px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     ALERTA DE PESTAÑA
+     ============================================================ -->
+<div class="tab-alert" id="tabAlert">⚠ No salgas de la pestaña: cada salida queda registrada</div>
+
+<!-- ============================================================
+     PANTALLA 1 · BIENVENIDA
+     ============================================================ -->
+<div class="wrap">
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-card">
+      <span class="pill">Parcial 1 · Procesos Industriales I</span>
+      <h1>Evaluación <span class="em">parcial</span></h1>
+      <p class="desc">Esta evaluación consta de <b>25 preguntas</b> de los temas vistos en clase: crudo, destilación atmosférica y al vacío, procesos de conversión, mejora del octanaje, tratamientos finales, gas y productos derivados.</p>
+
+      <div class="rules-grid">
+        <div class="rule"><div class="k">Duración</div><div class="v">125 min</div></div>
+        <div class="rule"><div class="k">Preguntas</div><div class="v">25</div></div>
+        <div class="rule"><div class="k">Calificación</div><div class="v">Sobre 5.0</div></div>
+        <div class="rule"><div class="k">Errores</div><div class="v">No restan</div></div>
+        <div class="rule"><div class="k">Oportunidades</div><div class="v">Una sola</div></div>
+        <div class="rule"><div class="k">Navegación</div><div class="v">Libre</div></div>
+      </div>
+
+      <p class="desc" style="margin-bottom:20px"><b>Antes de iniciar:</b> escribe tu código de estudiante y la clave de acceso que te dará el docente.</p>
+
+      <div class="welcome-form">
+        <div class="field">
+          <label for="inpCodigo">Código de estudiante</label>
+          <input type="text" id="inpCodigo" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="Ej. 1005189811">
+          <span class="hint">Solo números, sin espacios. Lo verifico con la lista de matrícula.</span>
+        </div>
+        <div class="field">
+          <label for="inpClave">Clave de acceso</label>
+          <input type="text" id="inpClave" autocomplete="off" maxlength="40" placeholder="La dice el docente en clase">
+        </div>
+      </div>
+
+      <div class="validation-msg" id="validMsg"></div>
+
+      <button class="btn" id="btnStart" onclick="validateAndStart()">Validar e iniciar parcial →</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PANTALLA 2 · EXAMEN (oculta el wrap normal y muestra header sticky)
+       ============================================================ -->
+</div>
+
+<header class="exam-bar" id="examBar" style="display:none">
+  <div class="inner">
+    <div class="brand">UNIPAZ · Parcial 1 <span class="small">PROC-IND-I</span></div>
+    <div class="student-tag" id="studentTag">—</div>
+    <div class="timer" id="timer">--:--</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="screen" id="screen-exam">
+    <div class="progress">
+      <span class="label">Pregunta <span class="num" id="currentNum">1</span> de 25</span>
+      <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+      <span class="answered" id="answeredLbl">0 respondidas</span>
+    </div>
+
+    <div class="question-card" id="questionCard"></div>
+
+    <div class="exam-nav">
+      <button class="btn secondary" id="btnPrev" onclick="goPrev()">← Anterior</button>
+      <button class="btn" id="btnNext" onclick="goNext()">Siguiente →</button>
+    </div>
+
+    <div class="qjump">
+      <h4>Saltar a pregunta · Estado del parcial</h4>
+      <div class="qjump-grid" id="qjumpGrid"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PANTALLA 3 · FINALIZADO
+       ============================================================ -->
+  <div class="screen" id="screen-finish">
+    <div class="finish-card">
+      <div class="icon">✓</div>
+      <h2>Parcial enviado</h2>
+      <p class="meta" id="finishName">—</p>
+      <div class="grade" id="finishGrade">--<span class="of">/5.0</span></div>
+      <p class="meta">Aciertos: <b id="finishAciertos">--</b> de 25 · Tiempo usado: <b id="finishTime">--</b></p>
+      <p class="meta" style="margin-top:14px">Las respuestas correctas se publicarán después de la entrega oficial de notas.</p>
+      <div class="stamp">CÓDIGO DE ENVÍO · <span id="finishStamp">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL CONFIRMAR ENVÍO
+     ============================================================ -->
+<div class="modal-back" id="confirmModal">
+  <div class="modal-box">
+    <h3 id="confirmTitle">¿Enviar parcial?</h3>
+    <p id="confirmText">Una vez enviado no podrás modificarlo.</p>
+    <div class="row">
+      <button class="btn secondary" onclick="closeConfirm()">Seguir revisando</button>
+      <button class="btn" onclick="doSubmit()">Sí, enviar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN
+   ============================================================ */
+const SUPABASE_URL = 'https://vvvzewwbfrbimytyhrwn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dnpld3diZnJiaW15dHlocnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA3MjQsImV4cCI6MjA5NjE4NjcyNH0.0phEAkHbFU4oP7awYlRohNSssi-w2B2EoOl5wmXTy5Q';
+
+// 🔑 CAMBIA ESTA CLAVE SI QUIERES, Y AVÍSALA EN CLASE
+const CLAVE_ACCESO = 'REFINACION2026';
+
+// Duración total del parcial (en minutos)
+const DURACION_MIN = 125;
+
+/* ============================================================
+   PREGUNTAS (25)
+   correct: índice de la opción correcta (MC y VF)
+           array de índices correctos (SM) — todo-o-nada
+   bloque: 1..9
+   type: 'MC' | 'VF' | 'SM'
+   ============================================================ */
+const QUESTIONS = [
+  // ===== BLOQUE 1 · CRUDO =====
+  { id:1, type:'MC', bloque:1,
+    q:'¿Qué define un crudo como "liviano" según su grado API?',
+    opts:['°API menor a 10','°API entre 10 y 22','°API entre 22 y 32','°API mayor a 31.1'],
+    correct:3 },
+  { id:2, type:'VF', bloque:1,
+    q:'Un crudo "agrio" (sour) es aquel que contiene más de 0.5 % en peso de azufre.',
+    opts:['Verdadero','Falso'],
+    correct:0 },
+  { id:3, type:'MC', bloque:1,
+    q:'El petróleo crudo está compuesto principalmente por:',
+    opts:['Hidrocarburos (parafinas, naftenos y aromáticos)','Agua de mar con sales disueltas','Azufre elemental sólido','Carbón en suspensión'],
+    correct:0 },
+
+  // ===== BLOQUE 2 · DESALACIÓN =====
+  { id:4, type:'MC', bloque:2,
+    q:'¿Cuál es el principal objetivo de la unidad de desalación?',
+    opts:['Reducir el contenido de azufre del crudo','Remover sales y agua para evitar corrosión y ensuciamiento aguas abajo','Ajustar la densidad del crudo a especificación','Producir gas LPG como subproducto'],
+    correct:1 },
+  { id:5, type:'MC', bloque:2,
+    q:'En un desalador electrostático, ¿qué función cumple el agua de lavado?',
+    opts:['Enfriar el crudo antes de la torre','Disolver las sales y formar gotas que coalescen bajo el campo eléctrico','Reaccionar con el azufre presente en el crudo','Generar vapor para el horno de la CDU'],
+    correct:1 },
+
+  // ===== BLOQUE 3 · CDU =====
+  { id:6, type:'MC', bloque:3,
+    q:'¿A qué temperatura aproximada se calienta el crudo en el horno antes de entrar a la torre atmosférica?',
+    opts:['150 °C','250 °C','350–370 °C','500 °C'],
+    correct:2 },
+  { id:7, type:'MC', bloque:3,
+    q:'En una CDU, ¿qué corte sale por la cabeza de la torre?',
+    opts:['Diésel','Nafta + gases ligeros','Crudo reducido (residuo atmosférico)','Gasóleo de vacío (VGO)'],
+    correct:1 },
+  { id:8, type:'SM', bloque:3,
+    q:'Marca TODAS las afirmaciones correctas sobre la CDU:',
+    opts:['Opera a presión ligeramente superior a la atmosférica (~1.5 atm)','Utiliza vapor de agua de despojamiento (stripping)','Tiene side strippers para ajustar el punto de inflamación de los cortes laterales','Su residuo de fondo se envía directamente al reformado catalítico'],
+    correct:[0,1,2] },
+
+  // ===== BLOQUE 4 · VDU =====
+  { id:9, type:'MC', bloque:4,
+    q:'¿Por qué la VDU opera a vacío (25–50 mmHg)?',
+    opts:['Para enfriar el crudo más rápido','Para reducir el punto de ebullición de las fracciones pesadas y evitar el cracking térmico','Para aumentar la producción de gases ligeros','Para mejorar el octanaje de la gasolina'],
+    correct:1 },
+  { id:10, type:'MC', bloque:4,
+    q:'El fondo de la VDU se llama:',
+    opts:['Slop wax','Residuo de vacío (Vacuum Residue)','Heavy gas oil','Light cycle oil'],
+    correct:1 },
+
+  // ===== BLOQUE 5 · FCC + HCK + COKER =====
+  { id:11, type:'MC', bloque:5,
+    q:'La temperatura típica del riser del FCC es de aproximadamente:',
+    opts:['250 °C','370 °C','520 °C','1000 °C'],
+    correct:2 },
+  { id:12, type:'VF', bloque:5,
+    q:'El catalizador del FCC se regenera quemando el coque depositado en él, lo que aporta el calor necesario para la reacción endotérmica de cracking.',
+    opts:['Verdadero','Falso'],
+    correct:0 },
+  { id:13, type:'MC', bloque:5,
+    q:'A diferencia del FCC, el Hidrocraqueo (HCK) se caracteriza por:',
+    opts:['Operar sin catalizador','Operar a alta presión de hidrógeno (~150 atm) y producir destilados de bajo azufre','Producir mayoritariamente olefinas para petroquímica','No requerir hornos de precalentamiento'],
+    correct:1 },
+  { id:14, type:'MC', bloque:5,
+    q:'El coque de petróleo (pet-coke) se obtiene en la unidad:',
+    opts:['CDU','FCC','Coker (coquización retardada)','Alquilación'],
+    correct:2 },
+
+  // ===== BLOQUE 6 · REFORMADO + ALQUILACIÓN + ISOMERIZACIÓN =====
+  { id:15, type:'MC', bloque:6,
+    q:'¿Cuál es el principal objetivo del Reformado Catalítico (CCR)?',
+    opts:['Eliminar el azufre del diésel','Aumentar el octanaje de la nafta convirtiéndola en aromáticos','Producir asfalto a partir del crudo reducido','Reducir la densidad del gas natural'],
+    correct:1 },
+  { id:16, type:'VF', bloque:6,
+    q:'El Reformado Catalítico es el principal proceso productor de hidrógeno dentro de una refinería.',
+    opts:['Verdadero','Falso'],
+    correct:0 },
+  { id:17, type:'MC', bloque:6,
+    q:'La Alquilación combina:',
+    opts:['Olefinas (C3–C4) con isobutano usando H₂SO₄ o HF como catalizador','Aromáticos con olefinas para producir estireno','Parafinas pesadas con hidrógeno para hacer queroseno','Asfalto con polímeros para impermeabilizantes'],
+    correct:0 },
+  { id:18, type:'MC', bloque:6,
+    q:'El propósito principal de la unidad de Isomerización es:',
+    opts:['Aumentar el octanaje de la gasolina','Eliminar el azufre del diésel','Producir asfalto para pavimentación','Generar hidrógeno para la refinería'],
+    correct:0 },
+
+  // ===== BLOQUE 7 · HDS + CLAUS =====
+  { id:19, type:'MC', bloque:7,
+    q:'La Hidrodesulfuración (HDS) del diésel utiliza:',
+    opts:['H₂ a alta presión con catalizador Ni-Mo o Co-Mo en alúmina','Aire y catalizador de platino','Cloro líquido a temperatura ambiente','CO₂ supercrítico'],
+    correct:0 },
+  { id:20, type:'MC', bloque:7,
+    q:'El proceso Claus convierte:',
+    opts:['H₂S y SO₂ en azufre elemental y agua','Mercaptanos en disulfuros','CO₂ en monóxido de carbono','Nafta en gasolina premium'],
+    correct:0 },
+
+  // ===== BLOQUE 8 · TRATAMIENTO DE GAS =====
+  { id:21, type:'MC', bloque:8,
+    q:'El endulzamiento del gas natural consiste en:',
+    opts:['Agregar olor al gas (mercaptanos) por seguridad','Remover H₂S y CO₂ usando aminas (MEA, DEA, MDEA)','Aumentar el poder calorífico del gas con propano','Saturar el gas con vapor de agua'],
+    correct:1 },
+  { id:22, type:'VF', bloque:8,
+    q:'En el fraccionamiento del GNL (gas natural licuado), el primer producto que se separa por destilación criogénica es el metano, dejando los hidrocarburos más pesados en el fondo.',
+    opts:['Verdadero','Falso'],
+    correct:0 },
+
+  // ===== BLOQUE 9 · PRODUCTOS DERIVADOS =====
+  { id:23, type:'MC', bloque:9,
+    q:'¿Cuál de los siguientes productos tiene el MENOR punto de ebullición?',
+    opts:['Gasolina','Diésel','GLP','Queroseno'],
+    correct:2 },
+  { id:24, type:'SM', bloque:9,
+    q:'Marca TODOS los productos que se obtienen del fondo de la unidad de vacío (VDU):',
+    opts:['Asfalto','Gasolina','Fuel oil','Base para lubricantes'],
+    correct:[0,2,3] },
+  { id:25, type:'MC', bloque:9,
+    q:'El Jet A-1 (combustible de aviación comercial) es un tipo de:',
+    opts:['Gasolina de aviación de alto octanaje','Queroseno tratado con norma ASTM D1655','Diésel con bajo punto de congelación','GLP comprimido'],
+    correct:1 }
+];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const state = {
+  student: { codigo:'', nombre:'' },
+  questions: [],       // preguntas barajadas
+  optionMaps: [],      // mapeo de opciones barajadas para cada pregunta
+  responses: {},       // {qId: índice(s) seleccionado(s)}
+  current: 0,
+  startedAt: null,
+  endsAt: null,
+  timerId: null,
+  tabChanges: 0,
+  submitted: false
+};
+
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+function shuffle(arr) {
+  const r = arr.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+// PRNG determinista (mulberry32) — siembra desde el código del estudiante
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffleSeeded(arr, rng) {
+  const r = arr.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+function seedFromCodigo(codigo) {
+  // Convierte el código a entero de 32 bits con un hash simple
+  let h = 0;
+  for (let i = 0; i < codigo.length; i++) {
+    h = ((h << 5) - h + codigo.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h) || 1;
+}
+function fmtTime(seconds) {
+  if (seconds < 0) seconds = 0;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+/* ============================================================
+   VALIDAR Y EMPEZAR
+   ============================================================ */
+async function validateAndStart() {
+  const codigo = $('inpCodigo').value.trim();
+  const clave = $('inpClave').value.trim();
+  const msg = $('validMsg');
+  const btn = $('btnStart');
+
+  msg.className = 'validation-msg';
+  if (!codigo || !clave) {
+    msg.className = 'validation-msg show err';
+    msg.textContent = 'Llena los dos campos antes de continuar.';
+    return;
+  }
+  if (clave !== CLAVE_ACCESO) {
+    msg.className = 'validation-msg show err';
+    msg.textContent = 'Clave de acceso incorrecta. Verifica con el docente.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Validando…';
+  msg.className = 'validation-msg show ok';
+  msg.textContent = 'Verificando código en la matrícula…';
+
+  try {
+    // 1. Verificar que el código está en la lista de matrícula
+    const matricula = await supabaseGET(`matricula_parcial1?codigo=eq.${encodeURIComponent(codigo)}&select=codigo,nombre`);
+    if (!matricula || matricula.length === 0) {
+      msg.className = 'validation-msg show err';
+      msg.textContent = 'Ese código no está en la lista de matrícula del curso. Verifica e intenta de nuevo.';
+      btn.disabled = false;
+      btn.textContent = 'Validar e iniciar parcial →';
+      return;
+    }
+
+    // 2. Verificar que no haya enviado antes (vía función RPC)
+    const yaEnvio = await supabaseRPC('codigo_ya_envio', { p_codigo: codigo });
+    if (yaEnvio === true) {
+      msg.className = 'validation-msg show err';
+      msg.textContent = 'Este código ya envió el parcial. No se permite reenvío. Si crees que es un error, contacta al docente.';
+      btn.disabled = false;
+      btn.textContent = 'Validar e iniciar parcial →';
+      return;
+    }
+
+    // OK, iniciar
+    state.student.codigo = matricula[0].codigo;
+    state.student.nombre = matricula[0].nombre;
+    msg.className = 'validation-msg show ok';
+    msg.textContent = `Bienvenido/a ${matricula[0].nombre}. Iniciando…`;
+    setTimeout(startExam, 800);
+  } catch (err) {
+    msg.className = 'validation-msg show err';
+    msg.textContent = 'Error de conexión: ' + err.message + '. Intenta nuevamente en unos segundos.';
+    btn.disabled = false;
+    btn.textContent = 'Validar e iniciar parcial →';
+  }
+}
+
+/* ============================================================
+   SUPABASE
+   ============================================================ */
+async function supabaseGET(path) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return resp.json();
+}
+async function supabaseRPC(fn, body) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return resp.json();
+}
+async function supabaseINSERT(table, payload) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error('HTTP ' + resp.status + ' · ' + errText);
+  }
+  return true;
+}
+
+/* ============================================================
+   INICIAR EXAMEN
+   ============================================================ */
+function startExam() {
+  // Barajar preguntas y opciones de forma determinista, según el código del estudiante.
+  // Así dos estudiantes distintos ven órdenes distintos, pero el mismo código siempre
+  // produce el mismo orden (útil para auditar reclamos).
+  const seed = seedFromCodigo(state.student.codigo);
+  const rngQ = mulberry32(seed);
+  state.questions = shuffleSeeded(QUESTIONS, rngQ);
+  state.optionMaps = state.questions.map((q, i) =>
+    shuffleSeeded(q.opts.map((_, idx) => idx), mulberry32(seed + i * 7919 + 1))
+  );
+  state.startedAt = Date.now();
+  state.endsAt = state.startedAt + DURACION_MIN * 60 * 1000;
+  state.current = 0;
+
+  $('screen-welcome').classList.remove('active');
+  $('screen-exam').classList.add('active');
+  $('examBar').style.display = 'block';
+  $('studentTag').textContent = state.student.nombre.split(',')[1]?.trim().split(' ').slice(0,2).join(' ') + ' · ' + state.student.codigo;
+
+  renderQuestion();
+  renderJumpGrid();
+  startTimer();
+  registerTabTracking();
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   TIMER
+   ============================================================ */
+function startTimer() {
+  updateTimer();
+  state.timerId = setInterval(updateTimer, 1000);
+}
+function updateTimer() {
+  const remaining = Math.floor((state.endsAt - Date.now()) / 1000);
+  const el = $('timer');
+  el.textContent = fmtTime(remaining);
+  el.classList.toggle('warn', remaining <= 10 * 60 && remaining > 60);
+  el.classList.toggle('crit', remaining <= 60);
+  if (remaining <= 0) {
+    clearInterval(state.timerId);
+    autoSubmit();
+  }
+}
+
+/* ============================================================
+   RENDER PREGUNTA
+   ============================================================ */
+function renderQuestion() {
+  const q = state.questions[state.current];
+  const optMap = state.optionMaps[state.current];
+  const card = $('questionCard');
+  const blockNames = {
+    1:'Crudo', 2:'Desalación', 3:'CDU', 4:'VDU',
+    5:'Conversión', 6:'Octanaje', 7:'Tratamientos', 8:'Gas', 9:'Derivados'
+  };
+  const typeNames = { MC:'Opción única', VF:'Verdadero / Falso', SM:'Selección múltiple' };
+  card.innerHTML = `
+    <div class="q-meta">
+      <span class="num">P${String(state.current + 1).padStart(2, '0')}</span>
+      <span class="type">${typeNames[q.type]}</span>
+      <span class="block">Bloque ${q.bloque} · ${blockNames[q.bloque]}</span>
+    </div>
+    <div class="q-text">${q.q}</div>
+    ${q.type === 'SM' ? '<div class="q-help">⚠ Esta pregunta tiene VARIAS respuestas correctas. Marca todas las que apliquen.</div>' : ''}
+    <div class="options">
+      ${optMap.map((origIdx, displayIdx) => {
+        const optText = q.opts[origIdx];
+        const letter = String.fromCharCode(65 + displayIdx);
+        const isChecked = isOptionChecked(q.id, origIdx, q.type);
+        return `
+          <button class="opt ${q.type === 'SM' ? 'sm' : ''} ${isChecked ? 'checked' : ''}"
+                  onclick="selectOption(${q.id}, ${origIdx}, '${q.type}')">
+            <span class="marker">${letter}</span>
+            <span>${optText}</span>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  $('currentNum').textContent = state.current + 1;
+  $('progFill').style.width = (((state.current + 1) / state.questions.length) * 100) + '%';
+  $('answeredLbl').textContent = countAnswered() + ' respondidas';
+
+  // botones nav
+  $('btnPrev').disabled = state.current === 0;
+  const isLast = state.current === state.questions.length - 1;
+  $('btnNext').textContent = isLast ? 'Revisar y enviar →' : 'Siguiente →';
+
+  renderJumpGrid();
+}
+
+function isOptionChecked(qId, optIdx, type) {
+  const r = state.responses[qId];
+  if (r === undefined) return false;
+  if (type === 'SM') return Array.isArray(r) && r.includes(optIdx);
+  return r === optIdx;
+}
+
+function selectOption(qId, optIdx, type) {
+  if (type === 'SM') {
+    const r = state.responses[qId] || [];
+    const i = r.indexOf(optIdx);
+    if (i >= 0) r.splice(i, 1); else r.push(optIdx);
+    state.responses[qId] = r;
+  } else {
+    state.responses[qId] = optIdx;
+  }
+  renderQuestion();
+}
+
+function countAnswered() {
+  let n = 0;
+  for (const qid in state.responses) {
+    const r = state.responses[qid];
+    if (Array.isArray(r)) { if (r.length > 0) n++; }
+    else if (r !== undefined && r !== null) n++;
+  }
+  return n;
+}
+
+/* ============================================================
+   GRID DE SALTO
+   ============================================================ */
+function renderJumpGrid() {
+  const grid = $('qjumpGrid');
+  grid.innerHTML = state.questions.map((q, i) => {
+    const r = state.responses[q.id];
+    const ans = Array.isArray(r) ? r.length > 0 : (r !== undefined);
+    const cur = i === state.current;
+    return `<button class="qjump-btn ${ans ? 'answered' : ''} ${cur ? 'current' : ''}" onclick="goTo(${i})">${i + 1}</button>`;
+  }).join('');
+}
+function goTo(idx) {
+  state.current = idx;
+  renderQuestion();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function goPrev() {
+  if (state.current > 0) {
+    state.current--;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+function goNext() {
+  if (state.current < state.questions.length - 1) {
+    state.current++;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    // Última: pedir confirmación
+    openConfirm();
+  }
+}
+
+/* ============================================================
+   CONFIRMAR ENVÍO
+   ============================================================ */
+function openConfirm() {
+  const noResp = state.questions.length - countAnswered();
+  if (noResp > 0) {
+    $('confirmTitle').textContent = '¿Enviar con preguntas sin responder?';
+    $('confirmText').textContent = `Te faltan ${noResp} pregunta${noResp === 1 ? '' : 's'} sin responder. Las preguntas sin marcar cuentan como incorrectas.`;
+  } else {
+    $('confirmTitle').textContent = '¿Enviar parcial?';
+    $('confirmText').textContent = 'Una vez enviado no podrás modificar las respuestas.';
+  }
+  $('confirmModal').classList.add('show');
+}
+function closeConfirm() { $('confirmModal').classList.remove('show'); }
+
+/* ============================================================
+   CALIFICAR Y ENVIAR
+   ============================================================ */
+function calificar() {
+  let aciertos = 0;
+  const bloques = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0 };
+  const respuestasDetalle = {};
+
+  QUESTIONS.forEach(q => {
+    const r = state.responses[q.id];
+    let correcto = false;
+    if (q.type === 'SM') {
+      const expected = q.correct.slice().sort();
+      const actual = Array.isArray(r) ? r.slice().sort() : [];
+      correcto = expected.length === actual.length && expected.every((v, i) => v === actual[i]);
+    } else {
+      correcto = r === q.correct;
+    }
+    if (correcto) {
+      aciertos++;
+      bloques[q.bloque]++;
+    }
+    respuestasDetalle[`q${q.id}`] = {
+      respondio: r === undefined ? null : r,
+      correcto: correcto
+    };
+  });
+
+  const nota = Math.round((aciertos / QUESTIONS.length) * 5 * 10) / 10;
+  return { aciertos, nota, bloques, respuestasDetalle };
+}
+
+async function doSubmit() {
+  if (state.submitted) return;
+  state.submitted = true;
+  closeConfirm();
+
+  const { aciertos, nota, bloques, respuestasDetalle } = calificar();
+  const tiempoMin = Math.round(((Date.now() - state.startedAt) / 60000) * 10) / 10;
+
+  const payload = {
+    codigo: state.student.codigo,
+    nombre: state.student.nombre,
+    tiempo_usado_min: tiempoMin,
+    nota: nota,
+    aciertos: aciertos,
+    total_preguntas: QUESTIONS.length,
+    bloque1: bloques[1], bloque2: bloques[2], bloque3: bloques[3],
+    bloque4: bloques[4], bloque5: bloques[5], bloque6: bloques[6],
+    bloque7: bloques[7], bloque8: bloques[8], bloque9: bloques[9],
+    respuestas: respuestasDetalle,
+    navegador: navigator.userAgent,
+    tab_changes: state.tabChanges,
+    status: 'entregado'
+  };
+
+  try {
+    await supabaseINSERT('parcial1', payload);
+    showFinish(aciertos, nota, tiempoMin);
+  } catch (err) {
+    // Reintentar una vez
+    try {
+      await supabaseINSERT('parcial1', payload);
+      showFinish(aciertos, nota, tiempoMin);
+    } catch (err2) {
+      alert('Error al enviar el parcial: ' + err2.message + '\n\nGuarda tu nota: ' + nota + '/5.0 (Aciertos: ' + aciertos + '/25) y avisa al docente.');
+      state.submitted = false;
+    }
+  }
+}
+
+async function autoSubmit() {
+  if (state.submitted) return;
+  alert('⏰ Tiempo agotado. Tu parcial será enviado automáticamente con las respuestas que tengas hasta ahora.');
+  state.submitted = true;
+  const { aciertos, nota, bloques, respuestasDetalle } = calificar();
+  const tiempoMin = DURACION_MIN;
+  try {
+    await supabaseINSERT('parcial1', {
+      codigo: state.student.codigo, nombre: state.student.nombre,
+      tiempo_usado_min: tiempoMin, nota, aciertos,
+      total_preguntas: QUESTIONS.length,
+      bloque1: bloques[1], bloque2: bloques[2], bloque3: bloques[3],
+      bloque4: bloques[4], bloque5: bloques[5], bloque6: bloques[6],
+      bloque7: bloques[7], bloque8: bloques[8], bloque9: bloques[9],
+      respuestas: respuestasDetalle,
+      navegador: navigator.userAgent, tab_changes: state.tabChanges,
+      status: 'tiempo_agotado'
+    });
+  } catch (err) {
+    console.error(err);
+  }
+  showFinish(aciertos, nota, tiempoMin);
+}
+
+function showFinish(aciertos, nota, tiempoMin) {
+  $('screen-exam').classList.remove('active');
+  $('examBar').style.display = 'none';
+  $('screen-finish').classList.add('active');
+  $('finishName').textContent = state.student.nombre;
+  $('finishGrade').innerHTML = nota.toFixed(1) + '<span class="of">/5.0</span>';
+  $('finishAciertos').textContent = aciertos;
+  $('finishTime').textContent = tiempoMin + ' min';
+  $('finishStamp').textContent = state.student.codigo + '-' + Date.now().toString(36).toUpperCase();
+  if (state.timerId) clearInterval(state.timerId);
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   TRACKING DE CAMBIO DE PESTAÑA
+   ============================================================ */
+function registerTabTracking() {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && !state.submitted) {
+      state.tabChanges++;
+      const alert = $('tabAlert');
+      alert.textContent = `⚠ Salida ${state.tabChanges} registrada. Cada cambio de pestaña queda guardado.`;
+      alert.classList.add('show');
+      setTimeout(() => alert.classList.remove('show'), 4000);
+    }
+  });
+  // Bloquea cerrar la pestaña accidentalmente
+  window.addEventListener('beforeunload', e => {
+    if (!state.submitted && state.startedAt) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+  });
+}
+
+/* ============================================================
+   INICIALIZACIÓN
+   ============================================================ */
+$('inpCodigo').focus();
+$('inpClave').addEventListener('keydown', e => {
+  if (e.key === 'Enter') validateAndStart();
+});
+$('inpCodigo').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('inpClave').focus();
+});
+</script>
+</body>
+</html>
