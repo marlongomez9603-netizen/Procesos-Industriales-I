@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retroalimentación del curso · Procesos Industriales I · UNIPAZ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #FFF6E9;
+  --ink: #1B0E05;
+  --ink-soft: #4B3725;
+  --muted: #957B5E;
+  --paper: #FFFFFF;
+  --paper-soft: #FBEAD0;
+  --line: #E6CDA4;
+  --coral: #FF5C39;
+  --teal: #0FB5BA;
+  --berry: #C81D7A;
+  --plum: #6B2D8E;
+  --green: #2BAE66;
+  --red: #C72C2C;
+  --fd: 'Fraunces', Georgia, serif;
+  --fb: 'Outfit', system-ui, sans-serif;
+}
+body {
+  font-family: var(--fb); color: var(--ink);
+  background:
+    radial-gradient(900px 500px at 90% -10%, rgba(255,92,57,0.14), transparent 60%),
+    radial-gradient(900px 500px at -10% 30%, rgba(15,181,186,0.12), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
+  padding: 32px 16px 64px;
+  line-height: 1.55;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.32;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.45  0 0 0 0 0.3  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: multiply;
+}
+.wrap { max-width: 880px; margin: 0 auto; position: relative; z-index: 1; }
+
+/* ===== Hero ===== */
+.hero {
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 22px;
+  padding: 32px 36px;
+  margin-bottom: 22px;
+  box-shadow: 0 18px 40px rgba(27,14,5,0.10);
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+  background: linear-gradient(90deg, var(--coral), var(--berry), var(--teal));
+}
+.pretitle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; background: var(--ink); color: #fff;
+  border-radius: 999px; font-size: 0.7rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 2.5px;
+}
+.hero h1 {
+  font-family: var(--fd);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900; line-height: 1; letter-spacing: -0.03em;
+  margin: 14px 0 10px;
+}
+.hero h1 .em {
+  font-style: italic;
+  background: linear-gradient(120deg, var(--coral), var(--berry));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero p { color: var(--ink-soft); font-size: 1rem; max-width: 720px; }
+.hero .meta {
+  display: flex; flex-wrap: wrap; gap: 18px;
+  margin-top: 16px; font-size: 0.85rem; color: var(--muted);
+}
+.hero .meta b { color: var(--ink); font-weight: 700; }
+.consent {
+  background: var(--paper-soft);
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-top: 18px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.consent b { color: var(--coral); }
+
+/* ===== Welcome (acceso) ===== */
+.access-card {
+  background: var(--paper); border-radius: 18px;
+  padding: 30px 32px; margin-bottom: 22px;
+  border-left: 6px solid var(--coral);
+  box-shadow: 0 14px 32px rgba(27,14,5,0.08);
+}
+.access-card h2 {
+  font-family: var(--fd); font-weight: 800;
+  font-size: 1.35rem; margin-bottom: 12px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label {
+  font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--ink-soft);
+}
+.field input, .field select {
+  background: #fff; border: 1.5px solid var(--line);
+  border-radius: 10px; padding: 12px 14px;
+  font-family: inherit; font-size: 1rem;
+  color: var(--ink); outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus { border-color: var(--coral); }
+.field .hint { font-size: 0.82rem; color: var(--muted); }
+.validation-msg {
+  padding: 12px 16px; border-radius: 10px;
+  font-weight: 500; font-size: 0.92rem;
+  margin-bottom: 14px; display: none;
+}
+.validation-msg.show { display: block; }
+.validation-msg.ok { background: #e7f5ec; color: #1a6a40; border-left: 4px solid var(--green); }
+.validation-msg.err { background: #fae7e7; color: #7a1818; border-left: 4px solid var(--red); }
+
+.btn {
+  background: var(--coral); color: #fff; border: none;
+  padding: 14px 28px; border-radius: 999px;
+  font-family: inherit; font-size: 1rem; font-weight: 800;
+  letter-spacing: 0.5px; cursor: pointer;
+  transition: transform 0.18s, background 0.18s, opacity 0.18s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn:hover:not(:disabled) {
+  background: #E03E1F; transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(255,92,57,0.3);
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary {
+  background: transparent; color: var(--ink);
+  border: 1.5px solid var(--line);
+}
+.btn-secondary:hover:not(:disabled) { border-color: var(--ink); background: var(--paper-soft); }
+
+/* ===== Progress ===== */
+.progress-bar {
+  position: sticky; top: 8px; z-index: 5;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 10px 24px rgba(27,14,5,0.08);
+  margin-bottom: 22px;
+}
+.progress-label {
+  font-size: 0.78rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--ink-soft); flex-shrink: 0;
+}
+.progress-track {
+  flex: 1; height: 8px; background: rgba(27,14,5,0.08);
+  border-radius: 999px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--coral), var(--teal));
+  transition: width 0.45s cubic-bezier(0.2,0.8,0.2,1);
+}
+.progress-count {
+  font-weight: 800; font-size: 0.85rem;
+  color: var(--ink); min-width: 50px; text-align: right;
+}
+
+/* ===== Sections ===== */
+.section {
+  background: var(--paper);
+  border-radius: 22px;
+  padding: 28px 32px;
+  margin-bottom: 22px;
+  box-shadow: 0 14px 32px rgba(27,14,5,0.08);
+  border-top: 6px solid var(--section-color);
+}
+.section-eyebrow {
+  font-size: 0.72rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 3px;
+  color: var(--section-color); margin-bottom: 4px;
+}
+.section-title {
+  font-family: var(--fd); font-weight: 900;
+  font-size: clamp(1.5rem, 3.2vw, 2rem);
+  line-height: 1.1; letter-spacing: -0.025em;
+  color: var(--ink); margin-bottom: 8px;
+}
+.section-desc {
+  font-size: 0.92rem; color: var(--ink-soft);
+  margin-bottom: 22px; line-height: 1.55;
+}
+
+/* ===== Questions ===== */
+.q { margin-bottom: 22px; }
+.q-label {
+  display: block;
+  font-weight: 700; font-size: 1rem;
+  color: var(--ink); margin-bottom: 10px;
+  line-height: 1.45;
+}
+.q-label .num {
+  display: inline-block;
+  background: var(--section-color);
+  color: #fff;
+  font-weight: 900; font-size: 0.78rem;
+  padding: 2px 8px; border-radius: 6px;
+  margin-right: 8px; vertical-align: middle;
+  letter-spacing: 0.5px;
+}
+
+/* Likert */
+.likert {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.likert label {
+  background: var(--paper-soft);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.likert label:hover {
+  transform: translateY(-2px);
+  border-color: var(--section-color);
+}
+.likert input { display: none; }
+.likert label .num-big {
+  display: block;
+  font-family: var(--fd);
+  font-weight: 900; font-size: 1.5rem;
+  color: var(--section-color); line-height: 1;
+  margin-bottom: 4px;
+}
+.likert label .txt {
+  font-size: 0.72rem; font-weight: 600;
+  color: var(--ink-soft); line-height: 1.2;
+}
+.likert label.checked {
+  background: var(--section-color);
+  border-color: var(--section-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.likert label.checked .num-big,
+.likert label.checked .txt {
+  color: #fff;
+}
+
+/* Choice pills */
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices label {
+  flex: 1; min-width: 140px;
+  background: var(--paper-soft);
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600; font-size: 0.92rem;
+  transition: all 0.15s;
+}
+.choices label:hover {
+  border-color: var(--section-color);
+  transform: translateY(-1px);
+}
+.choices input { display: none; }
+.choices label.checked {
+  background: var(--section-color);
+  border-color: var(--section-color);
+  color: #fff;
+}
+
+/* Textareas */
+.q textarea {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+  min-height: 110px;
+  line-height: 1.55;
+}
+.q textarea:focus { border-color: var(--section-color); }
+
+/* Submit */
+.submit-card {
+  background: linear-gradient(135deg, var(--ink), #3A2310);
+  color: #fff;
+  border-radius: 22px;
+  padding: 36px 32px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(27,14,5,0.25);
+}
+.submit-card h3 {
+  font-family: var(--fd);
+  font-weight: 900; font-size: 1.7rem;
+  line-height: 1.1; margin-bottom: 8px;
+}
+.submit-card p { opacity: 0.85; margin-bottom: 20px; font-size: 0.95rem; }
+.status-msg {
+  margin-top: 16px; padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 600; font-size: 0.92rem;
+  display: none;
+}
+.status-msg.show { display: block; }
+.status-msg.err { background: rgba(199,44,44,0.2); color: #ffd2d2; border-left: 3px solid var(--red); }
+
+/* Thanks */
+.thanks {
+  display: none;
+  background: var(--paper);
+  border-radius: 22px;
+  padding: 50px 36px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(27,14,5,0.15);
+  animation: fadeIn 0.5s;
+}
+.thanks.show { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.thanks .icon { font-size: 4rem; margin-bottom: 14px; display: inline-block; }
+.thanks h2 {
+  font-family: var(--fd);
+  font-weight: 900; font-size: 2.4rem; line-height: 1;
+  letter-spacing: -0.03em; margin-bottom: 10px;
+}
+.thanks h2 .em {
+  font-style: italic;
+  background: linear-gradient(120deg, var(--coral), var(--teal));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.thanks p { color: var(--ink-soft); font-size: 1rem; max-width: 540px; margin: 0 auto; }
+
+.hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  body { padding: 16px 10px 48px; }
+  .hero, .section, .access-card { padding: 22px 20px; }
+  .submit-card { padding: 28px 22px; }
+  .likert { gap: 4px; }
+  .likert label { padding: 8px 2px; }
+  .likert label .num-big { font-size: 1.2rem; }
+  .likert label .txt { font-size: 0.62rem; }
+  .choices label { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============= HERO ============= -->
+  <div class="hero">
+    <span class="pretitle">🎓 Retroalimentación · Procesos Industriales I</span>
+    <h1>Tu opinión <span class="em">cuenta</span></h1>
+    <p>Esta encuesta busca mejorar la materia para futuras cohortes. Tus respuestas se analizan de forma <b>agregada y confidencial</b>; en ningún momento se cruzan con tu rendimiento académico.</p>
+    <div class="meta">
+      <span>⏱ <b>~5 min</b></span>
+      <span>📝 <b>24 preguntas</b></span>
+      <span>🔒 <b>Confidencial</b></span>
+    </div>
+    <div class="consent">
+      <b>Consentimiento:</b> Al enviar esta encuesta autorizas el uso de tus respuestas con fines de mejora académica e investigación de maestría. La información se reporta de forma agregada conforme a la Ley 1581 de 2012 (Habeas Data).
+    </div>
+  </div>
+
+  <!-- ============= ACCESO ============= -->
+  <div class="access-card" id="accessCard">
+    <h2>Acceder a la encuesta</h2>
+    <p style="color:var(--ink-soft); margin-bottom:18px; font-size:0.95rem">Ingresa tu código de estudiante para validar que estás matriculado en el curso. Una vez validado, podrás responder.</p>
+    <div class="field">
+      <label for="inpCodigo">Código de estudiante</label>
+      <input type="text" id="inpCodigo" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="Ej. 1005189811">
+      <span class="hint">Solo números, sin espacios.</span>
+    </div>
+    <div class="validation-msg" id="validMsg"></div>
+    <button class="btn" id="btnAccess" onclick="validateAccess()">Validar y comenzar →</button>
+  </div>
+
+  <!-- ============= ENCUESTA (oculta hasta validar) ============= -->
+  <div id="surveyArea" class="hidden">
+
+    <div class="progress-bar">
+      <span class="progress-label">Progreso</span>
+      <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+      <span class="progress-count" id="progCount">0 / 24</span>
+    </div>
+
+    <form id="surveyForm" autocomplete="off">
+
+      <!-- ============= BLOQUE 1 · PERFIL ============= -->
+      <div class="section" style="--section-color: #FF5C39">
+        <div class="section-eyebrow">Bloque 1 · Perfil del estudiante</div>
+        <h2 class="section-title">Sobre tu paso por el curso</h2>
+        <p class="section-desc">Datos breves para entender desde dónde respondes.</p>
+
+        <div class="q">
+          <label class="q-label"><span class="num">01</span>Asistencia promedio a clase durante el semestre</label>
+          <div class="choices" data-radio="asistencia">
+            <label><input type="radio" name="asistencia" value="> 90%">Más del 90%</label>
+            <label><input type="radio" name="asistencia" value="70-90%">Entre 70% y 90%</label>
+            <label><input type="radio" name="asistencia" value="50-70%">Entre 50% y 70%</label>
+            <label><input type="radio" name="asistencia" value="< 50%">Menos del 50%</label>
+          </div>
+        </div>
+
+        <div class="q">
+          <label class="q-label"><span class="num">02</span>Horas semanales dedicadas a la materia FUERA del horario de clase</label>
+          <div class="choices" data-radio="horas_estudio">
+            <label><input type="radio" name="horas_estudio" value="0-2 horas">0 a 2 horas</label>
+            <label><input type="radio" name="horas_estudio" value="3-5 horas">3 a 5 horas</label>
+            <label><input type="radio" name="horas_estudio" value="6-10 horas">6 a 10 horas</label>
+            <label><input type="radio" name="horas_estudio" value="> 10 horas">Más de 10 horas</label>
+          </div>
+        </div>
+
+        <div class="q">
+          <label class="q-label"><span class="num">03</span>Nivel actual de conocimiento sobre refinación (al cerrar el semestre)</label>
+          <div class="choices" data-radio="nivel_actual">
+            <label><input type="radio" name="nivel_actual" value="Bajo">Bajo</label>
+            <label><input type="radio" name="nivel_actual" value="Básico">Básico</label>
+            <label><input type="radio" name="nivel_actual" value="Intermedio">Intermedio</label>
+            <label><input type="radio" name="nivel_actual" value="Avanzado">Avanzado</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============= BLOQUE 2 · CONTENIDO ============= -->
+      <div class="section" style="--section-color: #0FB5BA">
+        <div class="section-eyebrow">Bloque 2 · Contenido académico</div>
+        <h2 class="section-title">Los temas y la profundidad</h2>
+        <p class="section-desc">Escala: <b>1 = totalmente en desacuerdo</b>, <b>5 = totalmente de acuerdo</b>.</p>
+
+        <div class="q" data-likert="c1">
+          <label class="q-label"><span class="num">04</span>Los temas vistos son relevantes para mi formación como ingeniero de producción.</label>
+        </div>
+        <div class="q" data-likert="c2">
+          <label class="q-label"><span class="num">05</span>La profundidad del contenido fue adecuada (ni superficial ni excesiva).</label>
+        </div>
+        <div class="q" data-likert="c3">
+          <label class="q-label"><span class="num">06</span>Los temas se conectan entre sí de forma coherente.</label>
+        </div>
+        <div class="q" data-likert="c4">
+          <label class="q-label"><span class="num">07</span>El contenido refleja la realidad de la industria colombiana del petróleo.</label>
+        </div>
+        <div class="q" data-likert="c5">
+          <label class="q-label"><span class="num">08</span>Salí del curso con una visión clara de cómo funciona una refinería.</label>
+        </div>
+      </div>
+
+      <!-- ============= BLOQUE 3 · METODOLOGÍA ============= -->
+      <div class="section" style="--section-color: #C81D7A">
+        <div class="section-eyebrow">Bloque 3 · Metodología del docente</div>
+        <h2 class="section-title">Cómo se dictaron las clases</h2>
+        <p class="section-desc">Sobre el estilo de enseñanza y la dinámica en aula.</p>
+
+        <div class="q" data-likert="m1">
+          <label class="q-label"><span class="num">09</span>El docente explica los temas con claridad.</label>
+        </div>
+        <div class="q" data-likert="m2">
+          <label class="q-label"><span class="num">10</span>El docente responde dudas de forma efectiva.</label>
+        </div>
+        <div class="q" data-likert="m3">
+          <label class="q-label"><span class="num">11</span>Las clases fomentan la participación de los estudiantes.</label>
+        </div>
+        <div class="q" data-likert="m4">
+          <label class="q-label"><span class="num">12</span>El ritmo de las clases es adecuado (ni muy rápido ni muy lento).</label>
+        </div>
+        <div class="q" data-likert="m5">
+          <label class="q-label"><span class="num">13</span>El docente usa ejemplos prácticos que facilitan el aprendizaje.</label>
+        </div>
+      </div>
+
+      <!-- ============= BLOQUE 4 · RECURSOS ============= -->
+      <div class="section" style="--section-color: #6B2D8E">
+        <div class="section-eyebrow">Bloque 4 · Recursos digitales</div>
+        <h2 class="section-title">Plataforma, juegos, presentaciones</h2>
+        <p class="section-desc">Sobre los materiales y herramientas digitales que usaste durante el curso.</p>
+
+        <div class="q" data-likert="r1">
+          <label class="q-label"><span class="num">14</span>La plataforma 3D facilitó entender los procesos de refinación.</label>
+        </div>
+        <div class="q" data-likert="r2">
+          <label class="q-label"><span class="num">15</span>Las presentaciones interactivas son útiles para estudiar y repasar.</label>
+        </div>
+        <div class="q" data-likert="r3">
+          <label class="q-label"><span class="num">16</span>Los juegos y actividades reforzaron el aprendizaje.</label>
+        </div>
+        <div class="q" data-likert="r4">
+          <label class="q-label"><span class="num">17</span>Las actividades en el celular funcionaron bien técnicamente.</label>
+        </div>
+        <div class="q" data-likert="r5">
+          <label class="q-label"><span class="num">18</span>Los recursos están bien organizados y son fáciles de acceder.</label>
+        </div>
+      </div>
+
+      <!-- ============= BLOQUE 5 · EVALUACIÓN ============= -->
+      <div class="section" style="--section-color: #2BAE66">
+        <div class="section-eyebrow">Bloque 5 · Evaluación</div>
+        <h2 class="section-title">Quizes, parciales, talleres</h2>
+        <p class="section-desc">Sobre cómo se midió tu aprendizaje en la materia.</p>
+
+        <div class="q" data-likert="e1">
+          <label class="q-label"><span class="num">19</span>Las preguntas del parcial reflejan lo que se vio en clase.</label>
+        </div>
+        <div class="q" data-likert="e2">
+          <label class="q-label"><span class="num">20</span>El sistema de evaluación me parece justo.</label>
+        </div>
+        <div class="q" data-likert="e3">
+          <label class="q-label"><span class="num">21</span>Las actividades de clase me ayudan a prepararme para los parciales.</label>
+        </div>
+        <div class="q" data-likert="e4">
+          <label class="q-label"><span class="num">22</span>La retroalimentación recibida (notas, comentarios) me ayuda a mejorar.</label>
+        </div>
+      </div>
+
+      <!-- ============= BLOQUE 6 · ABIERTAS ============= -->
+      <div class="section" style="--section-color: #1B0E05">
+        <div class="section-eyebrow">Bloque 6 · Tu voz</div>
+        <h2 class="section-title">Cuéntanos con tus palabras</h2>
+        <p class="section-desc">Las respuestas en texto libre son las más valiosas para mejorar el curso. Tómate un par de minutos para escribir lo que realmente piensas.</p>
+
+        <div class="q">
+          <label class="q-label"><span class="num">23</span>¿Qué fue lo MEJOR de la materia? Lo que NO debería cambiarse.</label>
+          <textarea name="mejor" placeholder="Ej. La plataforma 3D, los juegos, la forma de explicar del docente, los simuladores, el orden de los temas, etc."></textarea>
+        </div>
+        <div class="q">
+          <label class="q-label"><span class="num">24</span>¿Qué MEJORARÍAS de la materia? Sugerencias concretas.</label>
+          <textarea name="mejorar" placeholder="Ej. Más ejemplos numéricos, menos texto en presentaciones, visitas a planta, talleres más cortos, etc."></textarea>
+        </div>
+      </div>
+
+      <!-- ============= SUBMIT ============= -->
+      <div class="submit-card">
+        <h3>¿Listo para enviar?</h3>
+        <p>Revisa que las preguntas obligatorias del perfil estén respondidas. Una vez enviada, tu respuesta queda guardada.</p>
+        <button type="submit" class="btn" id="btnSubmit" style="background:var(--coral); color:#fff;">Enviar retroalimentación</button>
+        <div class="status-msg" id="statusMsg"></div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ============= GRACIAS ============= -->
+  <div class="thanks" id="thanksBox">
+    <div class="icon">🙏</div>
+    <h2>¡<span class="em">Gracias</span>!</h2>
+    <p>Tu retroalimentación ya quedó registrada y será fundamental para mejorar la materia en próximos semestres. Puedes cerrar esta pestaña con tranquilidad.</p>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN
+   ============================================================ */
+const SUPABASE_URL = 'https://vvvzewwbfrbimytyhrwn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dnpld3diZnJiaW15dHlocnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA3MjQsImV4cCI6MjA5NjE4NjcyNH0.0phEAkHbFU4oP7awYlRohNSssi-w2B2EoOl5wmXTy5Q';
+
+const LIKERT_LABELS = [
+  { v:1, t:'Totalmente en desacuerdo' },
+  { v:2, t:'En desacuerdo' },
+  { v:3, t:'Neutral' },
+  { v:4, t:'De acuerdo' },
+  { v:5, t:'Totalmente de acuerdo' }
+];
+
+const TOTAL_PREG = 24;
+let codigoValidado = '';
+
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   RENDER LIKERT
+   ============================================================ */
+document.querySelectorAll('.q[data-likert]').forEach(q => {
+  const name = q.dataset.likert;
+  const div = document.createElement('div');
+  div.className = 'likert';
+  LIKERT_LABELS.forEach(opt => {
+    const lbl = document.createElement('label');
+    lbl.innerHTML = `
+      <input type="radio" name="${name}" value="${opt.v}">
+      <span class="num-big">${opt.v}</span>
+      <span class="txt">${opt.t}</span>
+    `;
+    lbl.querySelector('input').addEventListener('change', () => {
+      div.querySelectorAll('label').forEach(l => l.classList.remove('checked'));
+      lbl.classList.add('checked');
+      updateProgress();
+    });
+    div.appendChild(lbl);
+  });
+  q.appendChild(div);
+});
+
+/* ============================================================
+   ESTILO RADIO simple
+   ============================================================ */
+document.querySelectorAll('.choices').forEach(c => {
+  c.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      c.querySelectorAll('label').forEach(l => l.classList.remove('checked'));
+      inp.closest('label').classList.add('checked');
+      updateProgress();
+    });
+  });
+});
+
+/* ============================================================
+   PROGRESO
+   ============================================================ */
+function updateProgress() {
+  const form = $('surveyForm');
+  if (!form) return;
+  const data = new FormData(form);
+  let answered = 0;
+
+  ['asistencia','horas_estudio','nivel_actual'].forEach(n => { if (data.get(n)) answered++; });
+  document.querySelectorAll('.q[data-likert]').forEach(q => { if (data.get(q.dataset.likert)) answered++; });
+  ['mejor','mejorar'].forEach(n => { if ((data.get(n) || '').trim().length >= 3) answered++; });
+
+  const pct = Math.round((answered / TOTAL_PREG) * 100);
+  $('progFill').style.width = pct + '%';
+  $('progCount').textContent = `${answered} / ${TOTAL_PREG}`;
+}
+document.querySelectorAll('textarea, input[type="text"], select').forEach(el => {
+  el.addEventListener('input', updateProgress);
+});
+
+/* ============================================================
+   SUPABASE
+   ============================================================ */
+async function supabaseGET(path) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return resp.json();
+}
+async function supabaseRPC(fn, body) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return resp.json();
+}
+async function supabaseINSERT(table, payload) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!resp.ok) {
+    const t = await resp.text();
+    throw new Error('HTTP ' + resp.status + ' · ' + t);
+  }
+}
+
+/* ============================================================
+   VALIDAR ACCESO
+   ============================================================ */
+async function validateAccess() {
+  const codigo = $('inpCodigo').value.trim();
+  const msg = $('validMsg');
+  const btn = $('btnAccess');
+  msg.className = 'validation-msg';
+
+  if (!codigo) {
+    msg.className = 'validation-msg show err';
+    msg.textContent = 'Escribe tu código antes de continuar.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Validando…';
+
+  try {
+    // 1. Validar contra matrícula
+    const mat = await supabaseGET(`matricula_parcial1?codigo=eq.${encodeURIComponent(codigo)}&select=codigo`);
+    if (!mat || mat.length === 0) {
+      msg.className = 'validation-msg show err';
+      msg.textContent = 'Este código no está en la lista del curso. Verifica e intenta de nuevo.';
+      btn.disabled = false;
+      btn.textContent = 'Validar y comenzar →';
+      return;
+    }
+    // 2. ¿Ya respondió antes?
+    const ya = await supabaseRPC('ya_respondio_retro', { p_codigo: codigo });
+    if (ya === true) {
+      msg.className = 'validation-msg show err';
+      msg.textContent = 'Ya respondiste esta encuesta anteriormente. ¡Gracias por participar!';
+      btn.disabled = false;
+      btn.textContent = 'Validar y comenzar →';
+      return;
+    }
+    // OK
+    codigoValidado = codigo;
+    msg.className = 'validation-msg show ok';
+    msg.textContent = '✓ Acceso validado. Ya puedes responder.';
+    setTimeout(() => {
+      $('accessCard').classList.add('hidden');
+      $('surveyArea').classList.remove('hidden');
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 600);
+  } catch (err) {
+    msg.className = 'validation-msg show err';
+    msg.textContent = 'Error de conexión: ' + err.message + '. Intenta nuevamente.';
+    btn.disabled = false;
+    btn.textContent = 'Validar y comenzar →';
+  }
+}
+
+$('inpCodigo').addEventListener('keydown', e => {
+  if (e.key === 'Enter') validateAccess();
+});
+
+/* ============================================================
+   ENVIAR
+   ============================================================ */
+$('surveyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const status = $('statusMsg');
+  const btn = $('btnSubmit');
+  status.className = 'status-msg';
+
+  const data = new FormData(form);
+  // Validación mínima: perfil
+  const required = ['asistencia','horas_estudio','nivel_actual'];
+  const missing = required.filter(n => !data.get(n));
+  if (missing.length) {
+    status.className = 'status-msg show err';
+    status.textContent = 'Por favor responde las preguntas del bloque "Perfil" antes de enviar.';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  const payload = {
+    codigo: codigoValidado,
+    user_agent: navigator.userAgent
+  };
+  // Likert + perfil + abiertas
+  const cols = [
+    'asistencia','horas_estudio','nivel_actual',
+    'c1','c2','c3','c4','c5',
+    'm1','m2','m3','m4','m5',
+    'r1','r2','r3','r4','r5',
+    'e1','e2','e3','e4',
+    'mejor','mejorar'
+  ];
+  cols.forEach(col => {
+    const v = data.get(col);
+    if (v === null || v === undefined || v === '') return;
+    if (/^[cmre]\d$/.test(col)) payload[col] = Number(v);
+    else payload[col] = String(v).trim();
+  });
+
+  try {
+    await supabaseINSERT('retroalimentacion_curso', payload);
+    $('surveyArea').classList.add('hidden');
+    $('thanksBox').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    status.className = 'status-msg show err';
+    status.textContent = 'Error al enviar: ' + err.message;
+    btn.disabled = false;
+    btn.textContent = 'Enviar retroalimentación';
+  }
+});
+</script>
+</body>
+</html>
