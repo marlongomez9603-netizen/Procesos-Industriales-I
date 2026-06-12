@@ -378,32 +378,19 @@ body::before {
   <div class="hero">
     <span class="pretitle">🎓 Retroalimentación · Procesos Industriales I</span>
     <h1>Tu opinión <span class="em">cuenta</span></h1>
-    <p>Esta encuesta busca mejorar la materia para futuras cohortes. Tus respuestas se analizan de forma <b>agregada y confidencial</b>; en ningún momento se cruzan con tu rendimiento académico.</p>
+    <p>Esta encuesta busca mejorar la materia para futuras cohortes. Es <b>100% anónima</b>: no se guarda tu código, ni tu nombre, ni ningún dato identificable. Responde con total honestidad.</p>
     <div class="meta">
       <span>⏱ <b>~5 min</b></span>
       <span>📝 <b>24 preguntas</b></span>
-      <span>🔒 <b>Confidencial</b></span>
+      <span>🔒 <b>Anónima</b></span>
     </div>
     <div class="consent">
       <b>Consentimiento:</b> Al enviar esta encuesta autorizas el uso de tus respuestas con fines de mejora académica e investigación de maestría. La información se reporta de forma agregada conforme a la Ley 1581 de 2012 (Habeas Data).
     </div>
   </div>
 
-  <!-- ============= ACCESO ============= -->
-  <div class="access-card" id="accessCard">
-    <h2>Acceder a la encuesta</h2>
-    <p style="color:var(--ink-soft); margin-bottom:18px; font-size:0.95rem">Ingresa tu código de estudiante para validar que estás matriculado en el curso. Una vez validado, podrás responder.</p>
-    <div class="field">
-      <label for="inpCodigo">Código de estudiante</label>
-      <input type="text" id="inpCodigo" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="Ej. 1005189811">
-      <span class="hint">Solo números, sin espacios.</span>
-    </div>
-    <div class="validation-msg" id="validMsg"></div>
-    <button class="btn" id="btnAccess" onclick="validateAccess()">Validar y comenzar →</button>
-  </div>
-
-  <!-- ============= ENCUESTA (oculta hasta validar) ============= -->
-  <div id="surveyArea" class="hidden">
+  <!-- ============= ENCUESTA (anónima, sin acceso previo) ============= -->
+  <div id="surveyArea">
 
     <div class="progress-bar">
       <span class="progress-label">Progreso</span>
@@ -591,9 +578,17 @@ const LIKERT_LABELS = [
 ];
 
 const TOTAL_PREG = 24;
-let codigoValidado = '';
+const LS_KEY = 'retro_curso_enviada_v1';
 
 const $ = id => document.getElementById(id);
+
+// Si este navegador ya envió la encuesta, mostrar agradecimiento directo
+if (localStorage.getItem(LS_KEY) === '1') {
+  document.addEventListener('DOMContentLoaded', () => {
+    $('surveyArea').classList.add('hidden');
+    $('thanksBox').classList.add('show');
+  });
+}
 
 /* ============================================================
    RENDER LIKERT
@@ -697,65 +692,6 @@ async function supabaseINSERT(table, payload) {
 }
 
 /* ============================================================
-   VALIDAR ACCESO
-   ============================================================ */
-async function validateAccess() {
-  const codigo = $('inpCodigo').value.trim();
-  const msg = $('validMsg');
-  const btn = $('btnAccess');
-  msg.className = 'validation-msg';
-
-  if (!codigo) {
-    msg.className = 'validation-msg show err';
-    msg.textContent = 'Escribe tu código antes de continuar.';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Validando…';
-
-  try {
-    // 1. Validar contra matrícula
-    const mat = await supabaseGET(`matricula_parcial1?codigo=eq.${encodeURIComponent(codigo)}&select=codigo`);
-    if (!mat || mat.length === 0) {
-      msg.className = 'validation-msg show err';
-      msg.textContent = 'Este código no está en la lista del curso. Verifica e intenta de nuevo.';
-      btn.disabled = false;
-      btn.textContent = 'Validar y comenzar →';
-      return;
-    }
-    // 2. ¿Ya respondió antes?
-    const ya = await supabaseRPC('ya_respondio_retro', { p_codigo: codigo });
-    if (ya === true) {
-      msg.className = 'validation-msg show err';
-      msg.textContent = 'Ya respondiste esta encuesta anteriormente. ¡Gracias por participar!';
-      btn.disabled = false;
-      btn.textContent = 'Validar y comenzar →';
-      return;
-    }
-    // OK
-    codigoValidado = codigo;
-    msg.className = 'validation-msg show ok';
-    msg.textContent = '✓ Acceso validado. Ya puedes responder.';
-    setTimeout(() => {
-      $('accessCard').classList.add('hidden');
-      $('surveyArea').classList.remove('hidden');
-      updateProgress();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 600);
-  } catch (err) {
-    msg.className = 'validation-msg show err';
-    msg.textContent = 'Error de conexión: ' + err.message + '. Intenta nuevamente.';
-    btn.disabled = false;
-    btn.textContent = 'Validar y comenzar →';
-  }
-}
-
-$('inpCodigo').addEventListener('keydown', e => {
-  if (e.key === 'Enter') validateAccess();
-});
-
-/* ============================================================
    ENVIAR
    ============================================================ */
 $('surveyForm').addEventListener('submit', async (e) => {
@@ -780,7 +716,6 @@ $('surveyForm').addEventListener('submit', async (e) => {
   btn.textContent = 'Enviando…';
 
   const payload = {
-    codigo: codigoValidado,
     user_agent: navigator.userAgent
   };
   // Likert + perfil + abiertas
@@ -801,6 +736,7 @@ $('surveyForm').addEventListener('submit', async (e) => {
 
   try {
     await supabaseINSERT('retroalimentacion_curso', payload);
+    localStorage.setItem(LS_KEY, '1');
     $('surveyArea').classList.add('hidden');
     $('thanksBox').classList.add('show');
     window.scrollTo({ top: 0, behavior: 'smooth' });
