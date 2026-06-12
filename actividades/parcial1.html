@@ -555,7 +555,7 @@ const SUPABASE_URL = 'https://vvvzewwbfrbimytyhrwn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dnpld3diZnJiaW15dHlocnduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MTA3MjQsImV4cCI6MjA5NjE4NjcyNH0.0phEAkHbFU4oP7awYlRohNSssi-w2B2EoOl5wmXTy5Q';
 
 // 🔑 CAMBIA ESTA CLAVE SI QUIERES, Y AVÍSALA EN CLASE
-const CLAVE_ACCESO = 'REFINACION2026';
+const CLAVE_ACCESO = 'DESTILACION2026';
 
 // Duración total del parcial (en minutos)
 const DURACION_MIN = 125;
@@ -881,7 +881,14 @@ function startExam() {
   renderQuestion();
   renderJumpGrid();
   startTimer();
-  registerTabTracking();
+  // Excepción: estudiantes con dispositivo defectuoso (autorizada por el docente)
+  // 1142714034 = FLOREZ PELAYO, DANNA VALENTINA (celular dañado, falsos positivos)
+  const SIN_ANTITRAMPA = ['1142714034'];
+  if (!SIN_ANTITRAMPA.includes(state.student.codigo)) {
+    registerTabTracking();
+  } else {
+    console.info('Anti-trampa desactivado para este estudiante (autorizado).');
+  }
   window.scrollTo(0, 0);
 
   // Best-effort: pedir pantalla completa (móvil + desktop)
